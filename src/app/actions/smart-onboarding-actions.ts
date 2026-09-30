@@ -6,6 +6,7 @@ import { smartOnboardingService } from "@/modules/ai-assistant/application/smart
 import {
   SmartOnboardingRegistrationSchema,
   ConfirmClassCreationSchema,
+  TeacherSchoolRegistrationChoiceSchema,
 } from "@/modules/ai-assistant/domain/ai-validation";
 import {
   ClassExtractionResult,
@@ -13,6 +14,12 @@ import {
 } from "@/modules/ai-assistant/domain/ai-types";
 import { getSessionCookieOptions } from "@/shared/lib/session";
 import { getCurrentUser } from "@/shared/infrastructure/auth/auth-guard";
+import {
+  GOOGLE_PENDING_REGISTRATION_COOKIE,
+  createGoogleRegistrationPassword,
+  getGoogleOAuthExpiredCookieOptions,
+  readGooglePendingRegistrationCookie,
+} from "@/shared/infrastructure/auth/google-oauth-service";
 import { scheduleService } from "@/modules/schedule/application/schedule-service";
 import { timeSlotService } from "@/modules/schedule/application/time-slot-service";
 import { prisma } from "@/shared/infrastructure/database/prisma";
@@ -33,7 +40,76 @@ export interface ConfirmClassResult {
 
 const HARI_BELAJAR: HariBelajar[] = ["SENIN", "SELASA", "RABU", "KAMIS", "JUMAT", "SABTU"];
 
-async function getTeacherAssignmentForRombel(userId: string, sekolahId: string, rombelId: string) {
+async function setRegistrationSessionCookie(rawSessionToken: string) {
+  const cookieOptions = getSessionCookieOptions(rawSessionToken, true);
+  const cookieStore = await cookies();
+  cookieStore.set(cookieOptions.name, cookieOptions.value, {
+    httpOnly: cookieOptions.httpOnly,
+    secure: cookieOptions.secure,
+    sameSite: cookieOptions.sameSite,
+    path: cookieOptions.path,
+    expires: cookieOptions.expires,
+    maxAge: cookieOptions.maxAge,
+  });
+}
+
+export async function searchSchoolsAction(
+  query: string
+): Promise<ActionResult<Awaited<ReturnType<typeof smartOnboardingService.discoverSchools>>>> {
+  try {
+    return { success: true, data: await smartOnboardingService.discoverSchools(query) };
+  } catch {
+    return { success: false, error: "Pencarian sekolah belum dapat dilakukan. Coba lagi." };
+  }
+}
+
+export async function completeGoogleTeacherRegistrationAction(
+  payload: unknown
+): Promise<ActionResult<{ sekolah: { id: string; nama: string }; redirectUrl: string }>> {
+  try {
+    const parsed = TeacherSchoolRegistrationChoiceSchema.safeParse(payload);
+    if (!parsed.success) {
+      return { success: false, error: "Pilih sekolah atau lengkapi sekolah baru." };
+    }
+
+    const cookieStore = await cookies();
+    const pendingToken = cookieStore.get(GOOGLE_PENDING_REGISTRATION_COOKIE)?.value;
+    const pendingIdentity = readGooglePendingRegistrationCookie(pendingToken);
+    if (!pendingIdentity) {
+      return { success: false, error: "Sesi pendaftaran Google tidak valid atau kedaluwarsa." };
+    }
+
+    const result = await smartOnboardingService.registerTeacher({
+      nama_lengkap: pendingIdentity.nama_lengkap,
+      email: pendingIdentity.email,
+      password: createGoogleRegistrationPassword(),
+      provider_identity: { provider: "GOOGLE", subject: pendingIdentity.subject },
+      ...parsed.data,
+    });
+
+    if (!result.rawSessionToken) throw new Error("Sesi pendaftaran gagal dibuat.");
+    await setRegistrationSessionCookie(result.rawSessionToken);
+    cookieStore.set(GOOGLE_PENDING_REGISTRATION_COOKIE, "", getGoogleOAuthExpiredCookieOptions());
+    revalidatePath("/dashboard");
+
+    return {
+      success: true,
+      data: { sekolah: result.sekolah, redirectUrl: "/onboarding/pilih-avatar" },
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Gagal menghubungkan sekolah.",
+    };
+  }
+}
+
+async function getTeacherAssignmentForRombel(
+  userId: string,
+  sekolahId: string,
+  rombelId: string,
+  penugasanId?: string
+) {
   const guru = await prisma.guru.findFirst({
     where: { pengguna_id: userId, sekolah_id: sekolahId, status_aktif: true },
     select: { id: true },
@@ -61,7 +137,9 @@ export async function registerTeacherAction(
       email: formData.get("email")?.toString() ?? "",
       no_telepon: formData.get("no_telepon")?.toString() ?? undefined,
       password: formData.get("password")?.toString() ?? "",
-      nama_sekolah: formData.get("nama_sekolah")?.toString() ?? "",
+      sekolah_id: formData.get("sekolah_id")?.toString() || undefined,
+      nama_sekolah: formData.get("nama_sekolah")?.toString() || undefined,
+      jenjang: formData.get("jenjang")?.toString() || undefined,
     };
 
     const parsed = SmartOnboardingRegistrationSchema.safeParse(rawData);
@@ -74,17 +152,8 @@ export async function registerTeacherAction(
 
     const result = await smartOnboardingService.registerTeacher(parsed.data);
 
-    // Set cookie sesi langsung agar guru otomatis login
-    const cookieOptions = getSessionCookieOptions(result.rawSessionToken, true);
-    const cookieStore = await cookies();
-    cookieStore.set(cookieOptions.name, cookieOptions.value, {
-      httpOnly: cookieOptions.httpOnly,
-      secure: cookieOptions.secure,
-      sameSite: cookieOptions.sameSite,
-      path: cookieOptions.path,
-      expires: cookieOptions.expires,
-      maxAge: cookieOptions.maxAge,
-    });
+    if (!result.rawSessionToken) throw new Error("Sesi pendaftaran gagal dibuat.");
+    await setRegistrationSessionCookie(result.rawSessionToken);
 
     return {
       success: true,

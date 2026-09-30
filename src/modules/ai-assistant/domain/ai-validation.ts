@@ -4,36 +4,47 @@
 
 import { z } from "zod";
 
-export const SmartOnboardingRegistrationSchema = z.object({
-  nama_lengkap: z
-    .string()
-    .min(3, "Nama lengkap minimal 3 karakter")
-    .max(100, "Nama lengkap maksimal 100 karakter"),
-  username: z
-    .string()
-    .min(3, "Username minimal 3 karakter")
-    .max(30, "Username maksimal 30 karakter")
-    .regex(/^[a-zA-Z0-9_]+$/, "Username hanya boleh huruf, angka, dan underscore")
-    .optional()
-    .or(z.literal("")),
-  email: z.string().email("Format email tidak valid"),
-  no_telepon: z
-    .string()
-    .optional()
-    .refine((val) => !val || /^[0-9+ -]{8,20}$/.test(val), "Nomor telepon / WhatsApp tidak valid"),
-  password: z
-    .string()
-    .min(8, "Kata sandi minimal 8 karakter")
-    .max(100, "Kata sandi maksimal 100 karakter")
-    .regex(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])/,
-      "Kata sandi wajib memadukan huruf besar, huruf kecil, angka, dan simbol"
-    ),
-  nama_sekolah: z
-    .string()
-    .min(3, "Nama sekolah minimal 3 karakter")
-    .max(150, "Nama sekolah maksimal 150 karakter"),
-});
+export const SmartOnboardingRegistrationSchema = z
+  .object({
+    nama_lengkap: z
+      .string()
+      .min(3, "Nama lengkap minimal 3 karakter")
+      .max(100, "Nama lengkap maksimal 100 karakter"),
+    email: z.string().email("Format email tidak valid"),
+    password: z
+      .string()
+      .min(8, "Kata sandi minimal 8 karakter")
+      .max(100, "Kata sandi maksimal 100 karakter")
+      .regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])/,
+        "Kata sandi wajib memadukan huruf besar, huruf kecil, angka, dan simbol"
+      )
+      .optional(),
+    sekolah_id: z.string().optional(),
+    nama_sekolah: z.string().min(3, "Nama sekolah minimal 3 karakter").max(120).optional(),
+    jenjang: z.enum(["SD", "SMP", "SMA", "SMK", "UMUM"]).optional(),
+  })
+  .superRefine((value, context) => {
+    const joiningExistingSchool = Boolean(value.sekolah_id?.trim());
+    const creatingSchool = Boolean(value.nama_sekolah?.trim() && value.jenjang);
+    if (joiningExistingSchool === creatingSchool) {
+      context.addIssue({
+        code: "custom",
+        message: "Pilih sekolah yang ditemukan atau lengkapi nama sekolah dan jenjang.",
+        path: ["sekolah_id"],
+      });
+    }
+  });
+
+export const TeacherSchoolRegistrationChoiceSchema = z.union([
+  z.object({ sekolah_id: z.string().min(1) }).strict(),
+  z
+    .object({
+      nama_sekolah: z.string().trim().min(3).max(120),
+      jenjang: z.enum(["SD", "SMP", "SMA", "SMK", "UMUM"]),
+    })
+    .strict(),
+]);
 
 export const StudentDraftSchema = z.object({
   nama_lengkap: z.string().min(2, "Nama siswa minimal 2 karakter"),

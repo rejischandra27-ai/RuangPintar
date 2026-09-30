@@ -22,12 +22,19 @@ export interface ClassExtractionResult {
 
 export interface SmartOnboardingRegistrationDTO {
   nama_lengkap: string;
-  username?: string;
   email: string;
-  no_telepon?: string;
-  password: string;
-  nama_sekolah: string;
+  password?: string;
+  sekolah_id?: string;
+  nama_sekolah?: string;
+  jenjang?: "SD" | "SMP" | "SMA" | "SMK" | "UMUM" | string;
+  provider_identity?: {
+    provider: "GOOGLE";
+    subject: string;
+  };
 }
+
+export type TeacherSchoolRegistrationChoice =
+  { sekolah_id: string } | { nama_sekolah: string; jenjang: "SD" | "SMP" | "SMA" | "SMK" | "UMUM" };
 
 export interface ConfirmClassCreationDTO {
   requestId?: string;

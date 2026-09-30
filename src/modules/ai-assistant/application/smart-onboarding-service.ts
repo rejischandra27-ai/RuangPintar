@@ -30,124 +30,148 @@ const MAX_FREE_ROMBEL_QUOTA = 5;
 const TRIAL_DURATION_DAYS = 30;
 
 export class SmartOnboardingService {
+  async discoverSchools(
+    query: string
+  ): Promise<
+    Array<{ id: string; nama: string; jenjang: string; lokasi: string | null; npsn: string | null }>
+  > {
+    const term = query.trim().slice(0, 80);
+    if (term.length < 2) return [];
+
+    const schools = await prisma.sekolah.findMany({
+      where: {
+        status_aktif: true,
+        OR: [{ nama: { contains: term } }, { npsn: { contains: term } }],
+      },
+      select: { id: true, nama: true, jenjang: true, alamat: true, npsn: true },
+      orderBy: { nama: "asc" },
+      take: 12,
+    });
+
+    return schools.map(({ alamat, ...school }) => ({ ...school, lokasi: alamat }));
+  }
+
   /**
    * 1. Registrasi Guru Mandiri (Self-Service 4-Column Signup)
    */
-  async registerTeacher(dto: SmartOnboardingRegistrationDTO): Promise<{
+  async registerTeacher(
+    dto: SmartOnboardingRegistrationDTO,
+    sessionContext?: { ipAddress?: string; userAgent?: string }
+  ): Promise<{
     user: { id: string; username: string; email: string; nama_lengkap: string };
     sekolah: { id: string; nama: string };
     rawSessionToken: string;
   }> {
-    // Validasi duplikasi email / username
     const normalizedEmail = dto.email.trim().toLowerCase();
-    const existingEmail = await prisma.pengguna.findFirst({
-      where: { email: normalizedEmail },
-    });
-
-    if (existingEmail) {
+    if (await prisma.pengguna.findFirst({ where: { email: normalizedEmail } })) {
       throw new UserRegistrationError(
         "Email sudah terdaftar. Silakan gunakan email lain atau login."
       );
     }
 
-    // Buat username ramah dari input pengguna atau email
-    const requestedUsername = dto.username
-      ?.trim()
-      .toLowerCase()
-      .replace(/[^a-zA-Z0-9_]/g, "");
-    if (requestedUsername) {
-      const existingUser = await prisma.pengguna.findUnique({
-        where: { username: requestedUsername },
-      });
-      if (existingUser) {
-        throw new UserRegistrationError(
-          "Username tersebut sudah digunakan. Silakan pilih username lain."
-        );
-      }
+    if (!dto.sekolah_id && (!dto.nama_sekolah?.trim() || !dto.jenjang)) {
+      throw new UserRegistrationError("Pilih sekolah atau lengkapi nama sekolah dan jenjang.");
+    }
+    if (dto.sekolah_id && (dto.nama_sekolah || dto.jenjang)) {
+      throw new UserRegistrationError("Pilih sekolah yang ditemukan atau buat sekolah baru.");
     }
 
-    const baseUsername =
-      requestedUsername ||
-      normalizedEmail
-        .split("@")[0]
-        .replace(/[^a-zA-Z0-9_]/g, "_")
-        .substring(0, 20);
+    const selectedSchool = dto.sekolah_id
+      ? await prisma.sekolah.findFirst({
+          where: { id: dto.sekolah_id, status_aktif: true },
+          select: { id: true, nama: true },
+        })
+      : null;
+    if (dto.sekolah_id && !selectedSchool) {
+      throw new UserRegistrationError("Sekolah tidak ditemukan atau tidak aktif.");
+    }
+
+    const baseUsername = normalizedEmail
+      .split("@")[0]
+      .replace(/[^a-zA-Z0-9_]/g, "_")
+      .substring(0, 20);
     let username = baseUsername;
     let counter = 1;
     while (await prisma.pengguna.findUnique({ where: { username } })) {
       username = `${baseUsername}_${counter++}`;
     }
 
-    const schoolId = generateUlid();
+    const createsSchool = !dto.sekolah_id;
+    const schoolId = selectedSchool?.id ?? generateUlid();
+    const schoolName = selectedSchool?.nama ?? dto.nama_sekolah!.trim();
     const userId = generateUlid();
     const teacherId = generateUlid();
-    const tahunAjaranId = generateUlid();
-    const semesterId = generateUlid();
-    const passwordHash = await hashPassword(dto.password);
-
+    const tahunAjaranId = createsSchool ? generateUlid() : undefined;
+    const semesterId = createsSchool ? generateUlid() : undefined;
+    const passwordHash = await hashPassword(dto.password ?? "");
     const trialEndsAt = new Date(Date.now() + TRIAL_DURATION_DAYS * 24 * 60 * 60 * 1000);
 
-    // Jalankan pembuatan data instan dalam 1 transaksi
     await prisma.$transaction(async (tx) => {
-      // a. Buat Sekolah Baru untuk Guru Tersebut
-      await tx.sekolah.create({
-        data: {
-          id: schoolId,
-          nama: dto.nama_sekolah.trim(),
-          jenjang: "SMA",
-          alamat: "Indonesia",
-          email: normalizedEmail,
-          tipe_lisensi: "FREEMIUM",
-          trial_berakhir_pada: trialEndsAt,
-          status_aktif: true,
-        },
-      });
+      if (createsSchool) {
+        await tx.sekolah.create({
+          data: {
+            id: schoolId,
+            nama: schoolName,
+            jenjang: dto.jenjang!,
+            tipe_lisensi: "FREEMIUM",
+            trial_berakhir_pada: trialEndsAt,
+            status_aktif: true,
+          },
+        });
 
-      // b. Buat Tahun Ajaran & Semester Aktif Bawaan
-      await tx.tahunAjaran.create({
-        data: {
-          id: tahunAjaranId,
-          sekolah_id: schoolId,
-          nama: "2026/2027",
-          kode: "TA-2026-2027",
-          tanggal_mulai: new Date("2026-07-01"),
-          tanggal_selesai: new Date("2027-06-30"),
-          status: "AKTIF",
-        },
-      });
+        await tx.tahunAjaran.create({
+          data: {
+            id: tahunAjaranId!,
+            sekolah_id: schoolId,
+            nama: "2026/2027",
+            kode: "TA-2026-2027",
+            tanggal_mulai: new Date("2026-07-01"),
+            tanggal_selesai: new Date("2027-06-30"),
+            status: "AKTIF",
+          },
+        });
 
-      await tx.semester.create({
-        data: {
-          id: semesterId,
-          sekolah_id: schoolId,
-          tahun_ajaran_id: tahunAjaranId,
-          nama: "Semester Ganjil",
-          kode: "GANJIL",
-          urutan: 1,
-          tanggal_mulai: new Date("2026-07-01"),
-          tanggal_selesai: new Date("2026-12-31"),
-          status: "AKTIF",
-        },
-      });
+        await tx.semester.create({
+          data: {
+            id: semesterId!,
+            sekolah_id: schoolId,
+            tahun_ajaran_id: tahunAjaranId!,
+            nama: "Semester Ganjil",
+            kode: "GANJIL",
+            urutan: 1,
+            tanggal_mulai: new Date("2026-07-01"),
+            tanggal_selesai: new Date("2026-12-31"),
+            status: "AKTIF",
+          },
+        });
 
-      // c. Buat Akun Pengguna (Role: TEACHER)
+        for (const [kode, nama, urutan] of [
+          ["X", "Kelas X", 10],
+          ["XI", "Kelas XI", 11],
+          ["XII", "Kelas XII", 12],
+        ] as const) {
+          await tx.tingkatKelas.create({
+            data: { id: generateUlid(), sekolah_id: schoolId, kode, nama, urutan },
+          });
+        }
+      }
+
       await tx.pengguna.create({
         data: {
           id: userId,
           sekolah_id: schoolId,
           username,
           email: normalizedEmail,
-          no_telepon: dto.no_telepon?.trim() || null,
+          no_telepon: null,
           password_hash: passwordHash,
           nama_lengkap: dto.nama_lengkap.trim(),
           peran_dasar: "TEACHER",
           status_akun: "AKTIF",
           tipe_lisensi: "FREEMIUM",
-          trial_berakhir_pada: trialEndsAt,
+          trial_berakhir_pada: createsSchool ? trialEndsAt : null,
         },
       });
 
-      // d. Buat Entitas Guru
       await tx.guru.create({
         data: {
           id: teacherId,
@@ -160,7 +184,16 @@ export class SmartOnboardingService {
         },
       });
 
-      // e. Preferensi Notifikasi Default
+      await tx.preferensiOnboardingGuru.create({
+        data: {
+          id: generateUlid(),
+          pengguna_id: userId,
+          sekolah_id: schoolId,
+          onboarding_eligible: true,
+          onboarding_completed: false,
+        },
+      });
+
       await tx.preferensiNotifikasi.create({
         data: {
           id: generateUlid(),
@@ -170,9 +203,61 @@ export class SmartOnboardingService {
           email_aktif: true,
         },
       });
+
+      await tx.keanggotaanSekolah.create({
+        data: {
+          id: generateUlid(),
+          pengguna_id: userId,
+          sekolah_id: schoolId,
+          peran_dasar_di_tenant: "TEACHER",
+          status_keanggotaan: "ACTIVE",
+          is_owner: createsSchool,
+          berlaku_mulai: new Date(),
+          sumber_pendaftaran: createsSchool ? "OWNER_CREATE" : "JOIN_REQUEST",
+          disetujui_oleh_id: userId,
+          disetujui_pada: new Date(),
+        },
+      });
+
+      if (dto.provider_identity) {
+        await tx.identitasProvider.create({
+          data: {
+            id: generateUlid(),
+            pengguna_id: userId,
+            provider: dto.provider_identity.provider,
+            subject: dto.provider_identity.subject,
+            email: normalizedEmail,
+          },
+        });
+      }
+
+      if (createsSchool) {
+        await tx.langgananTenant.create({
+          data: {
+            id: generateUlid(),
+            sekolah_id: schoolId,
+            paket: "TRIAL",
+            status: "TRIAL_ACTIVE",
+            mulai_pada: new Date(),
+            berakhir_pada: trialEndsAt,
+            sumber_aktivasi: "TRIAL_PROVISIONING",
+          },
+        });
+
+        await tx.konfigurasiSistem.create({
+          data: {
+            id: generateUlid(),
+            sekolah_id: schoolId,
+            kunci: "app.timezone",
+            nilai: "Asia/Jakarta",
+            kategori: "UMUM",
+            deskripsi: "Zona waktu default institusi sekolah",
+          },
+        });
+      }
     });
 
-    // Buat token sesi login instan
+    // Buat token sesi login instan dengan konteks tenant aktif terikat
     const rawSessionToken = generateSessionToken();
     const hashedSessionToken = hashSessionToken(rawSessionToken);
 
@@ -180,9 +265,10 @@ export class SmartOnboardingService {
       data: {
         id: generateUlid(),
         pengguna_id: userId,
+        sekolah_aktif_id: schoolId,
         token_hash: hashedSessionToken,
-        ip_address: "127.0.0.1",
-        user_agent: "Ruang Pintar Self-Service Onboarding",
+        ip_address: sessionContext?.ipAddress ?? "127.0.0.1",
+        user_agent: sessionContext?.userAgent ?? "Ruang Pintar Self-Service Onboarding",
         berlaku_sampai: new Date(Date.now() + SESSION_DURATION_STANDARD_MS),
       },
     });
@@ -196,7 +282,7 @@ export class SmartOnboardingService {
       },
       sekolah: {
         id: schoolId,
-        nama: dto.nama_sekolah.trim(),
+        nama: schoolName,
       },
       rawSessionToken,
     };
@@ -381,7 +467,7 @@ export class SmartOnboardingService {
           tahun_ajaran_id: tahunAjaran.id,
           semester_id: semester.id,
           rombel_id: rombelId,
-          jumlah_jam_minggu: 3,
+          jumlah_jam_minggu: 0,
           status: "AKTIF",
         },
       });

@@ -6,18 +6,47 @@ import { generateUlid } from "@/shared/lib/ulid";
 describe("Smart Onboarding & SaaS Teacher Service (M21)", () => {
   const testEmail = `guru_${Date.now()}@example.com`;
 
+  it("mencari sekolah aktif berdasarkan nama dan NPSN", async () => {
+    const schoolId = generateUlid();
+    const npsn = `${Date.now()}`.slice(-8);
+    await prisma.sekolah.create({
+      data: {
+        id: schoolId,
+        nama: "SD Negeri Pencarian",
+        jenjang: "SD",
+        npsn,
+        alamat: "Kabupaten Bandung",
+      },
+    });
+
+    const [byName, byNpsn] = await Promise.all([
+      smartOnboardingService.discoverSchools("SD Negeri Pencarian"),
+      smartOnboardingService.discoverSchools(npsn),
+    ]);
+
+    expect(byName).toContainEqual({
+      id: schoolId,
+      nama: "SD Negeri Pencarian",
+      jenjang: "SD",
+      lokasi: "Kabupaten Bandung",
+      npsn,
+    });
+    expect(byNpsn.map((school) => school.id)).toContain(schoolId);
+    expect(await smartOnboardingService.discoverSchools(" ")).toEqual([]);
+  });
+
   it("1. harus berhasil mendaftarkan guru mandiri dengan 4 field instan & trial 30 hari", async () => {
     const result = await smartOnboardingService.registerTeacher({
       nama_lengkap: "Ahmad Fauzi, S.Pd",
       email: testEmail,
-      no_telepon: "081234567890",
       password: "Password123#",
-      nama_sekolah: "SMA 1 Coba",
+      nama_sekolah: "SMA Nusantara",
+      jenjang: "SMA",
     });
 
     expect(result.user).toBeDefined();
     expect(result.user.email).toBe(testEmail);
-    expect(result.sekolah.nama).toBe("SMA 1 Coba");
+    expect(result.sekolah.nama).toBe("SMA Nusantara");
     expect(result.rawSessionToken).toBeDefined();
 
     // Verifikasi data di database
@@ -33,6 +62,99 @@ describe("Smart Onboarding & SaaS Teacher Service (M21)", () => {
     });
     expect(teacher).toBeDefined();
     expect(teacher?.nama_lengkap).toBe("Ahmad Fauzi, S.Pd");
+
+    const [gradeLevels, onboarding] = await Promise.all([
+      prisma.tingkatKelas.findMany({
+        where: { sekolah_id: result.sekolah.id },
+        orderBy: { urutan: "asc" },
+        select: { kode: true },
+      }),
+      prisma.preferensiOnboardingGuru.findUnique({
+        where: {
+          pengguna_id_sekolah_id: {
+            pengguna_id: result.user.id,
+            sekolah_id: result.sekolah.id,
+          },
+        },
+      }),
+    ]);
+    expect(gradeLevels.map((grade) => grade.kode)).toEqual(["X", "XI", "XII"]);
+    expect(onboarding).toMatchObject({
+      onboarding_eligible: true,
+      onboarding_completed: false,
+      wizard_step: 0,
+    });
+  });
+
+  it("mendaftarkan guru sebagai non-owner ke sekolah existing tanpa membuat tenant atau trial", async () => {
+    const schoolId = generateUlid();
+    const email = `join_${Date.now()}@example.com`;
+    await prisma.sekolah.create({
+      data: { id: schoolId, nama: "SMP Sekolah Bergabung", jenjang: "SMP" },
+    });
+
+    const result = await smartOnboardingService.registerTeacher({
+      nama_lengkap: "Guru Bergabung",
+      email,
+      password: "Password123#",
+      sekolah_id: schoolId,
+    });
+
+    const [membership, user, trialCount, schoolCount] = await Promise.all([
+      prisma.keanggotaanSekolah.findUnique({
+        where: { pengguna_id_sekolah_id: { pengguna_id: result.user.id, sekolah_id: schoolId } },
+      }),
+      prisma.pengguna.findUnique({ where: { id: result.user.id } }),
+      prisma.langgananTenant.count({ where: { sekolah_id: schoolId } }),
+      prisma.sekolah.count({ where: { id: schoolId } }),
+    ]);
+
+    expect(result.sekolah).toEqual({ id: schoolId, nama: "SMP Sekolah Bergabung" });
+    expect(membership).toMatchObject({
+      status_keanggotaan: "ACTIVE",
+      is_owner: false,
+      sumber_pendaftaran: "JOIN_REQUEST",
+    });
+    expect(user?.trial_berakhir_pada).toBeNull();
+    expect(trialCount).toBe(0);
+    expect(schoolCount).toBe(1);
+  });
+
+  it("Google teacher yang memilih sekolah baru dibuat bersama provider, owner, session, dan trial", async () => {
+    const email = `google_owner_${Date.now()}@example.com`;
+    const subject = `google-owner-${Date.now()}`;
+    const result = await smartOnboardingService.registerTeacher({
+      nama_lengkap: "Guru Google Owner",
+      email,
+      password: "TemporaryPassword123#",
+      nama_sekolah: "Sekolah Google Baru",
+      jenjang: "SD",
+      provider_identity: { provider: "GOOGLE", subject },
+    });
+
+    const [membership, user, subscriptionCount, provider, session] = await Promise.all([
+      prisma.keanggotaanSekolah.findUnique({
+        where: {
+          pengguna_id_sekolah_id: {
+            pengguna_id: result.user.id,
+            sekolah_id: result.sekolah.id,
+          },
+        },
+      }),
+      prisma.pengguna.findUnique({ where: { id: result.user.id } }),
+      prisma.langgananTenant.count({ where: { sekolah_id: result.sekolah.id } }),
+      prisma.identitasProvider.findUnique({
+        where: { provider_subject: { provider: "GOOGLE", subject } },
+      }),
+      prisma.sesiPengguna.findFirst({ where: { pengguna_id: result.user.id } }),
+    ]);
+
+    expect(membership?.is_owner).toBe(true);
+    expect(user?.trial_berakhir_pada).toBeInstanceOf(Date);
+    expect(subscriptionCount).toBe(1);
+    expect(provider?.pengguna_id).toBe(result.user.id);
+    expect(session?.sekolah_aktif_id).toBe(result.sekolah.id);
+    expect(result.rawSessionToken).toBeTruthy();
   });
 
   it("2. harus menolak registrasi dengan email yang sama persis", async () => {
@@ -41,7 +163,8 @@ describe("Smart Onboarding & SaaS Teacher Service (M21)", () => {
         nama_lengkap: "Guru Kloning",
         email: testEmail,
         password: "Password123#",
-        nama_sekolah: "SMA Duplikat",
+        nama_sekolah: "SMA Nusantara",
+        jenjang: "SMA",
       })
     ).rejects.toThrow("Email sudah terdaftar");
   });
@@ -114,6 +237,32 @@ describe("Smart Onboarding & SaaS Teacher Service (M21)", () => {
     });
     expect(penugasan).toBeDefined();
     expect(penugasan?.mata_pelajaran.nama).toBe("Matematika Wajib");
+  });
+
+  it("4a. membatalkan rombel dan assignment jika pembuatan siswa gagal di transaksi", async () => {
+    const user = await prisma.pengguna.findFirst({ where: { email: testEmail } });
+    const className = "X MIPA ATOMIC ROLLBACK";
+
+    await expect(
+      smartOnboardingService.confirmAndCreateClass(user!.id, user!.sekolah_id!, {
+        nama_kelas: className,
+        tingkat_kelas: "10",
+        mata_pelajaran: "Matematika Wajib",
+        siswa: [
+          { nama_lengkap: "Siswa Pertama", jenis_kelamin: "L", nis: "ROLLBACK-001" },
+          { nama_lengkap: "Siswa Kedua", jenis_kelamin: "P", nis: "ROLLBACK-001" },
+        ],
+      })
+    ).rejects.toThrow();
+
+    expect(
+      await prisma.rombel.count({ where: { sekolah_id: user!.sekolah_id!, nama: className } })
+    ).toBe(0);
+    expect(
+      await prisma.penugasanMengajar.count({
+        where: { sekolah_id: user!.sekolah_id!, rombel: { nama: className } },
+      })
+    ).toBe(0);
   });
 
   it("5. harus menghitung sisa hari uji coba dan status kuota kelas guru", async () => {
