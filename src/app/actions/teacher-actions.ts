@@ -145,19 +145,56 @@ export async function updateTeacherAction(
     const session = await requireAuth();
     await requirePermission("academic.teachers.manage");
 
-    if (!session.sekolah_id) {
-      return { success: false, message: "Konteks sekolah tidak valid." };
-    }
-
     const id = formData.get("id")?.toString();
     if (!id) {
       return { success: false, message: "ID Guru tidak valid." };
     }
 
+    const clientSekolahId = formData.get("sekolah_id")?.toString();
+    let effectiveSekolahId = session.sekolah_id;
+
+    if (session.peran_dasar === "SUPER_ADMIN") {
+      effectiveSekolahId = clientSekolahId || session.sekolah_id;
+      if (!effectiveSekolahId) {
+        const found = await prisma.guru.findUnique({
+          where: { id },
+          select: { sekolah_id: true },
+        });
+        if (found) effectiveSekolahId = found.sekolah_id;
+      }
+    } else {
+      if (!session.sekolah_id) {
+        return { success: false, message: "Konteks sekolah tidak valid." };
+      }
+      if (clientSekolahId && clientSekolahId !== session.sekolah_id) {
+        return { success: false, message: "Akses ditolak: Akses data lintas sekolah dilarang." };
+      }
+    }
+
+    if (!effectiveSekolahId) {
+      return { success: false, message: "Konteks sekolah tidak valid." };
+    }
+
+    const statusLifecycleRaw = formData.get("status_lifecycle")?.toString();
+    const statusAktifRaw = formData.get("status_aktif");
+
+    let status_lifecycle: StatusLifecycle | undefined = undefined;
+    let status_aktif: boolean | undefined = undefined;
+
+    if (statusLifecycleRaw && ["AKTIF", "NONAKTIF", "ARSIP"].includes(statusLifecycleRaw)) {
+      status_lifecycle = statusLifecycleRaw as StatusLifecycle;
+      status_aktif = statusLifecycleRaw === "AKTIF";
+    } else if (statusAktifRaw !== null && statusAktifRaw !== undefined) {
+      const isAktif =
+        statusAktifRaw === "true" || statusAktifRaw === "on" || statusAktifRaw === "1";
+      status_aktif = isAktif;
+      status_lifecycle = isAktif ? "AKTIF" : "NONAKTIF";
+    }
+
     const updated = await TeacherProfileService.updateTeacher(
       {
         id,
-        sekolah_id: session.sekolah_id,
+        sekolah_id: effectiveSekolahId,
         pengguna_id: formData.get("pengguna_id")?.toString() || undefined,
         nip: formData.get("nip")?.toString() || undefined,
         nuptk: formData.get("nuptk")?.toString() || undefined,
@@ -172,7 +209,8 @@ export async function updateTeacherAction(
         alamat: formData.get("alamat")?.toString() || undefined,
         status_kepegawaian: formData.get("status_kepegawaian")?.toString() as
           StatusKepegawaianGuru | undefined,
-        status_aktif: formData.get("status_aktif") === "true",
+        status_aktif,
+        status_lifecycle,
         foto_url: formData.get("foto_url")?.toString() || undefined,
         catatan: formData.get("catatan")?.toString() || undefined,
       },
@@ -198,13 +236,22 @@ export async function deleteTeacherAction(id: string): Promise<ActionResult> {
     const session = await requireAuth();
     await requirePermission("academic.teachers.manage");
 
-    if (!session.sekolah_id) {
+    let effectiveSekolahId = session.sekolah_id;
+    if (session.peran_dasar === "SUPER_ADMIN" && !effectiveSekolahId) {
+      const found = await prisma.guru.findUnique({
+        where: { id },
+        select: { sekolah_id: true },
+      });
+      if (found) effectiveSekolahId = found.sekolah_id;
+    }
+
+    if (!effectiveSekolahId) {
       return { success: false, message: "Konteks sekolah tidak valid." };
     }
 
     await TeacherProfileService.deleteTeacher(
       id,
-      session.sekolah_id,
+      effectiveSekolahId,
       session.id,
       session.peran_dasar
     );
@@ -228,13 +275,22 @@ export async function deactivateTeacherAction(id: string): Promise<ActionResult>
     const session = await requireAuth();
     await requirePermission("academic.teachers.manage");
 
-    if (!session.sekolah_id) {
+    let effectiveSekolahId = session.sekolah_id;
+    if (session.peran_dasar === "SUPER_ADMIN" && !effectiveSekolahId) {
+      const found = await prisma.guru.findUnique({
+        where: { id },
+        select: { sekolah_id: true },
+      });
+      if (found) effectiveSekolahId = found.sekolah_id;
+    }
+
+    if (!effectiveSekolahId) {
       return { success: false, message: "Konteks sekolah tidak valid." };
     }
 
     const teacher = await TeacherProfileService.deactivateTeacher(
       id,
-      session.sekolah_id,
+      effectiveSekolahId,
       session.id,
       session.peran_dasar
     );
@@ -259,13 +315,22 @@ export async function archiveTeacherAction(id: string): Promise<ActionResult> {
     const session = await requireAuth();
     await requirePermission("academic.teachers.manage");
 
-    if (!session.sekolah_id) {
+    let effectiveSekolahId = session.sekolah_id;
+    if (session.peran_dasar === "SUPER_ADMIN" && !effectiveSekolahId) {
+      const found = await prisma.guru.findUnique({
+        where: { id },
+        select: { sekolah_id: true },
+      });
+      if (found) effectiveSekolahId = found.sekolah_id;
+    }
+
+    if (!effectiveSekolahId) {
       return { success: false, message: "Konteks sekolah tidak valid." };
     }
 
     const teacher = await TeacherProfileService.archiveTeacher(
       id,
-      session.sekolah_id,
+      effectiveSekolahId,
       session.id,
       session.peran_dasar
     );
@@ -290,13 +355,22 @@ export async function restoreTeacherAction(id: string): Promise<ActionResult> {
     const session = await requireAuth();
     await requirePermission("academic.teachers.manage");
 
-    if (!session.sekolah_id) {
+    let effectiveSekolahId = session.sekolah_id;
+    if (session.peran_dasar === "SUPER_ADMIN" && !effectiveSekolahId) {
+      const found = await prisma.guru.findUnique({
+        where: { id },
+        select: { sekolah_id: true },
+      });
+      if (found) effectiveSekolahId = found.sekolah_id;
+    }
+
+    if (!effectiveSekolahId) {
       return { success: false, message: "Konteks sekolah tidak valid." };
     }
 
     const teacher = await TeacherProfileService.restoreTeacher(
       id,
-      session.sekolah_id,
+      effectiveSekolahId,
       session.id,
       session.peran_dasar
     );

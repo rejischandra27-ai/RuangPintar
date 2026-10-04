@@ -876,7 +876,7 @@ export function TeachersView({
 
                   {canManage && (
                     <div className="flex items-center gap-1">
-                      {lifecycle === "ARSIP" ? (
+                      {lifecycle !== "AKTIF" && (
                         <button
                           onClick={() => handleRestoreSubmit(t.id)}
                           className="p-1.5 rounded-lg text-emerald-600 hover:bg-emerald-50 transition-colors"
@@ -884,18 +884,17 @@ export function TeachersView({
                         >
                           <RotateCcw className="h-4 w-4" />
                         </button>
-                      ) : (
-                        <>
-                          <button
-                            onClick={() => {
-                              setEditPhoto(t.foto_url || null);
-                              setEditingTeacher(t);
-                            }}
-                            className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 transition-colors"
-                            title="Edit Guru"
-                          >
-                            <Edit2 className="h-4 w-4" />
-                          </button>
+                      )}
+                      <button
+                        onClick={() => {
+                          setEditPhoto(t.foto_url || null);
+                          setEditingTeacher(t);
+                        }}
+                        className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 transition-colors"
+                        title="Edit Guru"
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </button>
                           <button
                             onClick={() => {
                               setResetCustomPassword("");
@@ -923,8 +922,6 @@ export function TeachersView({
                               <Archive className="h-4 w-4" />
                             </button>
                           )}
-                        </>
-                      )}
                     </div>
                   )}
                 </div>
@@ -1115,7 +1112,7 @@ export function TeachersView({
 
                           {canManage && (
                             <>
-                              {lifecycle === "ARSIP" ? (
+                              {lifecycle !== "AKTIF" && (
                                 <button
                                   onClick={() => handleRestoreSubmit(t.id)}
                                   className="p-1.5 rounded-lg text-emerald-600 hover:bg-emerald-50 transition-colors"
@@ -1123,18 +1120,17 @@ export function TeachersView({
                                 >
                                   <RotateCcw className="h-4 w-4" />
                                 </button>
-                              ) : (
-                                <>
-                                  <button
-                                    onClick={() => {
-                                      setEditPhoto(t.foto_url || null);
-                                      setEditingTeacher(t);
-                                    }}
-                                    className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 transition-colors"
-                                    title="Edit Data Guru"
-                                  >
-                                    <Edit2 className="h-4 w-4" />
-                                  </button>
+                              )}
+                              <button
+                                onClick={() => {
+                                  setEditPhoto(t.foto_url || null);
+                                  setEditingTeacher(t);
+                                }}
+                                className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 transition-colors"
+                                title="Edit Data Guru"
+                              >
+                                <Edit2 className="h-4 w-4" />
+                              </button>
                                   <button
                                     onClick={() => {
                                       setResetCustomPassword("");
@@ -1165,8 +1161,6 @@ export function TeachersView({
                                   )}
                                 </>
                               )}
-                            </>
-                          )}
                         </div>
                       </td>
                     </tr>
@@ -1483,6 +1477,7 @@ export function TeachersView({
                 className="p-6 overflow-y-auto space-y-4 flex-1 text-xs sm:text-sm"
               >
                 <input type="hidden" name="id" value={editingTeacher.id} />
+                <input type="hidden" name="sekolah_id" value={editingTeacher.sekolah_id} />
 
                 {/* Pas Foto Guru */}
                 <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200/80">

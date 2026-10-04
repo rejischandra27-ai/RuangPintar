@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   requirePermission: vi.fn(),
   deleteTeacher: vi.fn(),
   deactivateTeacher: vi.fn(),
+  updateTeacher: vi.fn(),
   revalidatePath: vi.fn(),
 }));
 
@@ -30,10 +31,15 @@ vi.mock("@/modules/teacher/application/teacher-profile-service", () => ({
   TeacherProfileService: {
     deleteTeacher: mocks.deleteTeacher,
     deactivateTeacher: mocks.deactivateTeacher,
+    updateTeacher: mocks.updateTeacher,
   },
 }));
 
-import { deactivateTeacherAction, deleteTeacherAction } from "@/app/actions/teacher-actions";
+import {
+  deactivateTeacherAction,
+  deleteTeacherAction,
+  updateTeacherAction,
+} from "@/app/actions/teacher-actions";
 
 describe("Teacher actions lifecycle guard (M08)", () => {
   beforeEach(() => {
@@ -96,6 +102,61 @@ describe("Teacher actions lifecycle guard (M08)", () => {
     expect(mocks.deactivateTeacher).toHaveBeenCalledWith(
       "01JTEACHER000000000000001",
       "01JSCHOOL0000000000000001",
+      "01JACTOR000000000000000001",
+      "SCHOOL_STAFF"
+    );
+  });
+
+  it("updates teacher name without altering active status to false when status_lifecycle is AKTIF", async () => {
+    mocks.updateTeacher.mockResolvedValue({
+      id: "01JTEACHER000000000000001",
+      nama_dengan_gelar: "Eri Chandra A",
+      status_aktif: true,
+      status_lifecycle: "AKTIF",
+    });
+
+    const formData = new FormData();
+    formData.append("id", "01JTEACHER000000000000001");
+    formData.append("nama_lengkap", "Eri Chandra A");
+    formData.append("status_lifecycle", "AKTIF");
+
+    const result = await updateTeacherAction(null, formData);
+
+    expect(result.success).toBe(true);
+    expect(mocks.updateTeacher).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: "01JTEACHER000000000000001",
+        nama_lengkap: "Eri Chandra A",
+        status_aktif: true,
+        status_lifecycle: "AKTIF",
+      }),
+      "01JACTOR000000000000000001",
+      "SCHOOL_STAFF"
+    );
+  });
+
+  it("does not override status_aktif when neither status_lifecycle nor status_aktif is passed in formData", async () => {
+    mocks.updateTeacher.mockResolvedValue({
+      id: "01JTEACHER000000000000001",
+      nama_dengan_gelar: "Eri Chandra A",
+      status_aktif: true,
+      status_lifecycle: "AKTIF",
+    });
+
+    const formData = new FormData();
+    formData.append("id", "01JTEACHER000000000000001");
+    formData.append("nama_lengkap", "Eri Chandra A");
+
+    const result = await updateTeacherAction(null, formData);
+
+    expect(result.success).toBe(true);
+    expect(mocks.updateTeacher).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: "01JTEACHER000000000000001",
+        nama_lengkap: "Eri Chandra A",
+        status_aktif: undefined,
+        status_lifecycle: undefined,
+      }),
       "01JACTOR000000000000000001",
       "SCHOOL_STAFF"
     );
