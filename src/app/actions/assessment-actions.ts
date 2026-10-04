@@ -348,3 +348,38 @@ export async function getGradebookAction(
     return { success: false, message };
   }
 }
+
+/**
+ * Ekspor Matriks Buku Nilai ke format Excel (.xlsx) dengan struktur & rumus resmi
+ */
+export async function exportGradebookExcelAction(
+  penugasanId: string
+): Promise<AssessmentActionResult<{ base64: string; filename: string }>> {
+  try {
+    const user = await requireAuth();
+    if (!user.sekolah_id) {
+      return { success: false, message: "Sekolah tidak teridentifikasi." };
+    }
+
+    await requirePermission("assessment.grades.view", {
+      sekolah_id: user.sekolah_id,
+    });
+
+    const { exportGradebookToExcel } =
+      await import("@/modules/assessment/application/gradebook-excel-export-service");
+
+    const exportResult = await exportGradebookToExcel(penugasanId, user.sekolah_id);
+
+    return {
+      success: true,
+      message: "Leger nilai Excel berhasil digenerate.",
+      data: {
+        base64: exportResult.base64,
+        filename: exportResult.filename,
+      },
+    };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Gagal mengekspor file Excel.";
+    return { success: false, message };
+  }
+}

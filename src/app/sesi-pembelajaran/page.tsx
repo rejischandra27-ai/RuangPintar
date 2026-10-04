@@ -21,8 +21,9 @@ import { ClassSessionsView } from "@/modules/schedule/presentation/class-session
 import { schoolProfileService } from "@/modules/school/application/school-profile-service";
 
 export const metadata = {
-  title: "Sesi Pembelajaran (KBM) — Ruang Pintar",
-  description: "Pengelolaan sesi pembelajaran kelas aktual, jurnal kelas, dan guru pengganti.",
+  title: "Log & Audit Sesi KBM — Ruang Pintar",
+  description:
+    "Log audit riwayat sesi pembelajaran kelas, jurnal KBM, dan pengawasan operasional sekolah.",
 };
 
 export const dynamic = "force-dynamic";
@@ -101,21 +102,22 @@ export default async function SesiPembelajaranPage() {
                   Dashboard
                 </Link>
                 <span>/</span>
-                <span className="text-slate-700 font-semibold">Sesi Pembelajaran</span>
+                <span className="text-slate-700 font-semibold">Log Sesi KBM</span>
               </div>
 
               <div className="space-y-1.5">
                 <div className="flex flex-wrap items-center gap-2.5">
                   <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0F172A] tracking-tight">
-                    Sesi Pembelajaran (KBM)
+                    Log & Audit Sesi KBM
                   </h1>
                   <span className="px-2.5 py-0.5 rounded-lg bg-blue-50 border border-blue-200/80 text-blue-700 font-bold text-xs">
                     {schoolProfile.nama}
                   </span>
                 </div>
                 <p className="text-slate-500 text-xs sm:text-sm leading-relaxed max-w-2xl">
-                  Pencatatan sesi kelas aktual secara langsung, pembukaan pertemuan kegiatan belajar
-                  mengajar, penugasan guru pengganti, dan dokumentasi jurnal materi pembelajaran.
+                  Log audit riwayat sesi pembelajaran kelas aktual, jurnal materi KBM, dan
+                  pengawasan operasional sekolah. Untuk presensi siswa harian langsung, gunakan
+                  Presensi Cepat di Dashboard atau Tab Presensi di Ruang Kelas Saya.
                 </p>
               </div>
 

@@ -24,6 +24,8 @@ import {
   X,
   Download,
   ArrowUpDown,
+  LayoutGrid,
+  Table2,
   Camera,
   Upload,
   ChevronDown,
@@ -70,8 +72,9 @@ export function StudentDirectoryView({
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [rombelFilter, setRombelFilter] = useState("ALL");
   const [sortBy, setSortBy] = useState("name_asc");
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(12);
   const [currentPage, setCurrentPage] = useState(1);
+  const [viewMode, setViewMode] = useState<"GRID" | "TABLE">("GRID");
 
   // Popover toggle states
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -126,7 +129,7 @@ export function StudentDirectoryView({
   const filteredStudents = students.filter((s) => {
     const matchesSearch =
       s.nama_lengkap.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.nis.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (s.nis && s.nis.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (s.nisn && s.nisn.includes(searchQuery));
 
     const matchesStatus = statusFilter === "ALL" || s.status_akademik === statusFilter;
@@ -143,9 +146,9 @@ export function StudentDirectoryView({
       case "name_desc":
         return b.nama_lengkap.localeCompare(a.nama_lengkap, "id");
       case "nis_asc":
-        return a.nis.localeCompare(b.nis, undefined, { numeric: true });
+        return (a.nis || "").localeCompare(b.nis || "", undefined, { numeric: true });
       case "nis_desc":
-        return b.nis.localeCompare(a.nis, undefined, { numeric: true });
+        return (b.nis || "").localeCompare(a.nis || "", undefined, { numeric: true });
       case "date_asc":
         return new Date(a.tanggal_masuk).getTime() - new Date(b.tanggal_masuk).getTime();
       case "date_desc":
@@ -316,7 +319,7 @@ export function StudentDirectoryView({
 
     const rows = sortedStudents.map((s, idx) => [
       idx + 1,
-      escapeCsv(s.nis),
+      escapeCsv(s.nis || ""),
       escapeCsv(s.nisn || ""),
       escapeCsv(s.nama_lengkap),
       escapeCsv(s.jenis_kelamin === "L" ? "Laki-laki" : "Perempuan"),
@@ -461,9 +464,9 @@ export function StudentDirectoryView({
         />
       )}
 
-      {/* Table Toolbar (UI Kit Standard: Search + Filter + Sort + Export + Primary Button) */}
-      <div className="relative z-20 p-3 sm:p-4 rounded-2xl bg-white/90 backdrop-blur-md border border-slate-200/80 shadow-sm">
-        <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
+      {/* Table Toolbar (Clean & Frameless: Search + Filter + Sort + Grid/Tabel Toggle + Export + Tambah Siswa) */}
+      <div className="relative z-20">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
           {/* Search Input with Leading & Trailing Icon */}
           <div className="relative flex-1 min-w-[220px]">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
@@ -475,7 +478,7 @@ export function StudentDirectoryView({
                 setCurrentPage(1);
               }}
               placeholder="Search siswa, NIS, kelas..."
-              className="w-full pl-9 pr-9 py-2.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-[#2563EB] transition-all shadow-2xs"
+              className="w-full pl-9 pr-9 py-2.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md text-xs sm:text-sm text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-[#2563EB] transition-all shadow-2xs"
             />
             {searchQuery ? (
               <button
@@ -503,15 +506,15 @@ export function StudentDirectoryView({
                 }}
                 className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl border font-semibold text-xs sm:text-sm shadow-2xs transition-colors cursor-pointer shrink-0 ${
                   statusFilter !== "ALL" || rombelFilter !== "ALL"
-                    ? "border-blue-300 bg-blue-50/70 text-[#2563EB]"
-                    : "border-slate-200 bg-white hover:bg-slate-50 text-slate-700"
+                    ? "border-blue-300 dark:border-blue-800 bg-blue-50/80 dark:bg-blue-950/60 text-[#2563EB] dark:text-blue-400"
+                    : "border-slate-200/80 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
                 }`}
               >
                 <Filter
                   className={`h-4 w-4 ${
                     statusFilter !== "ALL" || rombelFilter !== "ALL"
-                      ? "text-[#2563EB]"
-                      : "text-slate-600"
+                      ? "text-[#2563EB] dark:text-blue-400"
+                      : "text-slate-500"
                   }`}
                 />
                 <span>Filter</span>
@@ -522,10 +525,10 @@ export function StudentDirectoryView({
 
               {/* Filter Popover Menu */}
               {isFilterOpen && (
-                <div className="absolute left-0 sm:left-auto sm:right-0 mt-2 w-72 p-4 rounded-2xl bg-white border border-slate-200 shadow-xl z-30 space-y-3 animate-in fade-in zoom-in-95">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                    <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                      <Filter className="h-3.5 w-3.5 text-[#2563EB]" />
+                <div className="absolute left-0 sm:left-auto sm:right-0 mt-2 w-72 p-4 rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800 shadow-xl z-30 space-y-3 animate-in fade-in zoom-in-95">
+                  <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                      <Filter className="h-3.5 w-3.5 text-[#2563EB] dark:text-blue-400" />
                       Filter Data Siswa
                     </span>
                     {(statusFilter !== "ALL" || rombelFilter !== "ALL") && (
@@ -545,7 +548,7 @@ export function StudentDirectoryView({
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                    <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
                       Status Akademik
                     </label>
                     <select
@@ -554,7 +557,7 @@ export function StudentDirectoryView({
                         setStatusFilter(e.target.value);
                         setCurrentPage(1);
                       }}
-                      className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-xs font-medium text-slate-800 focus:ring-2 focus:ring-blue-500/20 focus:border-[#2563EB]"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/80 text-xs font-medium text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-[#2563EB]"
                     >
                       <option value="ALL">Semua Status</option>
                       <option value="AKTIF">Aktif</option>
@@ -565,7 +568,7 @@ export function StudentDirectoryView({
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                    <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
                       Rombongan Belajar (Rombel)
                     </label>
                     <select
@@ -574,7 +577,7 @@ export function StudentDirectoryView({
                         setRombelFilter(e.target.value);
                         setCurrentPage(1);
                       }}
-                      className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-xs font-medium text-slate-800 focus:ring-2 focus:ring-blue-500/20 focus:border-[#2563EB]"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/80 text-xs font-medium text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-[#2563EB]"
                     >
                       <option value="ALL">Semua Rombel</option>
                       {rombels.map((r) => (
@@ -596,15 +599,15 @@ export function StudentDirectoryView({
                   setIsSortOpen(!isSortOpen);
                   setIsFilterOpen(false);
                 }}
-                className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs sm:text-sm shadow-2xs transition-colors cursor-pointer shrink-0"
+                className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs sm:text-sm shadow-2xs transition-colors cursor-pointer shrink-0"
               >
-                <ArrowUpDown className="h-4 w-4 text-slate-600" />
+                <ArrowUpDown className="h-4 w-4 text-slate-500" />
                 <span>Sort</span>
               </button>
 
               {/* Sort Popover Menu */}
               {isSortOpen && (
-                <div className="absolute left-0 sm:left-auto sm:right-0 mt-2 w-56 p-2 rounded-2xl bg-white border border-slate-200 shadow-xl z-30 space-y-1 animate-in fade-in zoom-in-95">
+                <div className="absolute left-0 sm:left-auto sm:right-0 mt-2 w-56 p-2 rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800 shadow-xl z-30 space-y-1 animate-in fade-in zoom-in-95">
                   {[
                     { id: "name_asc", label: "Nama (A - Z)" },
                     { id: "name_desc", label: "Nama (Z - A)" },
@@ -621,26 +624,59 @@ export function StudentDirectoryView({
                       }}
                       className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-colors cursor-pointer ${
                         sortBy === opt.id
-                          ? "bg-blue-50 text-[#2563EB] font-bold"
-                          : "text-slate-700 hover:bg-slate-50"
+                          ? "bg-blue-50 dark:bg-blue-950/60 text-[#2563EB] dark:text-blue-400 font-bold"
+                          : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
                       }`}
                     >
                       <span>{opt.label}</span>
-                      {sortBy === opt.id && <Check className="h-3.5 w-3.5 text-[#2563EB]" />}
+                      {sortBy === opt.id && (
+                        <Check className="h-3.5 w-3.5 text-[#2563EB] dark:text-blue-400" />
+                      )}
                     </button>
                   ))}
                 </div>
               )}
             </div>
 
+            {/* View Mode Toggle: Grid Kartu vs Tabel Ringkas */}
+            <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-100/90 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 shrink-0">
+              <button
+                type="button"
+                onClick={() => setViewMode("GRID")}
+                className={`p-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  viewMode === "GRID"
+                    ? "bg-white dark:bg-slate-900 text-[#2563EB] dark:text-blue-400 shadow-2xs"
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                }`}
+                title="Tampilan Kartu Grid"
+              >
+                <LayoutGrid className="h-4 w-4" />
+                <span className="hidden sm:inline">Grid Kartu</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setViewMode("TABLE")}
+                className={`p-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  viewMode === "TABLE"
+                    ? "bg-white dark:bg-slate-900 text-[#2563EB] dark:text-blue-400 shadow-2xs"
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                }`}
+                title="Tampilan Tabel Ringkas"
+              >
+                <Table2 className="h-4 w-4" />
+                <span className="hidden sm:inline">Tabel Ringkas</span>
+              </button>
+            </div>
+
             {/* Export Dropdown / Button */}
             <button
               type="button"
               onClick={handleExportCSV}
-              className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs sm:text-sm shadow-2xs transition-colors cursor-pointer shrink-0"
+              className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs sm:text-sm shadow-2xs transition-colors cursor-pointer shrink-0"
               title="Ekspor daftar siswa ke file CSV"
             >
-              <Download className="h-4 w-4 text-slate-600" />
+              <Download className="h-4 w-4 text-slate-500" />
               <span>Export</span>
               <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
             </button>
@@ -710,362 +746,450 @@ export function StudentDirectoryView({
         </div>
       )}
 
-      {/* Content: Mobile Cards (< 640px) */}
-      <div className="block sm:hidden space-y-3">
-        {paginatedStudents.length === 0 ? (
-          <div className="p-8 text-center bg-white rounded-2xl border border-slate-200 text-slate-400 text-xs">
-            Tidak ada data siswa yang cocok dengan filter pencarian.
-          </div>
-        ) : (
-          paginatedStudents.map((student) => (
-            <div
-              key={student.id}
-              className="p-4 rounded-2xl bg-white/90 border border-slate-200/80 shadow-sm space-y-3"
-            >
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex items-center gap-3">
-                  {/* Checkbox */}
-                  <input
-                    type="checkbox"
-                    aria-label={`Pilih siswa ${student.nama_lengkap}`}
-                    checked={selectedIds.has(student.id)}
-                    onChange={() => handleToggleRow(student.id)}
-                    className="w-4 h-4 rounded text-[#2563EB] border-slate-300 focus:ring-blue-500 cursor-pointer shrink-0 mt-0.5"
-                  />
-
-                  {/* Foto Siswa: 44px rounded-full object-cover shrink-0 aspect-square */}
-                  {student.foto_url ? (
-                    <img
-                      src={student.foto_url}
-                      alt={student.nama_lengkap}
-                      className="w-11 h-11 rounded-full object-cover shrink-0 aspect-square border border-slate-200 shadow-2xs"
-                    />
-                  ) : (
-                    <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-[#2563EB] to-indigo-600 flex items-center justify-center text-white font-bold text-sm shrink-0 aspect-square shadow-2xs">
-                      {student.nama_lengkap.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                  <div>
-                    <h4 className="font-bold text-slate-800 text-xs sm:text-sm">
-                      {student.nama_lengkap}
-                    </h4>
-                    <span className="text-[11px] text-slate-400 font-mono">
-                      NIS: {student.nis} {student.nisn ? `• ${student.nisn}` : ""}
-                    </span>
-                  </div>
-                </div>
-                <span
-                  className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${getStatusBadge(
-                    student.status_akademik
-                  )}`}
-                >
-                  {student.status_akademik}
-                </span>
+      {/* 5. STUDENT DIRECTORY CONTENT (GRID KARTU ATAU TABEL RINGKAS) */}
+      {viewMode === "GRID" ? (
+        <div className="space-y-4">
+          {paginatedStudents.length === 0 ? (
+            <div className="p-8 sm:p-12 text-center rounded-[24px] bg-white/80 dark:bg-slate-900/75 backdrop-blur-xl border border-slate-200/80 dark:border-blue-500/20 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_0_25px_-5px_rgba(37,99,235,0.16)] space-y-4">
+              <div className="h-12 w-12 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-[#2563EB] dark:text-blue-400 mx-auto flex items-center justify-center shadow-2xs">
+                <Search className="h-6 w-6" />
               </div>
-
-              <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs">
-                <span className="text-slate-400">Rombel Aktif:</span>
-                <span className="font-semibold text-slate-700">
-                  {student.active_rombel_nama || "Belum Ditempatkan"}
-                  {student.active_nomor_absen ? ` (#${student.active_nomor_absen})` : ""}
-                </span>
+              <div className="space-y-1">
+                <h4 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
+                  Tidak Ada Siswa yang Ditemukan
+                </h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
+                  {searchQuery
+                    ? `Tidak ada data siswa yang cocok dengan kata kunci '${searchQuery}'.`
+                    : "Belum ada data siswa yang cocok dengan filter yang dipilih saat ini."}
+                </p>
               </div>
-
-              {/* Action Toolbar */}
-              <div className="flex items-center justify-between pt-2 border-t border-slate-100 gap-1 text-xs">
-                <button
-                  onClick={() => setDetailStudent(student)}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-50 text-[#2563EB] font-semibold hover:bg-blue-100 transition-colors"
-                >
-                  <Eye className="h-3.5 w-3.5" />
-                  Detail
-                </button>
-
-                {canManage && (
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => {
-                        setEditPhoto(student.foto_url || null);
-                        setEditingStudent(student);
-                      }}
-                      className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 transition-colors"
-                      title="Edit Siswa"
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => {
-                        setResetCustomPassword("");
-                        setResettingStudent(student);
-                      }}
-                      className="p-1.5 rounded-lg text-amber-600 hover:bg-amber-50 transition-colors"
-                      title="Reset Kata Sandi Akun"
-                    >
-                      <KeyRound className="h-4 w-4" />
-                    </button>
-                    {student.status_akademik === "AKTIF" && (
-                      <>
-                        <button
-                          onClick={() => setTransferringStudent(student)}
-                          className="p-1.5 rounded-lg text-amber-600 hover:bg-amber-50 transition-colors"
-                          title="Mutasi Keluar"
-                        >
-                          <ArrowRightLeft className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => setGraduatingStudent(student)}
-                          className="p-1.5 rounded-lg text-indigo-600 hover:bg-indigo-50 transition-colors"
-                          title="Kelulusan"
-                        >
-                          <GraduationCap className="h-4 w-4" />
-                        </button>
-                      </>
-                    )}
-                    <button
-                      onClick={() => setDeletingStudent(student)}
-                      className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 transition-colors"
-                      title="Hapus"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-
-      {/* Content: Desktop Data Table (>= 640px) */}
-      <div className="hidden sm:block overflow-hidden rounded-2xl bg-white/90 border border-slate-200/80 shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs sm:text-sm">
-            <thead className="bg-slate-50/90 text-slate-500 font-semibold uppercase text-[10px] tracking-wider border-b border-slate-200/80">
-              <tr>
-                {/* Checkbox Select All */}
-                <th className="w-12 px-4 py-3.5 text-center">
-                  <input
-                    type="checkbox"
-                    ref={selectAllRef}
-                    aria-label="Pilih semua siswa"
-                    checked={isAllSelected}
-                    onChange={handleToggleSelectAll}
-                    className="w-4 h-4 rounded text-[#2563EB] border-slate-300 focus:ring-blue-500 cursor-pointer"
-                  />
-                </th>
-                <th className="px-4 py-3.5">Identitas Siswa</th>
-                <th className="px-4 py-3.5">L/P</th>
-                <th className="px-4 py-3.5">Status</th>
-                <th className="px-4 py-3.5">Rombel & Tingkat</th>
-                <th className="px-4 py-3.5">Wali / Kontak</th>
-                <th className="px-5 py-3.5 text-right">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 text-slate-700">
-              {paginatedStudents.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={7}
-                    className="px-6 py-12 text-center text-slate-400 text-xs sm:text-sm"
+              {(statusFilter !== "ALL" || rombelFilter !== "ALL" || searchQuery) && (
+                <div className="flex items-center justify-center pt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchQuery("");
+                      setStatusFilter("ALL");
+                      setRombelFilter("ALL");
+                      setCurrentPage(1);
+                    }}
+                    className="px-4 py-2 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-[#2563EB] dark:text-blue-400 border border-blue-200 dark:border-blue-800 text-xs font-bold hover:bg-blue-100 transition-all cursor-pointer flex items-center gap-1.5"
                   >
-                    Tidak ada data siswa yang cocok dengan filter pencarian.
-                  </td>
-                </tr>
-              ) : (
-                paginatedStudents.map((s) => {
-                  const isSelected = selectedIds.has(s.id);
-                  return (
-                    <tr
-                      key={s.id}
-                      className={`hover:bg-slate-50/80 transition-colors ${
-                        isSelected ? "bg-blue-50/40" : ""
-                      }`}
-                    >
-                      {/* [CHECKBOX] */}
-                      <td className="w-12 px-4 py-3.5 text-center">
-                        <input
-                          type="checkbox"
-                          aria-label={`Pilih siswa ${s.nama_lengkap}`}
-                          checked={isSelected}
-                          onChange={() => handleToggleRow(s.id)}
-                          className="w-4 h-4 rounded text-[#2563EB] border-slate-300 focus:ring-blue-500 cursor-pointer"
-                        />
-                      </td>
-
-                      {/* [FOTO] [IDENTITAS] */}
-                      <td className="px-4 py-3.5">
-                        <div className="flex items-center gap-3.5">
-                          {s.foto_url ? (
-                            <img
-                              src={s.foto_url}
-                              alt={s.nama_lengkap}
-                              className="w-11 h-11 rounded-full object-cover shrink-0 aspect-square border border-slate-200/80 shadow-2xs"
-                            />
-                          ) : (
-                            <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-[#2563EB] to-indigo-600 flex items-center justify-center text-white font-bold text-sm shrink-0 aspect-square shadow-2xs">
-                              {s.nama_lengkap.charAt(0).toUpperCase()}
-                            </div>
-                          )}
-                          <div>
-                            <span
-                              className="font-bold text-slate-800 block hover:text-[#2563EB] cursor-pointer"
-                              onClick={() => setDetailStudent(s)}
-                            >
-                              {s.nama_lengkap}
-                            </span>
-                            <span className="text-[11px] text-slate-400 font-mono">
-                              NIS: {s.nis} {s.nisn ? `• NISN: ${s.nisn}` : ""}
-                            </span>
-                          </div>
+                    <RotateCcw className="h-3.5 w-3.5" />
+                    <span>Reset Filter</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+              {paginatedStudents.map((student) => {
+                const isSelected = selectedIds.has(student.id);
+                return (
+                  <div
+                    key={student.id}
+                    className={`group relative rounded-[24px] bg-white/80 dark:bg-slate-900/75 backdrop-blur-xl border transition-all duration-300 p-4 sm:p-5 flex flex-col justify-between overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_0_25px_-5px_rgba(37,99,235,0.16)] hover:shadow-md hover:border-blue-300 dark:hover:border-blue-500/40 hover:-translate-y-0.5 ${
+                      isSelected
+                        ? "border-[#2563EB] ring-2 ring-blue-500/20 bg-blue-50/20"
+                        : "border-slate-200/80 dark:border-blue-500/20"
+                    }`}
+                  >
+                    <div className="space-y-3.5">
+                      {/* Top Header: Checkbox + NIS + Status Badge */}
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            aria-label={`Pilih siswa ${student.nama_lengkap}`}
+                            checked={isSelected}
+                            onChange={() => handleToggleRow(student.id)}
+                            className="w-4 h-4 rounded text-[#2563EB] border-slate-300 focus:ring-blue-500 cursor-pointer"
+                          />
+                          <span className="px-2.5 py-0.5 rounded-md bg-blue-50 border border-blue-200/80 text-[#2563EB] font-black text-xs font-mono">
+                            NIS: {student.nis || "-"}
+                          </span>
                         </div>
-                      </td>
-                      <td className="px-4 py-3.5 font-semibold text-slate-600">
-                        {s.jenis_kelamin}
-                      </td>
-                      <td className="px-4 py-3.5">
                         <span
-                          className={`text-[10px] font-semibold px-2.5 py-0.5 rounded-full border ${getStatusBadge(
-                            s.status_akademik
+                          className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${getStatusBadge(
+                            student.status_akademik
                           )}`}
                         >
-                          {s.status_akademik}
+                          {student.status_akademik}
                         </span>
-                      </td>
-                      <td className="px-4 py-3.5">
-                        {s.active_rombel_nama ? (
-                          <div>
-                            <span className="font-semibold text-slate-800 block">
-                              {s.active_rombel_nama}
-                            </span>
-                            <span className="text-[11px] text-slate-400">
-                              {s.active_tingkat_nama ?? ""}
-                              {s.active_nomor_absen ? ` • Absen #${s.active_nomor_absen}` : ""}
-                            </span>
-                          </div>
+                      </div>
+
+                      {/* Student Identity: Avatar + Name + Subtitle */}
+                      <div className="flex items-start gap-3">
+                        {student.foto_url ? (
+                          <img
+                            src={student.foto_url}
+                            alt={student.nama_lengkap}
+                            className="w-12 h-12 rounded-full object-cover shrink-0 aspect-square border-2 border-white shadow-2xs"
+                          />
                         ) : (
-                          <span className="text-slate-400 italic text-xs">Belum Ditempatkan</span>
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#2563EB] to-indigo-600 flex items-center justify-center text-white font-extrabold text-base shrink-0 aspect-square shadow-2xs">
+                            {student.nama_lengkap.charAt(0).toUpperCase()}
+                          </div>
                         )}
-                      </td>
-                      <td className="px-4 py-3.5">
-                        <div>
-                          <span className="font-medium text-slate-700 block">
-                            {s.nama_wali || "-"}
+                        <div className="min-w-0 flex-1">
+                          <h3
+                            onClick={() => setDetailStudent(student)}
+                            className="font-extrabold text-slate-900 dark:text-white text-sm sm:text-base tracking-tight hover:text-[#2563EB] dark:hover:text-blue-400 transition-colors truncate cursor-pointer"
+                            title={student.nama_lengkap}
+                          >
+                            {student.nama_lengkap}
+                          </h3>
+                          <p className="text-[11px] text-slate-400 dark:text-slate-400 font-mono mt-0.5 truncate">
+                            {student.jenis_kelamin === "L" ? "Laki-laki" : "Perempuan"}
+                            {student.nisn ? ` • NISN ${student.nisn}` : ""}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Metadata Detail Chips */}
+                      <div className="p-3 rounded-2xl bg-slate-50/80 dark:bg-slate-800/60 border border-slate-100/90 dark:border-slate-700/60 space-y-1.5 text-xs">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-medium text-slate-400 dark:text-slate-400">
+                            Rombel & Kelas:
                           </span>
-                          <span className="text-[11px] text-slate-400 font-mono">
-                            {s.telepon_wali || s.email_wali || "-"}
+                          <span className="font-bold text-slate-800 dark:text-slate-200 text-xs font-mono">
+                            {student.active_rombel_nama || "Belum Ditempatkan"}
+                            {student.active_nomor_absen ? ` (#${student.active_nomor_absen})` : ""}
                           </span>
                         </div>
-                      </td>
-                      <td className="px-5 py-3.5 text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <button
-                            onClick={() => setDetailStudent(s)}
-                            className="p-1.5 rounded-lg text-[#2563EB] hover:bg-blue-50 transition-colors"
-                            title="Lihat Detail & Riwayat"
+                        {student.active_tingkat_nama && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-medium text-slate-400 dark:text-slate-400">
+                              Tingkat:
+                            </span>
+                            <span className="font-semibold text-slate-700 dark:text-slate-300 text-xs">
+                              {student.active_tingkat_nama}
+                            </span>
+                          </div>
+                        )}
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-medium text-slate-400 dark:text-slate-400">
+                            Wali:
+                          </span>
+                          <span
+                            className="font-medium text-slate-700 dark:text-slate-300 text-xs truncate max-w-[150px]"
+                            title={student.nama_wali || "-"}
                           >
-                            <Eye className="h-4 w-4" />
+                            {student.nama_wali || "-"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Card Footer Actions */}
+                    <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setDetailStudent(student)}
+                        className="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-[#2563EB] text-[#2563EB] hover:text-white font-bold text-xs transition-all duration-200 flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                      >
+                        <Eye className="h-3.5 w-3.5" />
+                        <span>Detail</span>
+                      </button>
+
+                      {canManage && (
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditPhoto(student.foto_url || null);
+                              setEditingStudent(student);
+                            }}
+                            className="p-1.5 rounded-xl text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                            title="Edit Profil"
+                          >
+                            <Edit2 className="h-4 w-4" />
                           </button>
-                          {canManage && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setResetCustomPassword("");
+                              setResettingStudent(student);
+                            }}
+                            className="p-1.5 rounded-xl text-amber-600 hover:text-amber-700 hover:bg-amber-50 transition-colors cursor-pointer"
+                            title="Reset Kata Sandi Akun"
+                          >
+                            <KeyRound className="h-4 w-4" />
+                          </button>
+                          {student.status_akademik === "AKTIF" && (
                             <>
                               <button
-                                onClick={() => {
-                                  setEditPhoto(s.foto_url || null);
-                                  setEditingStudent(s);
-                                }}
-                                className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 transition-colors"
-                                title="Edit Profil"
+                                type="button"
+                                onClick={() => setTransferringStudent(student)}
+                                className="p-1.5 rounded-xl text-amber-600 hover:text-amber-700 hover:bg-amber-50 transition-colors cursor-pointer"
+                                title="Mutasi Keluar"
                               >
-                                <Edit2 className="h-4 w-4" />
+                                <ArrowRightLeft className="h-4 w-4" />
                               </button>
                               <button
-                                onClick={() => {
-                                  setResetCustomPassword("");
-                                  setResettingStudent(s);
-                                }}
-                                className="p-1.5 rounded-lg text-amber-600 hover:bg-amber-50 transition-colors"
-                                title="Reset Kata Sandi Akun"
+                                type="button"
+                                onClick={() => setGraduatingStudent(student)}
+                                className="p-1.5 rounded-xl text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 transition-colors cursor-pointer"
+                                title="Kelulusan"
                               >
-                                <KeyRound className="h-4 w-4" />
-                              </button>
-                              {s.status_akademik === "AKTIF" && (
-                                <>
-                                  <button
-                                    onClick={() => setTransferringStudent(s)}
-                                    className="p-1.5 rounded-lg text-amber-600 hover:bg-amber-50 transition-colors"
-                                    title="Mutasi Keluar"
-                                  >
-                                    <ArrowRightLeft className="h-4 w-4" />
-                                  </button>
-                                  <button
-                                    onClick={() => setGraduatingStudent(s)}
-                                    className="p-1.5 rounded-lg text-indigo-600 hover:bg-indigo-50 transition-colors"
-                                    title="Kelulusan"
-                                  >
-                                    <GraduationCap className="h-4 w-4" />
-                                  </button>
-                                </>
-                              )}
-                              <button
-                                onClick={() => setDeletingStudent(s)}
-                                className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 transition-colors"
-                                title="Hapus"
-                              >
-                                <Trash2 className="h-4 w-4" />
+                                <GraduationCap className="h-4 w-4" />
                               </button>
                             </>
                           )}
+                          <button
+                            type="button"
+                            onClick={() => setDeletingStudent(student)}
+                            className="p-1.5 rounded-xl text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition-colors cursor-pointer"
+                            title="Hapus"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
                         </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination Toolbar */}
-        <div className="flex items-center justify-between px-5 py-3.5 border-t border-slate-100 bg-slate-50/50 text-xs text-slate-500">
-          <span>
-            Menampilkan{" "}
-            <strong>
-              {filteredStudents.length === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1} -{" "}
-              {Math.min(currentPage * rowsPerPage, filteredStudents.length)}
-            </strong>{" "}
-            dari <strong>{filteredStudents.length}</strong> siswa
-          </span>
-          <div className="flex items-center gap-2">
-            <select
-              value={rowsPerPage}
-              onChange={(e) => {
-                setRowsPerPage(Number(e.target.value));
-                setCurrentPage(1);
-              }}
-              className="px-2 py-1 rounded-lg border border-slate-200 bg-white text-xs text-slate-700"
-            >
-              <option value={10}>10 Baris</option>
-              <option value={25}>25 Baris</option>
-              <option value={50}>50 Baris</option>
-            </select>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="p-1.5 rounded-lg border border-slate-200 bg-white disabled:opacity-40"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-              <span className="px-2 font-semibold">
-                {currentPage} / {totalPages}
-              </span>
-              <button
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className="p-1.5 rounded-lg border border-slate-200 bg-white disabled:opacity-40"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
+          )}
+        </div>
+      ) : (
+        /* Mode: TABEL RINGKAS (Desktop & Tablet) */
+        <div className="overflow-hidden rounded-[24px] bg-white/80 dark:bg-slate-900/75 backdrop-blur-xl border border-slate-200/80 dark:border-blue-500/20 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs sm:text-sm">
+              <thead className="bg-slate-50/90 text-slate-500 font-semibold uppercase text-[10px] tracking-wider border-b border-slate-200/80">
+                <tr>
+                  {/* Checkbox Select All */}
+                  <th className="w-12 px-4 py-3.5 text-center">
+                    <input
+                      type="checkbox"
+                      ref={selectAllRef}
+                      aria-label="Pilih semua siswa"
+                      checked={isAllSelected}
+                      onChange={handleToggleSelectAll}
+                      className="w-4 h-4 rounded text-[#2563EB] border-slate-300 focus:ring-blue-500 cursor-pointer"
+                    />
+                  </th>
+                  <th className="px-4 py-3.5">Identitas Siswa</th>
+                  <th className="px-4 py-3.5">L/P</th>
+                  <th className="px-4 py-3.5">Status</th>
+                  <th className="px-4 py-3.5">Rombel & Tingkat</th>
+                  <th className="px-4 py-3.5">Wali / Kontak</th>
+                  <th className="px-5 py-3.5 text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-slate-700">
+                {paginatedStudents.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={7}
+                      className="px-6 py-12 text-center text-slate-400 text-xs sm:text-sm"
+                    >
+                      Tidak ada data siswa yang cocok dengan filter pencarian.
+                    </td>
+                  </tr>
+                ) : (
+                  paginatedStudents.map((s) => {
+                    const isSelected = selectedIds.has(s.id);
+                    return (
+                      <tr
+                        key={s.id}
+                        className={`hover:bg-slate-50/80 transition-colors ${
+                          isSelected ? "bg-blue-50/40" : ""
+                        }`}
+                      >
+                        {/* [CHECKBOX] */}
+                        <td className="w-12 px-4 py-3.5 text-center">
+                          <input
+                            type="checkbox"
+                            aria-label={`Pilih siswa ${s.nama_lengkap}`}
+                            checked={isSelected}
+                            onChange={() => handleToggleRow(s.id)}
+                            className="w-4 h-4 rounded text-[#2563EB] border-slate-300 focus:ring-blue-500 cursor-pointer"
+                          />
+                        </td>
+
+                        {/* [FOTO] [IDENTITAS] */}
+                        <td className="px-4 py-3.5">
+                          <div className="flex items-center gap-3.5">
+                            {s.foto_url ? (
+                              <img
+                                src={s.foto_url}
+                                alt={s.nama_lengkap}
+                                className="w-11 h-11 rounded-full object-cover shrink-0 aspect-square border border-slate-200/80 shadow-2xs"
+                              />
+                            ) : (
+                              <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-[#2563EB] to-indigo-600 flex items-center justify-center text-white font-bold text-sm shrink-0 aspect-square shadow-2xs">
+                                {s.nama_lengkap.charAt(0).toUpperCase()}
+                              </div>
+                            )}
+                            <div>
+                              <span
+                                className="font-bold text-slate-800 block hover:text-[#2563EB] cursor-pointer"
+                                onClick={() => setDetailStudent(s)}
+                              >
+                                {s.nama_lengkap}
+                              </span>
+                              <span className="text-[11px] text-slate-400 font-mono">
+                                NIS: {s.nis || "-"} {s.nisn ? `• NISN: ${s.nisn}` : ""}
+                              </span>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3.5 font-semibold text-slate-600">
+                          {s.jenis_kelamin}
+                        </td>
+                        <td className="px-4 py-3.5">
+                          <span
+                            className={`text-[10px] font-semibold px-2.5 py-0.5 rounded-full border ${getStatusBadge(
+                              s.status_akademik
+                            )}`}
+                          >
+                            {s.status_akademik}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3.5">
+                          {s.active_rombel_nama ? (
+                            <div>
+                              <span className="font-semibold text-slate-800 block">
+                                {s.active_rombel_nama}
+                              </span>
+                              <span className="text-[11px] text-slate-400">
+                                {s.active_tingkat_nama ?? ""}
+                                {s.active_nomor_absen ? ` • Absen #${s.active_nomor_absen}` : ""}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-slate-400 italic text-xs">Belum Ditempatkan</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3.5">
+                          <div>
+                            <span className="font-medium text-slate-700 block">
+                              {s.nama_wali || "-"}
+                            </span>
+                            <span className="text-[11px] text-slate-400 font-mono">
+                              {s.telepon_wali || s.email_wali || "-"}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-5 py-3.5 text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <button
+                              onClick={() => setDetailStudent(s)}
+                              className="p-1.5 rounded-lg text-[#2563EB] hover:bg-blue-50 transition-colors"
+                              title="Lihat Detail & Riwayat"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </button>
+                            {canManage && (
+                              <>
+                                <button
+                                  onClick={() => {
+                                    setEditPhoto(s.foto_url || null);
+                                    setEditingStudent(s);
+                                  }}
+                                  className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 transition-colors"
+                                  title="Edit Profil"
+                                >
+                                  <Edit2 className="h-4 w-4" />
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setResetCustomPassword("");
+                                    setResettingStudent(s);
+                                  }}
+                                  className="p-1.5 rounded-lg text-amber-600 hover:bg-amber-50 transition-colors"
+                                  title="Reset Kata Sandi Akun"
+                                >
+                                  <KeyRound className="h-4 w-4" />
+                                </button>
+                                {s.status_akademik === "AKTIF" && (
+                                  <>
+                                    <button
+                                      onClick={() => setTransferringStudent(s)}
+                                      className="p-1.5 rounded-lg text-amber-600 hover:bg-amber-50 transition-colors"
+                                      title="Mutasi Keluar"
+                                    >
+                                      <ArrowRightLeft className="h-4 w-4" />
+                                    </button>
+                                    <button
+                                      onClick={() => setGraduatingStudent(s)}
+                                      className="p-1.5 rounded-lg text-indigo-600 hover:bg-indigo-50 transition-colors"
+                                      title="Kelulusan"
+                                    >
+                                      <GraduationCap className="h-4 w-4" />
+                                    </button>
+                                  </>
+                                )}
+                                <button
+                                  onClick={() => setDeletingStudent(s)}
+                                  className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 transition-colors"
+                                  title="Hapus"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* 6. COMMON PAGINATION TOOLBAR (Clean & Frameless Academic Glass) */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-2 py-3 text-xs text-slate-500">
+        <span>
+          Menampilkan{" "}
+          <strong className="text-slate-800 dark:text-slate-200">
+            {filteredStudents.length === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1} -{" "}
+            {Math.min(currentPage * rowsPerPage, filteredStudents.length)}
+          </strong>{" "}
+          dari{" "}
+          <strong className="text-slate-800 dark:text-slate-200">{filteredStudents.length}</strong>{" "}
+          siswa
+        </span>
+        <div className="flex items-center gap-2">
+          <select
+            value={rowsPerPage}
+            onChange={(e) => {
+              setRowsPerPage(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+            className="px-2.5 py-1.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md text-xs font-semibold text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20 shadow-2xs"
+          >
+            <option value={12}>12 Siswa</option>
+            <option value={24}>24 Siswa</option>
+            <option value={48}>48 Siswa</option>
+          </select>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="p-1.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-40 transition-all cursor-pointer shadow-2xs"
+              title="Halaman Sebelumnya"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <span className="px-2.5 font-bold font-mono text-slate-700 dark:text-slate-300">
+              {currentPage} / {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="p-1.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-40 transition-all cursor-pointer shadow-2xs"
+              title="Halaman Berikutnya"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
           </div>
         </div>
       </div>
@@ -1376,12 +1500,11 @@ export function StudentDirectoryView({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-slate-600 mb-1">
-                      Nomor Induk Siswa (NIS) *
+                      Nomor Induk Siswa (NIS)
                     </label>
                     <input
                       name="nis"
-                      defaultValue={editingStudent.nis}
-                      required
+                      defaultValue={editingStudent.nis || ""}
                       className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-800 text-xs focus:ring-2 focus:ring-blue-500/20 focus:border-[#2563EB]"
                     />
                   </div>
@@ -1608,8 +1731,9 @@ export function StudentDirectoryView({
               </div>
               <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
                 Apakah Anda yakin ingin menghapus data siswa{" "}
-                <strong>&quot;{deletingStudent.nama_lengkap}&quot;</strong> (NIS:{" "}
-                {deletingStudent.nis})? Tindakan ini tidak dapat dibatalkan.
+                <strong>&quot;{deletingStudent.nama_lengkap}&quot;</strong>
+                {deletingStudent.nis ? ` (NIS: ${deletingStudent.nis})` : ""}? Tindakan ini tidak
+                dapat dibatalkan.
               </p>
               <div className="flex justify-end gap-2 pt-2">
                 <button
@@ -1690,7 +1814,8 @@ export function StudentDirectoryView({
                 <div>
                   <h3 className="font-bold text-slate-800 text-base">Reset Kata Sandi Siswa</h3>
                   <p className="text-xs text-slate-500">
-                    {resettingStudent.nama_lengkap} (NIS: {resettingStudent.nis})
+                    {resettingStudent.nama_lengkap}
+                    {resettingStudent.nis ? ` (NIS: ${resettingStudent.nis})` : ""}
                   </p>
                 </div>
               </div>

@@ -1,7 +1,7 @@
 import { prisma } from "@/shared/infrastructure/database/prisma";
 
 export type TenantEntitlementStatus =
-  "TRIAL_ACTIVE" | "ACTIVE" | "PAST_DUE" | "READ_ONLY" | "SUSPENDED" | "CANCELLED";
+  "TRIAL_ACTIVE" | "ACTIVE" | "GRACE_PERIOD" | "PAST_DUE" | "READ_ONLY" | "SUSPENDED" | "CANCELLED";
 
 export interface TenantEntitlement {
   sekolahId: string;
@@ -40,7 +40,9 @@ export async function getTenantEntitlement(sekolahId: string): Promise<TenantEnt
 
   const now = new Date();
   const expired = subscription.berakhir_pada !== null && subscription.berakhir_pada <= now;
-  const isActive = subscription.status === "TRIAL_ACTIVE" || subscription.status === "ACTIVE";
+  const isGrace = subscription.status === "GRACE_PERIOD" || subscription.status === "PAST_DUE";
+  const isActive =
+    subscription.status === "TRIAL_ACTIVE" || subscription.status === "ACTIVE" || isGrace;
   const status: TenantEntitlementStatus =
     expired && isActive ? "READ_ONLY" : (subscription.status as TenantEntitlementStatus);
 
@@ -49,7 +51,7 @@ export async function getTenantEntitlement(sekolahId: string): Promise<TenantEnt
     paket: subscription.paket,
     status,
     berakhirPada: subscription.berakhir_pada,
-    allowsMutation: status === "TRIAL_ACTIVE" || status === "ACTIVE",
+    allowsMutation: (status === "TRIAL_ACTIVE" || status === "ACTIVE") && !expired,
   };
 }
 

@@ -34,6 +34,26 @@ describe("AcademicShell Component (Phase 05)", () => {
     expect(screen.getByLabelText("Menu Pengguna")).toBeInTheDocument();
   });
 
+  it("scopes teacher typography to teacher workspace users", () => {
+    const { unmount } = render(
+      <AcademicShell user={mockUser}>
+        <div>Konten Guru</div>
+      </AcademicShell>
+    );
+
+    expect(document.documentElement).toHaveClass("teacher-workspace");
+    unmount();
+    expect(document.documentElement).not.toHaveClass("teacher-workspace");
+
+    render(
+      <AcademicShell user={{ ...mockUser, peran_dasar: "SCHOOL_STAFF" }}>
+        <div>Konten Staf</div>
+      </AcademicShell>
+    );
+
+    expect(document.documentElement).not.toHaveClass("teacher-workspace");
+  });
+
   it("toggles sidebar compact rail on collapse button click", () => {
     render(
       <AcademicShell user={mockUser}>

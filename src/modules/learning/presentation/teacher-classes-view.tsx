@@ -1,38 +1,46 @@
 "use client";
 
 /**
- * Ruang Pintar — M11 Teacher Classes Directory & Academic Supervision View (/kelas-saya)
- * Academic Glass UI v1.2
- *
- * Fitur Navigasi Modern:
- * 1. Tab Perspektif (Semua Kelas / Per Rombel / Per Guru)
- * 2. Toggle Tampilan (Grid Kartu Modern vs Tabel Ringkas / Compact Table)
- * 3. Filter Cepat Tingkat (Semua, Kelas X, XI, XII)
- * 4. Aksi Tambah Kelas Manual & Foto Absen AI
- * 5. Paginasi Cerdas (12 / 24 / 48 per halaman) tanpa scroll panjang
+ * Ruang Pintar — M11 Teacher Classes Workspace (/kelas-saya)
+ * Enterprise-Grade Professional Redesign (Flat, Clean, Minimalist, Motion-Driven)
  */
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
-  Layers,
-  BookOpen,
-  Users,
-  Clock,
   Search,
-  ArrowRight,
-  GraduationCap,
-  Filter,
   LayoutGrid,
   Table2,
+  Plus,
+  Camera,
+  Filter,
+  Clock,
+  Users,
+  BookOpen,
+  ArrowRight,
+  Pencil,
+  Trash2,
+  X,
   ChevronLeft,
   ChevronRight,
-  School,
-  PlusCircle,
-  Camera,
+  GraduationCap,
+  Sparkles,
+  RotateCcw,
+  Check,
+  AlertCircle,
+  MoreVertical,
+  PlayCircle,
+  FileSpreadsheet,
+  Layers,
 } from "lucide-react";
+import { motion, AnimatePresence } from "@/shared/components/motion/motion-elements";
 import { TeacherClassCardDTO } from "../domain/learning-types";
 import { ManualCreateClassModal } from "./manual-create-class-modal";
+import { QuickSetScheduleModal } from "./quick-set-schedule-modal";
+import { ManageCurriculumModal } from "./manage-curriculum-modal";
+import { Toast, ToastType } from "@/shared/components/ui/toast";
+import { deleteRombelAction, updateRombelAction } from "@/app/actions/academic-actions";
 
 export interface TeacherSimpleDTO {
   id: string;
@@ -48,6 +56,8 @@ interface TeacherClassesViewProps {
   isAdmin?: boolean;
   teachersList?: TeacherSimpleDTO[];
   initialSelectedGuruId?: string | null;
+  isSubscribed?: boolean;
+  isTenantOwner?: boolean;
 }
 
 export function TeacherClassesView({
@@ -56,28 +66,62 @@ export function TeacherClassesView({
   isAdmin = false,
   teachersList = [],
   initialSelectedGuruId = null,
+  isSubscribed = false,
+  isTenantOwner = false,
 }: TeacherClassesViewProps) {
-  // 1. State Navigasi & Tampilan
-  const [perspective, setPerspective] = useState<"ALL" | "ROMBEL" | "GURU">("ALL");
-  const [viewMode, setViewMode] = useState<"GRID" | "TABLE">("GRID");
-  const [search, setSearch] = useState("");
-  const [selectedGuruId, setSelectedGuruId] = useState<string>(initialSelectedGuruId || "ALL");
-  const [selectedTingkat, setSelectedTingkat] = useState<string>("ALL");
-  const [selectedRombelFilter, setSelectedRombelFilter] = useState<string>("ALL");
+  const router = useRouter();
 
-  // 2. State Paginasi
+  // 1. Filter, Search & View Mode States
+  const [search, setSearch] = useState("");
+  const [statusTab, setStatusTab] = useState<"ALL" | "TODAY" | "UNSCHEDULED">("ALL");
+  const [selectedTingkat, setSelectedTingkat] = useState<string>("ALL");
+  const [selectedGuruId, setSelectedGuruId] = useState<string>(initialSelectedGuruId || "ALL");
+  const [viewMode, setViewMode] = useState<"GRID" | "TABLE">("GRID");
+  const [isActionsDropdownOpen, setIsActionsDropdownOpen] = useState(false);
+  const [openActionMenuRombelId, setOpenActionMenuRombelId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!openActionMenuRombelId) return;
+    const handleClickOutside = () => setOpenActionMenuRombelId(null);
+    window.addEventListener("click", handleClickOutside);
+    return () => window.removeEventListener("click", handleClickOutside);
+  }, [openActionMenuRombelId]);
+
+  // 2. Modals State
+  const [scheduleModalTarget, setScheduleModalTarget] = useState<TeacherClassCardDTO | null>(null);
+  const [classActionTarget, setClassActionTarget] = useState<{ id: string; nama: string } | null>(
+    null
+  );
+  const [classActionMode, setClassActionMode] = useState<"rename" | "delete" | null>(null);
+  const [isManageCurriculumOpen, setIsManageCurriculumOpen] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+  const [classActionLoading, setClassActionLoading] = useState(false);
+  const [classActionError, setClassActionError] = useState<string | null>(null);
+
+  // 3. Pagination State
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [pageSize, setPageSize] = useState<number>(12);
+  const pageSize = 12;
 
   const handleOpenAiPhoto = () => {
+    setIsActionsDropdownOpen(false);
     window.dispatchEvent(new CustomEvent("open-ai-photo-modal"));
   };
 
   const handleOpenManualClass = () => {
+    setIsActionsDropdownOpen(false);
     window.dispatchEvent(new CustomEvent("open-manual-class-modal"));
   };
 
-  // Filter Tingkat Unik
+  // Hitung jumlah kelas hari ini & belum terjadwal dari dataset awal
+  const todayClassesTotal = useMemo(() => {
+    return classes.filter((c) => Boolean(c.jadwal_hari_ini)).length;
+  }, [classes]);
+
+  const unscheduledClassesTotal = useMemo(() => {
+    return classes.filter((c) => !c.jadwal_ringkas || c.jumlah_jam_minggu === 0).length;
+  }, [classes]);
+
+  // Daftar tingkat unik untuk filter dropdown
   const uniqueTingkats = useMemo(() => {
     const set = new Set<string>();
     classes.forEach((c) => {
@@ -86,34 +130,53 @@ export function TeacherClassesView({
     return Array.from(set).sort();
   }, [classes]);
 
-  // Filter Rombel Unik
-  const uniqueRombelsList = useMemo(() => {
-    const map = new Map<string, { id: string; nama: string; tingkat: string | null }>();
+  // Metrik Siswa Binaan Unik (Domain Invariant: 1 siswa terdaftar di 1 rombel dihitung 1 kali)
+  const distinctSiswaCount = useMemo(() => {
+    const rombelStudentsMap = new Map<string, number>();
     classes.forEach((c) => {
-      if (!map.has(c.rombel_id)) {
-        map.set(c.rombel_id, {
-          id: c.rombel_id,
-          nama: c.rombel_nama,
-          tingkat: c.tingkat_nama || null,
-        });
+      const current = rombelStudentsMap.get(c.rombel_id) || 0;
+      if (c.total_siswa > current) {
+        rombelStudentsMap.set(c.rombel_id, c.total_siswa);
       }
     });
-    return Array.from(map.values()).sort((a, b) => a.nama.localeCompare(b.nama));
+    return Array.from(rombelStudentsMap.values()).reduce((sum, count) => sum + count, 0);
   }, [classes]);
 
-  // Data terfilter secara reaktif
+  // Metrik Tambahan untuk 4 Kartu Informasi Atas
+  const uniqueRombelsCount = useMemo(() => {
+    return new Set(classes.map((c) => c.rombel_id)).size;
+  }, [classes]);
+
+  const uniqueMapelsCount = useMemo(() => {
+    return new Set(classes.map((c) => c.mata_pelajaran_id)).size;
+  }, [classes]);
+
+  const totalPenugasanCount = classes.length;
+
+  const totalJP = useMemo(() => {
+    return classes.reduce((sum, c) => sum + c.jumlah_jam_minggu, 0);
+  }, [classes]);
+
+  const totalBAB = useMemo(() => {
+    return classes.reduce((sum, c) => sum + c.total_bab, 0);
+  }, [classes]);
+
+  // Filtering data reaktif
   const filtered = useMemo(() => {
     return classes.filter((c) => {
-      // Filter guru
+      // Filter status tab operasional
+      if (statusTab === "TODAY" && !c.jadwal_hari_ini) {
+        return false;
+      }
+      if (statusTab === "UNSCHEDULED" && c.jadwal_ringkas && c.jumlah_jam_minggu > 0) {
+        return false;
+      }
+      // Filter guru (admin)
       if (isAdmin && selectedGuruId !== "ALL" && c.guru_id !== selectedGuruId) {
         return false;
       }
       // Filter tingkat
       if (selectedTingkat !== "ALL" && c.tingkat_nama !== selectedTingkat) {
-        return false;
-      }
-      // Filter rombel spesifik
-      if (selectedRombelFilter !== "ALL" && c.rombel_id !== selectedRombelFilter) {
         return false;
       }
       // Filter pencarian teks
@@ -129,326 +192,431 @@ export function TeacherClassesView({
       }
       return true;
     });
-  }, [classes, isAdmin, selectedGuruId, selectedTingkat, selectedRombelFilter, search]);
+  }, [classes, statusTab, isAdmin, selectedGuruId, selectedTingkat, search]);
 
-  // Metrik terhitung
-  const totalJP = filtered.reduce((sum, c) => sum + c.jumlah_jam_minggu, 0);
-  const totalSiswa = filtered.reduce((sum, c) => sum + c.total_siswa, 0);
-  const totalBAB = filtered.reduce((sum, c) => sum + c.total_bab, 0);
-  const uniqueRombelsCount = new Set(filtered.map((c) => c.rombel_id)).size;
-  const uniqueMapelsCount = new Set(filtered.map((c) => c.mata_pelajaran_id)).size;
-  const uniqueTeachersCount = new Set(filtered.map((c) => c.guru_id)).size;
-
-  // Data Paginasi
+  // Paginasi
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safeCurrentPage = Math.min(currentPage, totalPages);
   const startIndex = (safeCurrentPage - 1) * pageSize;
   const pagedClasses = filtered.slice(startIndex, startIndex + pageSize);
 
-  // Grouping untuk mode PER_ROMBEL
-  const rombelGroups = useMemo(() => {
-    const map = new Map<
-      string,
-      {
-        rombel_id: string;
-        rombel_nama: string;
-        tingkat_nama: string | null;
-        classes: TeacherClassCardDTO[];
-        total_jp: number;
-        total_siswa: number;
-      }
-    >();
-
-    filtered.forEach((c) => {
-      const existing = map.get(c.rombel_id);
-      if (!existing) {
-        map.set(c.rombel_id, {
-          rombel_id: c.rombel_id,
-          rombel_nama: c.rombel_nama,
-          tingkat_nama: c.tingkat_nama || null,
-          classes: [c],
-          total_jp: c.jumlah_jam_minggu,
-          total_siswa: c.total_siswa,
-        });
-      } else {
-        existing.classes.push(c);
-        existing.total_jp += c.jumlah_jam_minggu;
-      }
-    });
-
-    return Array.from(map.values()).sort((a, b) => a.rombel_nama.localeCompare(b.rombel_nama));
-  }, [filtered]);
-
-  // Grouping untuk mode PER_GURU (Supervisi Admin)
-  const guruGroups = useMemo(() => {
-    if (!isAdmin) return [];
-    const map = new Map<
-      string,
-      {
-        guru_id: string;
-        guru_nama: string;
-        classes: TeacherClassCardDTO[];
-        total_jp: number;
-        total_siswa: number;
-        rombel_count: number;
-      }
-    >();
-
-    filtered.forEach((c) => {
-      const gId = c.guru_id || "UNASSIGNED";
-      const gNama = c.guru_nama || "Tanpa Guru Pengampu";
-      const existing = map.get(gId);
-      if (!existing) {
-        map.set(gId, {
-          guru_id: gId,
-          guru_nama: gNama,
-          classes: [c],
-          total_jp: c.jumlah_jam_minggu,
-          total_siswa: c.total_siswa,
-          rombel_count: 1,
-        });
-      } else {
-        existing.classes.push(c);
-        existing.total_jp += c.jumlah_jam_minggu;
-        existing.rombel_count = new Set(existing.classes.map((x) => x.rombel_id)).size;
-      }
-    });
-
-    return Array.from(map.values()).sort((a, b) => a.guru_nama.localeCompare(b.guru_nama));
-  }, [filtered, isAdmin]);
-
-  const handleSelectRombel = (rombelId: string) => {
-    setSelectedRombelFilter(rombelId);
-    setPerspective("ALL");
-    setCurrentPage(1);
-  };
-
-  const handleSelectGuru = (guruId: string) => {
-    setSelectedGuruId(guruId);
-    setPerspective("ALL");
-    setCurrentPage(1);
-  };
-
   const handleResetFilters = () => {
     setSearch("");
-    setSelectedGuruId("ALL");
+    setStatusTab("ALL");
     setSelectedTingkat("ALL");
-    setSelectedRombelFilter("ALL");
+    setSelectedGuruId("ALL");
     setCurrentPage(1);
   };
 
+  async function handleRenameRombel(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!classActionTarget || !isTenantOwner) return;
+
+    setClassActionLoading(true);
+    setClassActionError(null);
+    const formData = new FormData();
+    formData.set("nama", String(new FormData(event.currentTarget).get("nama") ?? ""));
+    const response = await updateRombelAction(classActionTarget.id, formData);
+    if (response.success) {
+      setClassActionTarget(null);
+      setClassActionMode(null);
+      router.refresh();
+    } else {
+      setClassActionError(response.error);
+    }
+    setClassActionLoading(false);
+  }
+
+  async function handleDeleteRombel() {
+    if (!classActionTarget || !isTenantOwner) return;
+
+    setClassActionLoading(true);
+    setClassActionError(null);
+    const response = await deleteRombelAction(classActionTarget.id);
+    if (response.success) {
+      setClassActionTarget(null);
+      setClassActionMode(null);
+      router.refresh();
+    } else {
+      setClassActionError(response.error);
+    }
+    setClassActionLoading(false);
+  }
+
   return (
-    <div className="space-y-6 pb-16">
-      {/* Modal Manager for Manual Class Creation */}
+    <div className="space-y-4 sm:space-y-5 pb-16">
+      {/* Modal Dialogs */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+          duration={4000}
+        />
+      )}
+
+      <ManageCurriculumModal
+        isOpen={isManageCurriculumOpen}
+        onClose={() => setIsManageCurriculumOpen(false)}
+        classes={classes}
+        onSuccess={(msg) => {
+          setToast({ message: msg, type: "success" });
+          router.refresh();
+        }}
+        onError={(msg) => setToast({ message: msg, type: "error" })}
+      />
+
       <ManualCreateClassModal />
 
-      {/* 1. Top Metric Cards — Ringkas & Sempurna di Mobile (2x2) & Tablet/Desktop (4 Col) */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3.5">
-        <div className="p-3.5 sm:p-4 rounded-2xl bg-white dark:bg-slate-900/75 dark:backdrop-blur-xl border border-slate-200/80 dark:border-blue-500/20 shadow-2xs dark:shadow-[0_0_25px_-5px_rgba(37,99,235,0.16)] hover:shadow-md hover:border-blue-300 dark:hover:border-blue-500/40 hover:-translate-y-0.5 transition-all duration-300 group cursor-default">
+      {scheduleModalTarget && (
+        <QuickSetScheduleModal
+          isOpen={!!scheduleModalTarget}
+          onClose={() => setScheduleModalTarget(null)}
+          rombelId={scheduleModalTarget.rombel_id}
+          penugasanId={scheduleModalTarget.id}
+          rombelNama={scheduleModalTarget.rombel_nama}
+          mataPelajaranNama={scheduleModalTarget.mata_pelajaran_nama}
+        />
+      )}
+
+      {/* ─────────────────────────────────────────────────────────────
+          1. MINIMALIST PAGE HEADER (Linear / Stripe Standard)
+      ───────────────────────────────────────────────────────────── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1 pb-1 border-b border-slate-200/80 dark:border-slate-800/80">
+        <div>
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+              {isAdmin ? "Supervisi Kelas Sekolah" : "Kelas Saya"}
+            </h1>
+            <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/60 border border-blue-200/60 dark:border-blue-800/60 text-[#2563EB] dark:text-blue-400 font-mono text-[11px] font-bold">
+              Semester Aktif
+            </span>
+          </div>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+            {isAdmin
+              ? `Supervisi seluruh rombel dan kurikulum (${classes.length} kelas aktif).`
+              : `${classes.length} kelas diampu • Pantau pembelajaran, absensi, dan materi ajar.`}
+          </p>
+        </div>
+
+        {/* Action Buttons di Sudut Kanan Header */}
+        <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 flex-wrap">
+          {isSubscribed ? (
+            <>
+              <button
+                type="button"
+                onClick={() => setIsManageCurriculumOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-blue-200/80 dark:border-blue-900/60 bg-blue-50/60 dark:bg-blue-950/40 hover:bg-blue-100/70 dark:hover:bg-blue-900/60 text-[#2563EB] dark:text-blue-400 font-mono text-xs font-bold shadow-2xs transition-all cursor-pointer hover:border-blue-300 active:scale-95"
+                title="Pusat Kurikulum: Kelola BAB dan Terbitkan Materi ke Seluruh Kelas Paralel"
+              >
+                <BookOpen className="h-3.5 w-3.5" />
+                <span>Kelola BAB & Materi</span>
+              </button>
+              <Link
+                href="/penugasan"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 font-mono text-xs font-bold shadow-2xs transition-all cursor-pointer"
+              >
+                <BookOpen className="h-3.5 w-3.5 text-blue-600" />
+                <span>+ Buat Penugasan</span>
+              </Link>
+              <Link
+                href="/sesi-pembelajaran"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 active:bg-blue-800 text-white font-mono text-xs font-bold shadow-xs shadow-blue-500/20 transition-all active:scale-95 cursor-pointer"
+              >
+                <PlayCircle className="h-3.5 w-3.5" />
+                <span>+ Buka Sesi KBM</span>
+              </Link>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={handleOpenManualClass}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#2563EB] hover:bg-blue-700 active:bg-blue-800 text-white font-mono text-xs font-bold shadow-xs shadow-blue-500/20 transition-all active:scale-95 cursor-pointer"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                <span>+ Tambah Kelas Manual</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleOpenAiPhoto}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 font-mono text-xs font-bold shadow-2xs transition-all cursor-pointer"
+              >
+                <Camera className="h-3.5 w-3.5 text-blue-600" />
+                <span>+ Foto Absen AI</span>
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* ─────────────────────────────────────────────────────────────
+          2. TOP 4 METRIC CARDS (Rombel Diajar, Beban KBM, Siswa Binaan, Lingkup Materi)
+      ───────────────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+        {/* Metric 1: Rombel Diajar */}
+        <div className="p-3.5 sm:p-4 rounded-2xl bg-white/80 dark:bg-slate-900/75 backdrop-blur-xl border border-slate-200/80 dark:border-blue-500/20 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_0_25px_-5px_rgba(37,99,235,0.16)] hover:shadow-md hover:border-blue-300 dark:hover:border-blue-500/40 hover:-translate-y-0.5 transition-all duration-300 group cursor-default">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors truncate">
-              Total Rombel / Kelas
+            <span className="text-[11px] font-mono font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors truncate">
+              Rombel Diajar
             </span>
             <div className="p-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-[#2563EB] dark:text-blue-400 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 shadow-2xs shrink-0">
               <Layers className="h-4 w-4 group-hover:scale-110 transition-transform" />
             </div>
           </div>
-          <div className="mt-1.5 flex items-baseline gap-1">
-            <span className="text-xl sm:text-2xl font-black text-slate-800 dark:text-white group-hover:text-[#2563EB] dark:group-hover:text-blue-400 transition-colors">
+          <div className="mt-2 flex items-baseline gap-1.5">
+            <span className="text-xl sm:text-2xl font-black font-mono text-slate-900 dark:text-white group-hover:text-[#2563EB] transition-colors">
               {uniqueRombelsCount}
             </span>
-            <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Kelas</span>
+            <span className="text-xs font-bold font-mono text-slate-500 dark:text-slate-400">
+              Rombel
+            </span>
           </div>
-          <span className="text-[11px] text-slate-400 dark:text-slate-500 block mt-0.5 truncate">
-            {uniqueMapelsCount} Mapel • {filtered.length} Penugasan
+          <span className="text-[11px] text-slate-400 dark:text-slate-500 block mt-1 truncate">
+            {totalPenugasanCount} Penugasan KBM Aktif
           </span>
         </div>
 
-        <div className="p-3.5 sm:p-4 rounded-2xl bg-white dark:bg-slate-900/75 dark:backdrop-blur-xl border border-slate-200/80 dark:border-blue-500/20 shadow-2xs dark:shadow-[0_0_25px_-5px_rgba(37,99,235,0.16)] hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-500/40 hover:-translate-y-0.5 transition-all duration-300 group cursor-default">
+        {/* Metric 2: Beban KBM */}
+        <div className="p-3.5 sm:p-4 rounded-2xl bg-white/80 dark:bg-slate-900/75 backdrop-blur-xl border border-slate-200/80 dark:border-blue-500/20 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_0_25px_-5px_rgba(37,99,235,0.16)] hover:shadow-md hover:border-emerald-300 dark:hover:border-emerald-500/40 hover:-translate-y-0.5 transition-all duration-300 group cursor-default">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors truncate">
+            <span className="text-[11px] font-mono font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors truncate">
               Beban KBM
             </span>
-            <div className="p-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300 shadow-2xs shrink-0">
+            <div className="p-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300 shadow-2xs shrink-0">
               <Clock className="h-4 w-4 group-hover:scale-110 transition-transform" />
             </div>
           </div>
-          <div className="mt-1.5 flex items-baseline gap-1">
-            <span className="text-xl sm:text-2xl font-black text-indigo-600 dark:text-indigo-400 group-hover:text-indigo-700 transition-colors">
+          <div className="mt-2 flex items-baseline gap-1.5">
+            <span className="text-xl sm:text-2xl font-black font-mono text-emerald-600 dark:text-emerald-400 group-hover:text-emerald-700 transition-colors">
               {totalJP}
             </span>
-            <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">JP</span>
+            <span className="text-xs font-bold font-mono text-emerald-600 dark:text-emerald-400">
+              JP / Minggu
+            </span>
           </div>
-          <span className="text-[11px] text-slate-400 dark:text-slate-500 block mt-0.5 truncate">
-            per minggu
+          <span className="text-[11px] text-slate-400 dark:text-slate-500 block mt-1 truncate">
+            Beban Tatap Muka Terjadwal
           </span>
         </div>
 
-        <div className="p-3.5 sm:p-4 rounded-2xl bg-white dark:bg-slate-900/75 dark:backdrop-blur-xl border border-slate-200/80 dark:border-blue-500/20 shadow-2xs dark:shadow-[0_0_25px_-5px_rgba(37,99,235,0.16)] hover:shadow-md hover:border-emerald-300 dark:hover:border-emerald-500/40 hover:-translate-y-0.5 transition-all duration-300 group cursor-default">
+        {/* Metric 3: Siswa Binaan */}
+        <div className="p-3.5 sm:p-4 rounded-2xl bg-white/80 dark:bg-slate-900/75 backdrop-blur-xl border border-slate-200/80 dark:border-blue-500/20 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_0_25px_-5px_rgba(37,99,235,0.16)] hover:shadow-md hover:border-purple-300 dark:hover:border-purple-500/40 hover:-translate-y-0.5 transition-all duration-300 group cursor-default">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors truncate">
-              {isAdmin && selectedGuruId === "ALL" ? "Rombel" : "Siswa Binaan"}
+            <span className="text-[11px] font-mono font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors truncate">
+              Siswa Binaan
             </span>
-            <div className="p-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300 shadow-2xs shrink-0">
+            <div className="p-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 group-hover:bg-purple-600 group-hover:text-white transition-all duration-300 shadow-2xs shrink-0">
               <Users className="h-4 w-4 group-hover:scale-110 transition-transform" />
             </div>
           </div>
-          <div className="mt-1.5 flex items-baseline gap-1">
-            <span className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 group-hover:text-emerald-700 transition-colors">
-              {isAdmin && selectedGuruId === "ALL" ? uniqueRombelsCount : totalSiswa}
+          <div className="mt-2 flex items-baseline gap-1.5">
+            <span className="text-xl sm:text-2xl font-black font-mono text-purple-600 dark:text-purple-400 group-hover:text-purple-700 transition-colors">
+              {distinctSiswaCount}
             </span>
-            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
-              {isAdmin && selectedGuruId === "ALL" ? "Rombel" : "Siswa"}
+            <span className="text-xs font-bold font-mono text-purple-600 dark:text-purple-400">
+              Siswa
             </span>
           </div>
-          <span className="text-[11px] text-slate-400 dark:text-slate-500 block mt-0.5 truncate">
-            {isAdmin && selectedGuruId === "ALL" ? "sekolah" : "terlayani"}
+          <span className="text-[11px] text-slate-400 dark:text-slate-500 block mt-1 truncate">
+            Peserta Didik Aktif Terdaftar
           </span>
         </div>
 
-        <div className="p-3.5 sm:p-4 rounded-2xl bg-white dark:bg-slate-900/75 dark:backdrop-blur-xl border border-slate-200/80 dark:border-blue-500/20 shadow-2xs dark:shadow-[0_0_25px_-5px_rgba(37,99,235,0.16)] hover:shadow-md hover:border-purple-300 dark:hover:border-purple-500/40 hover:-translate-y-0.5 transition-all duration-300 group cursor-default">
+        {/* Metric 4: Lingkup Materi */}
+        <div
+          onClick={() => setIsManageCurriculumOpen(true)}
+          title="Klik untuk Kelola BAB & Materi ke Seluruh Kelas"
+          className="p-3.5 sm:p-4 rounded-2xl bg-white/80 dark:bg-slate-900/75 backdrop-blur-xl border border-slate-200/80 dark:border-blue-500/20 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_0_25px_-5px_rgba(37,99,235,0.16)] hover:shadow-md hover:border-amber-400 dark:hover:border-amber-500 hover:-translate-y-0.5 transition-all duration-300 group cursor-pointer"
+        >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors truncate">
-              {isAdmin && selectedGuruId === "ALL" ? "Guru Pengampu" : "Lingkup Materi"}
+            <span className="text-[11px] font-mono font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors truncate">
+              Lingkup Materi
             </span>
-            <div className="p-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 group-hover:bg-purple-600 group-hover:text-white transition-all duration-300 shadow-2xs shrink-0">
-              {isAdmin && selectedGuruId === "ALL" ? (
-                <GraduationCap className="h-4 w-4 group-hover:scale-110 transition-transform" />
-              ) : (
-                <BookOpen className="h-4 w-4 group-hover:scale-110 transition-transform" />
-              )}
+            <div className="p-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 group-hover:bg-amber-600 group-hover:text-white transition-all duration-300 shadow-2xs shrink-0">
+              <GraduationCap className="h-4 w-4 group-hover:scale-110 transition-transform" />
             </div>
           </div>
-          <div className="mt-1.5 flex items-baseline gap-1">
-            <span className="text-xl sm:text-2xl font-black text-purple-600 dark:text-purple-400 group-hover:text-purple-700 transition-colors">
-              {isAdmin && selectedGuruId === "ALL" ? uniqueTeachersCount : totalBAB}
+          <div className="mt-2 flex items-baseline gap-1.5">
+            <span className="text-xl sm:text-2xl font-black font-mono text-amber-600 dark:text-amber-400 group-hover:text-amber-700 transition-colors">
+              {totalBAB}
             </span>
-            <span className="text-xs font-bold text-purple-600 dark:text-purple-400">
-              {isAdmin && selectedGuruId === "ALL" ? "Guru" : "BAB"}
+            <span className="text-xs font-bold font-mono text-amber-600 dark:text-amber-400">
+              BAB Materi
             </span>
           </div>
-          <span className="text-[11px] text-slate-400 dark:text-slate-500 block mt-0.5 truncate">
-            {isAdmin && selectedGuruId === "ALL" ? "penugasan" : "kurikulum"}
+          <span className="text-[11px] text-slate-400 dark:text-slate-500 block mt-1 truncate">
+            Modul & Tujuan Pembelajaran
           </span>
         </div>
       </div>
 
-      {/* 2. Bilah Tab Perspektif & Toggle Tampilan */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-2.5 p-1.5 rounded-2xl bg-white dark:bg-slate-900/75 dark:backdrop-blur-xl border border-slate-200/80 dark:border-blue-500/20 shadow-2xs">
-        {/* Tab Perspektif */}
-        <div className="flex items-center gap-1 overflow-x-auto scrollbar-none">
+      {/* Alert Banner Jam Mengajar jika ada yang belum diatur */}
+      {unscheduledClassesTotal > 0 && (
+        <div className="flex items-center justify-between p-3 sm:p-3.5 rounded-xl border border-amber-200/80 dark:border-amber-900/60 bg-amber-50/70 dark:bg-amber-950/30 text-amber-900 dark:text-amber-200 text-xs">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
+            <span className="font-semibold">
+              {unscheduledClassesTotal} Rombel Belum Memiliki Jam Mengajar
+            </span>
+          </div>
           <button
             type="button"
             onClick={() => {
-              setPerspective("ALL");
-              setCurrentPage(1);
+              const target = classes.find((c) => !c.jadwal_ringkas || c.jumlah_jam_minggu === 0);
+              if (target) setScheduleModalTarget(target);
             }}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
-              perspective === "ALL"
-                ? "bg-[#2563EB] text-white shadow-xs"
-                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
-            }`}
+            className="px-3 py-1 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs inline-flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
           >
-            <Layers className="h-3.5 w-3.5" />
-            <span>Semua Penugasan</span>
-            <span className="text-[10px] opacity-80">({filtered.length})</span>
+            + Atur Jam
           </button>
-
-          <button
-            type="button"
-            onClick={() => setPerspective("ROMBEL")}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
-              perspective === "ROMBEL"
-                ? "bg-[#2563EB] text-white shadow-xs"
-                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
-            }`}
-          >
-            <School className="h-3.5 w-3.5" />
-            <span>Per Rombel</span>
-            <span className="text-[10px] opacity-80">({rombelGroups.length} Kelas)</span>
-          </button>
-
-          {isAdmin && (
-            <button
-              type="button"
-              onClick={() => setPerspective("GURU")}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
-                perspective === "GURU"
-                  ? "bg-[#2563EB] text-white shadow-xs"
-                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
-              }`}
-            >
-              <GraduationCap className="h-3.5 w-3.5" />
-              <span>Per Guru Pengampu</span>
-              <span className="text-[10px] opacity-80">({guruGroups.length} Guru)</span>
-            </button>
-          )}
         </div>
+      )}
 
-        {/* Toggle Tampilan (Hanya relevan di mode Semua Penugasan) */}
-        {perspective === "ALL" && (
-          <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-800/80 self-end md:self-auto shrink-0">
-            <button
-              type="button"
-              onClick={() => setViewMode("GRID")}
-              className={`p-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                viewMode === "GRID"
-                  ? "bg-white dark:bg-slate-900 text-[#2563EB] dark:text-blue-400 shadow-2xs"
-                  : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-              }`}
-              title="Tampilan Kartu Grid"
-            >
-              <LayoutGrid className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Grid Kartu</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setViewMode("TABLE")}
-              className={`p-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                viewMode === "TABLE"
-                  ? "bg-white dark:bg-slate-900 text-[#2563EB] dark:text-blue-400 shadow-2xs"
-                  : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-              }`}
-              title="Tampilan Tabel Ringkas"
-            >
-              <Table2 className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Tabel Ringkas</span>
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* 3. Toolbar Filter & Pencarian Terpadu & Aksi Cepat */}
-      <div className="p-3.5 sm:p-4 rounded-[24px] bg-white dark:bg-slate-900/75 dark:backdrop-blur-xl border border-slate-200/80 dark:border-blue-500/20 shadow-2xs dark:shadow-[0_0_25px_-5px_rgba(37,99,235,0.16)] flex flex-col md:flex-row md:items-center justify-between gap-3">
-        {/* Kolom Pencarian & Filter */}
+      {/* ─────────────────────────────────────────────────────────────
+          2. UNIFIED WORKSPACE TOOLBAR (Satu Baris Tunggal ala Linear/Stripe)
+      ───────────────────────────────────────────────────────────── */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+        {/* Sisi Kiri: Search Input + Tab Status Kontekstual */}
         <div className="flex flex-wrap items-center gap-2.5 flex-1">
-          <div className="relative w-full sm:w-72 md:w-80">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500" />
+          {/* A. Search Box Terpadu */}
+          <div className="relative w-full sm:w-64 md:w-72">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
             <input
               type="text"
               placeholder={
-                isAdmin ? "Cari rombel, mapel, kode, guru..." : "Cari rombel atau mapel..."
+                isAdmin ? "Cari rombel, mapel, kode, guru..." : "Cari rombel atau mata pelajaran..."
               }
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-xs font-medium text-slate-800 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-blue-500/20 focus:border-[#2563EB] transition-all"
+              className="w-full pl-8 pr-7 py-2 rounded-xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900/90 text-xs text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-[#2563EB] transition-all shadow-2xs"
             />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                title="Hapus pencarian"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
           </div>
 
-          {/* Filter Guru (Admin) */}
+          {/* B. Tab Filter Kontekstual dengan Sliding Pill Indicator */}
+          <div className="flex items-center p-0.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-100/80 dark:bg-slate-900/60 text-xs font-semibold overflow-x-auto scrollbar-none">
+            <button
+              type="button"
+              onClick={() => {
+                setStatusTab("ALL");
+                setCurrentPage(1);
+              }}
+              className={`relative px-3 py-1.5 rounded-lg transition-colors cursor-pointer shrink-0 ${
+                statusTab === "ALL"
+                  ? "text-[#2563EB] dark:text-blue-400 font-bold"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+              }`}
+            >
+              {statusTab === "ALL" && (
+                <motion.div
+                  layoutId="activeFilterPill"
+                  className="absolute inset-0 bg-white dark:bg-slate-800 rounded-lg shadow-2xs"
+                  transition={{ type: "spring", stiffness: 450, damping: 30 }}
+                />
+              )}
+              <span className="relative z-10">Semua ({classes.length})</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setStatusTab("TODAY");
+                setCurrentPage(1);
+              }}
+              className={`relative px-3 py-1.5 rounded-lg transition-colors cursor-pointer shrink-0 ${
+                statusTab === "TODAY"
+                  ? "text-[#2563EB] dark:text-blue-400 font-bold"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+              }`}
+            >
+              {statusTab === "TODAY" && (
+                <motion.div
+                  layoutId="activeFilterPill"
+                  className="absolute inset-0 bg-white dark:bg-slate-800 rounded-lg shadow-2xs"
+                  transition={{ type: "spring", stiffness: 450, damping: 30 }}
+                />
+              )}
+              <span className="relative z-10 flex items-center gap-1.5">
+                <span className="size-1.5 rounded-full bg-emerald-500" />
+                <span>Hari Ini ({todayClassesTotal})</span>
+              </span>
+            </button>
+
+            {unscheduledClassesTotal > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  setStatusTab("UNSCHEDULED");
+                  setCurrentPage(1);
+                }}
+                className={`relative px-3 py-1.5 rounded-lg transition-colors cursor-pointer shrink-0 ${
+                  statusTab === "UNSCHEDULED"
+                    ? "text-amber-700 dark:text-amber-400 font-bold"
+                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                }`}
+              >
+                {statusTab === "UNSCHEDULED" && (
+                  <motion.div
+                    layoutId="activeFilterPill"
+                    className="absolute inset-0 bg-white dark:bg-slate-800 rounded-lg shadow-2xs"
+                    transition={{ type: "spring", stiffness: 450, damping: 30 }}
+                  />
+                )}
+                <span className="relative z-10 flex items-center gap-1 text-amber-600 dark:text-amber-400">
+                  <AlertCircle className="h-3 w-3" />
+                  <span>Belum Diatur ({unscheduledClassesTotal})</span>
+                </span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Sisi Kanan: Dropdown Filter Tingkat + Filter Guru (Admin) + Toggle Grid/Tabel */}
+        <div className="flex items-center gap-2 self-start lg:self-auto shrink-0 flex-wrap">
+          {/* Filter Tingkat */}
+          {uniqueTingkats.length > 1 && (
+            <div className="relative">
+              <select
+                value={selectedTingkat}
+                onChange={(e) => {
+                  setSelectedTingkat(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="px-2.5 py-1.5 rounded-xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20 shadow-2xs cursor-pointer"
+              >
+                <option value="ALL">Semua Tingkat</option>
+                {uniqueTingkats.map((tk) => (
+                  <option key={tk} value={tk}>
+                    {tk}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Filter Guru (Khusus Supervisi Admin) */}
           {isAdmin && (
-            <div className="relative min-w-[180px]">
+            <div className="relative">
               <select
                 value={selectedGuruId}
                 onChange={(e) => {
                   setSelectedGuruId(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-xs font-bold text-slate-800 dark:text-white focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-blue-500/20 focus:border-[#2563EB] transition-all cursor-pointer"
+                className="px-2.5 py-1.5 rounded-xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20 shadow-2xs cursor-pointer max-w-[180px] truncate"
               >
                 <option value="ALL">Semua Guru ({teachersList.length})</option>
                 {teachersList.map((t) => (
@@ -462,564 +630,557 @@ export function TeacherClassesView({
             </div>
           )}
 
-          {/* Filter Rombel (Admin) */}
-          {isAdmin && (
-            <div className="relative min-w-[140px]">
-              <select
-                value={selectedRombelFilter}
-                onChange={(e) => {
-                  setSelectedRombelFilter(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-xs font-bold text-slate-800 dark:text-white focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-blue-500/20 focus:border-[#2563EB] transition-all cursor-pointer"
-              >
-                <option value="ALL">Semua Rombel ({uniqueRombelsList.length})</option>
-                {uniqueRombelsList.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {r.nama}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {/* Reset Filter */}
-          {(selectedGuruId !== "ALL" ||
+          {/* Reset Filters jika ada filter aktif */}
+          {(search ||
+            statusTab !== "ALL" ||
             selectedTingkat !== "ALL" ||
-            selectedRombelFilter !== "ALL" ||
-            search) && (
+            selectedGuruId !== "ALL") && (
             <button
               type="button"
               onClick={handleResetFilters}
-              className="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 transition-all cursor-pointer"
+              className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors shadow-2xs cursor-pointer"
+              title="Reset semua filter"
             >
-              Reset
+              <RotateCcw className="h-3.5 w-3.5" />
             </button>
           )}
-        </div>
 
-        {/* Action Buttons: + Tambah Kelas Manual & + Foto Absen AI */}
-        <div className="flex items-center gap-2 shrink-0">
-          <button
-            type="button"
-            onClick={handleOpenManualClass}
-            className="px-3.5 py-2 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white font-mono text-xs font-bold shadow-xs shadow-blue-500/20 flex items-center gap-1.5 cursor-pointer transition-all active:scale-95"
-          >
-            <PlusCircle className="h-4 w-4" />
-            <span>+ Tambah Kelas Manual</span>
-          </button>
+          {/* View Mode Toggle: Grid ⊞ vs Table ☰ */}
+          <div className="flex items-center p-0.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-100/80 dark:bg-slate-900/60">
+            <button
+              type="button"
+              onClick={() => setViewMode("GRID")}
+              className={`p-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                viewMode === "GRID"
+                  ? "bg-white dark:bg-slate-800 text-[#2563EB] dark:text-blue-400 shadow-2xs"
+                  : "text-slate-500 hover:text-slate-900 dark:hover:text-slate-200"
+              }`}
+              title="Tampilan Kartu Grid"
+            >
+              <LayoutGrid className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Grid</span>
+            </button>
 
-          <button
-            type="button"
-            onClick={handleOpenAiPhoto}
-            className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 text-slate-800 dark:text-slate-200 border border-slate-200/80 dark:border-blue-500/20 font-mono text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all active:scale-95"
-            title="Scan Foto Absensi dengan AI"
-          >
-            <Camera className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-            <span>+ Foto Absen AI</span>
-          </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("TABLE")}
+              className={`p-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                viewMode === "TABLE"
+                  ? "bg-white dark:bg-slate-800 text-[#2563EB] dark:text-blue-400 shadow-2xs"
+                  : "text-slate-500 hover:text-slate-900 dark:hover:text-slate-200"
+              }`}
+              title="Tampilan Tabel Ringkas"
+            >
+              <Table2 className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Tabel</span>
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Filter Chips Tingkat (Hanya muncul bila ada >1 tingkat) */}
-      {uniqueTingkats.length > 1 && (
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-          <span className="text-xs font-bold text-slate-400 dark:text-slate-500 mr-1 flex items-center gap-1">
-            <Filter className="h-3 w-3" />
-            <span>Tingkat:</span>
-          </span>
-
+      {/* ─────────────────────────────────────────────────────────────
+          3. CLASS DIRECTORY WORKSPACE CONTENT (Grid / Table)
+      ───────────────────────────────────────────────────────────── */}
+      {filtered.length === 0 ? (
+        /* Empty State */
+        <div className="p-8 sm:p-12 text-center rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs space-y-3">
+          <div className="h-11 w-11 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 flex items-center justify-center mx-auto">
+            <Search className="h-5 w-5" />
+          </div>
+          <div>
+            <h4 className="text-sm font-bold text-slate-900 dark:text-white">
+              Tidak ada kelas yang ditemukan
+            </h4>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
+              {search
+                ? `Tidak ada kelas yang cocok dengan kata kunci "${search}".`
+                : statusTab === "TODAY"
+                  ? "Tidak ada jadwal mengajar pada hari ini."
+                  : "Belum ada penugasan kelas yang cocok dengan filter yang dipilih."}
+            </p>
+          </div>
           <button
             type="button"
-            onClick={() => {
-              setSelectedTingkat("ALL");
-              setCurrentPage(1);
-            }}
-            className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
-              selectedTingkat === "ALL"
-                ? "bg-[#2563EB] text-white shadow-2xs"
-                : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
-            }`}
+            onClick={handleResetFilters}
+            className="px-3.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 text-xs font-bold text-slate-700 dark:text-slate-200 transition-colors inline-flex items-center gap-1.5 cursor-pointer"
           >
-            Semua Tingkat
+            <RotateCcw className="h-3 w-3" />
+            <span>Tampilkan Semua Kelas</span>
           </button>
-
-          {uniqueTingkats.map((tk) => (
-            <button
-              key={tk}
-              type="button"
-              onClick={() => {
-                setSelectedTingkat(tk);
-                setCurrentPage(1);
-              }}
-              className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                selectedTingkat === tk
-                  ? "bg-[#2563EB] text-white shadow-2xs"
-                  : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
-              }`}
-            >
-              {tk}
-            </button>
-          ))}
         </div>
-      )}
+      ) : viewMode === "GRID" ? (
+        /* A. FLAT ENTERPRISE CARD GRID */
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
+          {pagedClasses.map((c) => {
+            const isUnscheduled = !c.jadwal_ringkas || c.jumlah_jam_minggu === 0;
+            const hasScheduleToday = !isUnscheduled && Boolean(c.jadwal_hari_ini);
 
-      {/* 4. Konten Utama Sesuai Perspektif */}
-
-      {/* A. PERSPEKTIF: PER ROMBEL */}
-      {perspective === "ROMBEL" && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {rombelGroups.map((rg) => (
-            <div
-              key={rg.rombel_id}
-              className="group relative rounded-[24px] bg-white dark:bg-slate-900/75 dark:backdrop-blur-xl border border-slate-200/80 dark:border-blue-500/20 p-4 sm:p-5 shadow-xs dark:shadow-[0_0_25px_-5px_rgba(37,99,235,0.16)] hover:shadow-md hover:border-blue-300 dark:hover:border-blue-500/40 transition-all duration-200 flex flex-col justify-between overflow-hidden"
-            >
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight group-hover:text-[#2563EB] dark:group-hover:text-blue-400 transition-colors">
-                    {rg.rombel_nama}
-                  </h3>
-                  {rg.tingkat_nama && (
-                    <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold">
-                      {rg.tingkat_nama}
-                    </span>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-3 gap-2 p-2 rounded-xl bg-slate-50/70 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 text-center">
-                  <div>
-                    <span className="text-[10px] text-slate-400 dark:text-slate-400 block font-semibold">
-                      Mapel
-                    </span>
-                    <span className="text-sm font-black text-slate-800 dark:text-white">
-                      {rg.classes.length}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-slate-400 dark:text-slate-400 block font-semibold">
-                      Beban
-                    </span>
-                    <span className="text-sm font-black text-indigo-600 dark:text-indigo-400">
-                      {rg.total_jp} JP
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-slate-400 dark:text-slate-400 block font-semibold">
-                      Siswa
-                    </span>
-                    <span className="text-sm font-black text-emerald-600 dark:text-emerald-400">
-                      {rg.total_siswa}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <span className="text-[11px] font-bold text-slate-400 dark:text-slate-400 block">
-                    Daftar Mata Pelajaran:
-                  </span>
-                  <div className="flex flex-wrap gap-1">
-                    {rg.classes.slice(0, 4).map((c) => (
-                      <span
-                        key={c.id}
-                        className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[11px] font-medium border border-slate-200/60 dark:border-slate-700/60"
-                      >
-                        {c.mata_pelajaran_nama}
-                      </span>
-                    ))}
-                    {rg.classes.length > 4 && (
-                      <span className="px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/60 text-[#2563EB] dark:text-blue-400 text-[11px] font-bold">
-                        +{rg.classes.length - 4} lainnya
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end">
-                <button
-                  type="button"
-                  onClick={() => handleSelectRombel(rg.rombel_id)}
-                  className="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-[#2563EB] dark:bg-blue-950/60 dark:hover:bg-blue-600 text-[#2563EB] hover:text-white dark:text-blue-400 font-bold text-xs transition-all duration-200 flex items-center gap-1.5 cursor-pointer shadow-2xs"
-                >
-                  <span>Buka Kelas Rombel ({rg.classes.length})</span>
-                  <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* B. PERSPEKTIF: PER GURU */}
-      {perspective === "GURU" && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {guruGroups.map((gg) => (
-            <div
-              key={gg.guru_id}
-              className="group relative rounded-[24px] bg-white dark:bg-slate-900/75 dark:backdrop-blur-xl border border-slate-200/80 dark:border-blue-500/20 p-4 sm:p-5 shadow-xs dark:shadow-[0_0_25px_-5px_rgba(37,99,235,0.16)] hover:shadow-md hover:border-blue-300 dark:hover:border-blue-500/40 transition-all duration-200 flex flex-col justify-between overflow-hidden"
-            >
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-[#2563EB] dark:text-blue-400 shrink-0">
-                    <GraduationCap className="h-4 w-4" />
-                  </div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight group-hover:text-[#2563EB] dark:group-hover:text-blue-400 transition-colors line-clamp-1">
-                    {gg.guru_nama}
-                  </h3>
-                </div>
-
-                <div className="grid grid-cols-3 gap-2 p-2 rounded-xl bg-slate-50/70 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 text-center">
-                  <div>
-                    <span className="text-[10px] text-slate-400 dark:text-slate-400 block font-semibold">
-                      Penugasan
-                    </span>
-                    <span className="text-sm font-black text-slate-800 dark:text-white">
-                      {gg.classes.length}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-slate-400 dark:text-slate-400 block font-semibold">
-                      Beban
-                    </span>
-                    <span className="text-sm font-black text-indigo-600 dark:text-indigo-400">
-                      {gg.total_jp} JP
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-slate-400 dark:text-slate-400 block font-semibold">
-                      Rombel
-                    </span>
-                    <span className="text-sm font-black text-emerald-600 dark:text-emerald-400">
-                      {gg.rombel_count}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end">
-                <button
-                  type="button"
-                  onClick={() => handleSelectGuru(gg.guru_id)}
-                  className="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-[#2563EB] dark:bg-blue-950/60 dark:hover:bg-blue-600 text-[#2563EB] hover:text-white dark:text-blue-400 font-bold text-xs transition-all duration-200 flex items-center gap-1.5 cursor-pointer shadow-2xs"
-                >
-                  <span>Buka Kelas Guru ({gg.classes.length})</span>
-                  <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* C. PERSPEKTIF: SEMUA KELAS (DENGAN PAGINASI) */}
-      {perspective === "ALL" && (
-        <>
-          {filtered.length === 0 ? (
-            <div className="p-10 text-center rounded-[28px] bg-white dark:bg-slate-900/75 dark:backdrop-blur-xl border border-slate-200/80 dark:border-blue-500/20 shadow-xs dark:shadow-[0_0_30px_-5px_rgba(37,99,235,0.16)] space-y-4">
-              <div className="h-12 w-12 rounded-2xl bg-blue-50 dark:bg-blue-950/60 border border-blue-100 dark:border-blue-900/50 flex items-center justify-center text-[#2563EB] dark:text-blue-400 mx-auto shadow-2xs">
-                <BookOpen className="h-6 w-6" />
-              </div>
-              <div className="space-y-1">
-                <h4 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
-                  {classes.length === 0
-                    ? "Belum Ada Kelas yang Diampu"
-                    : "Tidak Ada Kelas yang Ditemukan"}
-                </h4>
-                <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
-                  {classes.length === 0
-                    ? "Mulai dengan menambahkan rombel pertama Anda. Anda dapat mengunggah foto lembar absensi kertas untuk diekstrak AI otomatis, atau mengisi manual."
-                    : search
-                      ? `Tidak ada kelas yang cocok dengan kata kunci '${search}'.`
-                      : "Belum ada penugasan kelas yang cocok dengan filter yang dipilih."}
-                </p>
-              </div>
-
-              <div className="flex items-center justify-center gap-2.5 pt-2 flex-wrap">
-                {classes.length === 0 ? (
-                  <>
-                    <button
-                      type="button"
-                      onClick={handleOpenManualClass}
-                      className="px-4 py-2.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white font-mono text-xs font-bold shadow-xs shadow-blue-500/20 flex items-center gap-1.5 cursor-pointer transition-all active:scale-95"
-                    >
-                      <PlusCircle className="h-4 w-4" />
-                      <span>+ Tambah Kelas Manual</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleOpenAiPhoto}
-                      className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white border border-slate-200/80 dark:border-blue-500/20 font-mono text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all active:scale-95"
-                    >
-                      <Camera className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                      <span>+ Foto Absen AI</span>
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={handleResetFilters}
-                    className="px-4 py-2 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-[#2563EB] dark:text-blue-400 border border-blue-200 dark:border-blue-900/50 text-xs font-bold hover:bg-blue-100 dark:hover:bg-blue-900/60 transition-all cursor-pointer"
-                  >
-                    Reset Semua Filter
-                  </button>
-                )}
-              </div>
-            </div>
-          ) : viewMode === "GRID" ? (
-            /* Mode 1: GRID KARTU (Dibatasi per Halaman) */
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-              {pagedClasses.map((c) => (
-                <div
-                  key={c.id}
-                  className="group relative rounded-[24px] bg-white dark:bg-slate-900/75 dark:backdrop-blur-xl border border-slate-200/80 dark:border-blue-500/20 shadow-xs dark:shadow-[0_0_25px_-5px_rgba(37,99,235,0.16)] hover:shadow-md hover:border-blue-300 dark:hover:border-blue-500/40 transition-all duration-200 flex flex-col justify-between overflow-hidden"
-                >
-                  <div className="p-4 sm:p-5 space-y-3 sm:space-y-3.5">
-                    {/* Header Kartu: Kode Mapel + Tingkat + Badge JP */}
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-1.5 sm:gap-2">
-                        <span className="px-2 sm:px-2.5 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/60 border border-blue-200/80 dark:border-blue-900/50 text-[#2563EB] dark:text-blue-400 font-black text-xs">
-                          {c.mata_pelajaran_kode}
-                        </span>
+            return (
+              <motion.div
+                key={c.id}
+                whileHover={{ y: -2 }}
+                transition={{ type: "spring", stiffness: 450, damping: 30 }}
+                className="rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 transition-all p-4 sm:p-5 flex flex-col justify-between gap-3.5 group relative"
+              >
+                <div className="space-y-3">
+                  {/* Row 1: Nama Rombel Ukuran Besar, Tingkat, Kode Mapel & Titik 3 Control (Owner Only) */}
+                  <div className="flex items-start justify-between gap-2.5">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {/* Nama Rombel Ukuran Besar */}
+                        <h3 className="text-xl sm:text-2xl font-black font-mono tracking-tight text-slate-900 dark:text-white group-hover:text-[#2563EB] dark:group-hover:text-blue-400 transition-colors">
+                          {c.rombel_nama}
+                        </h3>
                         {c.tingkat_nama && (
-                          <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-[11px]">
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200/60 dark:border-slate-700/60">
                             {c.tingkat_nama}
                           </span>
                         )}
-                        <span className="text-[11px] font-medium text-slate-400">
-                          {c.tahun_ajaran_nama}
-                        </span>
                       </div>
-
-                      <span className="px-2 sm:px-2.5 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-100 dark:border-indigo-900/50 text-indigo-700 dark:text-indigo-300 text-xs font-bold">
-                        {c.jumlah_jam_minggu} JP / mgg
-                      </span>
-                    </div>
-
-                    {/* Info Utama: NAMA KELAS SEBAGAI JUDUL UTAMA + Mapel sebagai Subtitle Terbaca */}
-                    <div className="space-y-1">
-                      <h3 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight group-hover:text-[#2563EB] dark:group-hover:text-blue-400 transition-colors leading-tight">
-                        {c.rombel_nama}
-                      </h3>
                       <p
-                        className="text-xs sm:text-[13px] font-semibold text-slate-600 dark:text-slate-300 line-clamp-1"
+                        className="text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-300 mt-1 truncate"
                         title={c.mata_pelajaran_nama}
                       >
                         {c.mata_pelajaran_nama}
                       </p>
                     </div>
 
-                    {/* Info Guru Pengampu — Hanya Ditampilkan Saat Supervisi Admin */}
-                    {isAdmin && (
-                      <div className="flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 text-xs">
-                        <GraduationCap className="h-3.5 w-3.5 text-[#2563EB] dark:text-blue-400 shrink-0" />
-                        <span className="text-slate-600 dark:text-slate-300 truncate">
-                          Guru:{" "}
-                          <strong className="text-slate-800 dark:text-white font-bold">
-                            {c.guru_nama}
-                          </strong>
-                        </span>
-                      </div>
-                    )}
+                    {/* Sisi Kanan Atas: Kode Mapel Badge & Titik 3 Control */}
+                    <div className="shrink-0 flex items-center gap-1.5">
+                      <span className="font-mono text-xs font-bold px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-[#2563EB] dark:text-blue-400 border border-blue-200/60 dark:border-blue-900/50">
+                        {c.mata_pelajaran_kode}
+                      </span>
 
-                    {/* Ringkasan Konten Kelas (BAB, Materi, Tugas, Jurnal) */}
-                    <div className="grid grid-cols-4 gap-1 sm:gap-1.5 pt-2 border-t border-slate-100 dark:border-slate-800 text-center">
-                      <div className="p-1.5 sm:p-2 rounded-xl bg-slate-50/70 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60">
-                        <span className="text-[10px] text-slate-400 dark:text-slate-400 block font-semibold">
-                          BAB
-                        </span>
-                        <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
-                          {c.total_bab}
-                        </span>
-                      </div>
-                      <div className="p-1.5 sm:p-2 rounded-xl bg-slate-50/70 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60">
-                        <span className="text-[10px] text-slate-400 dark:text-slate-400 block font-semibold">
-                          Materi
-                        </span>
-                        <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
-                          {c.total_materi}
-                        </span>
-                      </div>
-                      <div className="p-1.5 sm:p-2 rounded-xl bg-slate-50/70 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60">
-                        <span className="text-[10px] text-slate-400 dark:text-slate-400 block font-semibold">
-                          Tugas
-                        </span>
-                        <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
-                          {c.total_tugas}
-                        </span>
-                      </div>
-                      <div className="p-1.5 sm:p-2 rounded-xl bg-slate-50/70 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60">
-                        <span className="text-[10px] text-slate-400 dark:text-slate-400 block font-semibold">
-                          Jurnal
-                        </span>
-                        <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
-                          {c.total_jurnal}
-                        </span>
-                      </div>
+                      {/* Kontrol Titik 3 (Hanya untuk Guru Mandiri / Workspace Owner) */}
+                      {isTenantOwner && (
+                        <div className="relative">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenActionMenuRombelId(
+                                openActionMenuRombelId === c.rombel_id ? null : c.rombel_id
+                              );
+                            }}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                            title="Menu Kelas"
+                            aria-label="Menu Kelas"
+                          >
+                            <MoreVertical className="h-4 w-4" />
+                          </button>
+
+                          {/* Dropdown Menu Popover Titik 3 */}
+                          <div
+                            className={`absolute right-0 top-full mt-1 w-44 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl py-1 z-30 transition-all ${
+                              openActionMenuRombelId === c.rombel_id
+                                ? "opacity-100 scale-100 pointer-events-auto"
+                                : "opacity-0 scale-95 pointer-events-none"
+                            }`}
+                          >
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setOpenActionMenuRombelId(null);
+                                setClassActionTarget({ id: c.rombel_id, nama: c.rombel_nama });
+                                setClassActionMode("rename");
+                                setClassActionError(null);
+                              }}
+                              className="w-full px-3 py-2 text-left text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 cursor-pointer transition-colors"
+                            >
+                              <Pencil className="h-3.5 w-3.5 text-slate-500" />
+                              <span>Ubah Nama Kelas</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setOpenActionMenuRombelId(null);
+                                setClassActionTarget({ id: c.rombel_id, nama: c.rombel_nama });
+                                setClassActionMode("delete");
+                                setClassActionError(null);
+                              }}
+                              className="w-full px-3 py-2 text-left text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center gap-2 cursor-pointer transition-colors"
+                            >
+                              <Trash2 className="h-3.5 w-3.5 text-rose-500" />
+                              <span>Hapus Kelas</span>
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
-                  {/* Footer Aksi — Ringkas, Elegan, dan Selalu 1 Baris Sejajar */}
-                  <div className="px-4 py-2.5 sm:px-5 sm:py-3.5 bg-slate-50/70 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
-                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1.5 shrink-0">
-                      <Users className="h-3.5 w-3.5 text-slate-400" />
-                      <span>{c.total_siswa} Siswa</span>
-                    </span>
-
-                    <Link
-                      href={`/kelas-saya/${c.id}`}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-xs shadow-2xs transition-all duration-200 cursor-pointer"
-                    >
-                      <span>Buka Workspace</span>
-                      <ArrowRight className="h-3.5 w-3.5" />
-                    </Link>
+                  {/* Row 2: Jadwal & Status Operasional KBM */}
+                  <div className="pt-0.5">
+                    {isUnscheduled ? (
+                      <div className="flex items-center justify-between text-xs bg-amber-50/80 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 px-3 py-1.5 rounded-xl border border-amber-200/60 dark:border-amber-900/50 font-mono">
+                        <span className="flex items-center gap-1.5 text-xs font-semibold">
+                          <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                          <span>Jam Belum Diatur</span>
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setScheduleModalTarget(c)}
+                          className="px-2.5 py-1 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-[11px] font-bold cursor-pointer transition-colors shadow-2xs"
+                        >
+                          + Atur Jam
+                        </button>
+                      </div>
+                    ) : hasScheduleToday ? (
+                      <div className="flex items-center gap-2 text-xs text-[#2563EB] dark:text-blue-400 bg-blue-50/80 dark:bg-blue-950/50 px-3 py-1.5 rounded-xl border border-blue-100 dark:border-blue-900/50 font-mono">
+                        <span className="size-2 rounded-full bg-[#2563EB] animate-pulse" />
+                        <span className="font-bold">Hari Ini: {c.jadwal_hari_ini}</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 font-mono bg-slate-50 dark:bg-slate-800/40 px-3 py-1.5 rounded-xl border border-slate-200/60 dark:border-slate-800/60">
+                        <Clock className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                        <span className="truncate">{c.jadwal_ringkas}</span>
+                      </div>
+                    )}
                   </div>
+
+                  {/* Row 3: Avatar Stack Siswa (Kiri) & Beban JP (Kanan) */}
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
+                    <div className="flex items-center gap-2">
+                      {/* Avatar Stack Siswa (3-5 Lingkaran Bertumpuk) */}
+                      <div className="flex items-center -space-x-1.5 overflow-hidden">
+                        {c.total_siswa > 0 ? (
+                          Array.from({ length: Math.min(3, c.total_siswa) }).map((_, idx) => {
+                            const colors = [
+                              "bg-blue-500 text-white",
+                              "bg-emerald-500 text-white",
+                              "bg-purple-500 text-white",
+                              "bg-amber-500 text-white",
+                            ];
+                            return (
+                              <div
+                                key={idx}
+                                className={`inline-flex items-center justify-center size-5.5 sm:size-6 rounded-full ring-2 ring-white dark:ring-slate-900 text-[9px] font-bold ${colors[idx % colors.length]}`}
+                                title={`Siswa ${idx + 1}`}
+                              >
+                                {String.fromCharCode(65 + (idx % 26))}
+                              </div>
+                            );
+                          })
+                        ) : (
+                          <div className="inline-flex items-center justify-center size-5.5 sm:size-6 rounded-full ring-2 ring-white dark:ring-slate-900 bg-slate-200 dark:bg-slate-700 text-slate-400 text-[9px]">
+                            -
+                          </div>
+                        )}
+                        {c.total_siswa > 3 && (
+                          <div className="inline-flex items-center justify-center size-5.5 sm:size-6 rounded-full ring-2 ring-white dark:ring-slate-900 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[8px] font-bold font-mono">
+                            +{c.total_siswa - 3}
+                          </div>
+                        )}
+                      </div>
+                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300 font-mono">
+                        {c.total_siswa} Siswa
+                      </span>
+                    </div>
+
+                    {/* Beban JP Mengajar */}
+                    <span className="font-bold font-mono text-xs text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/50 px-2 py-0.5 rounded-md border border-indigo-100 dark:border-indigo-900/40">
+                      {c.jumlah_jam_minggu} JP
+                    </span>
+                  </div>
+
+                  {/* Wali Kelas jika ada */}
+                  {c.wali_kelas_nama && (
+                    <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                      Wali:{" "}
+                      <strong className="font-semibold text-slate-700 dark:text-slate-300">
+                        {c.wali_kelas_nama}
+                      </strong>
+                    </div>
+                  )}
+
+                  {/* Guru Pengampu (jika mode supervisi admin) */}
+                  {isAdmin && (
+                    <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                      Guru:{" "}
+                      <strong className="font-semibold text-slate-700 dark:text-slate-300">
+                        {c.guru_nama}
+                      </strong>
+                    </div>
+                  )}
                 </div>
-              ))}
-            </div>
-          ) : (
-            /* Mode 2: TABEL RINGKAS (COMPACT DATA TABLE) */
-            <div className="overflow-hidden rounded-[24px] bg-white dark:bg-slate-900/75 dark:backdrop-blur-xl border border-slate-200/80 dark:border-blue-500/20 shadow-xs dark:shadow-[0_0_25px_-5px_rgba(37,99,235,0.16)]">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-50/90 dark:bg-slate-800/70 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-bold tracking-wider uppercase text-[11px]">
-                    <tr>
-                      <th className="py-3 px-4 w-12 text-center">No</th>
-                      <th className="py-3 px-4">Rombel</th>
-                      <th className="py-3 px-4">Mata Pelajaran</th>
-                      <th className="py-3 px-4">Guru Pengampu</th>
-                      <th className="py-3 px-4 text-center">Beban</th>
-                      <th className="py-3 px-4 text-center">Progres KBM</th>
-                      <th className="py-3 px-4 text-center">Siswa</th>
-                      <th className="py-3 px-4 text-right">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-medium text-slate-700 dark:text-slate-300">
-                    {pagedClasses.map((c, index) => (
-                      <tr
-                        key={c.id}
-                        className="hover:bg-blue-50/40 dark:hover:bg-blue-950/30 transition-colors"
-                      >
-                        <td className="py-3 px-4 text-center text-slate-400 font-mono">
-                          {startIndex + index + 1}
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-extrabold text-xs">
-                            {c.rombel_nama}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4">
-                          <div className="font-bold text-slate-900 dark:text-white leading-tight">
-                            {c.mata_pelajaran_nama}
-                          </div>
-                          <span className="text-[11px] text-[#2563EB] dark:text-blue-400 font-bold">
-                            {c.mata_pelajaran_kode}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className="font-bold text-slate-800 dark:text-white">
-                            {c.guru_nama}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          <span className="px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-bold text-xs">
-                            {c.jumlah_jam_minggu} JP
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          <div className="inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/60 px-2.5 py-1 rounded-lg border border-slate-100 dark:border-slate-700/60">
-                            <span>{c.total_bab} BAB</span>
-                            <span className="text-slate-300 dark:text-slate-600">•</span>
-                            <span>{c.total_materi} Mat</span>
-                            <span className="text-slate-300 dark:text-slate-600">•</span>
-                            <span>{c.total_tugas} Tug</span>
-                            <span className="text-slate-300 dark:text-slate-600">•</span>
-                            <span>{c.total_jurnal} Jur</span>
-                          </div>
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">
-                            {c.total_siswa}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-right">
-                          <Link
-                            href={`/kelas-saya/${c.id}`}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#2563EB] hover:bg-blue-700 text-white font-bold text-xs shadow-xs transition-all cursor-pointer"
-                          >
-                            <span>Buka</span>
-                            <ArrowRight className="h-3 w-3" />
-                          </Link>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
 
-          {/* 5. Kontrol Paginasi Cerdas */}
-          {filtered.length > 0 && (
-            <div className="p-4 rounded-[20px] bg-white dark:bg-slate-900/75 dark:backdrop-blur-xl border border-slate-200/80 dark:border-blue-500/20 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-              <div className="text-slate-500 dark:text-slate-400 font-semibold">
-                Menampilkan{" "}
-                <strong className="text-slate-800 dark:text-white">{startIndex + 1}</strong> –{" "}
-                <strong className="text-slate-800 dark:text-white">
-                  {Math.min(startIndex + pageSize, filtered.length)}
-                </strong>{" "}
-                dari <strong className="text-slate-800 dark:text-white">{filtered.length}</strong>{" "}
-                kelas
-              </div>
+                {/* Row 4: Action Footer (Hanya Presensi & Kelola Kelas) */}
+                <div className="flex items-center justify-between gap-2 pt-2.5 border-t border-slate-100 dark:border-slate-800">
+                  <Link
+                    href={`/kelas-saya/${c.id}?tab=PRESENSI`}
+                    className="px-3 py-1.5 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/70 hover:bg-slate-100 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all cursor-pointer shadow-2xs flex items-center gap-1.5"
+                    title="Buka form presensi kelas"
+                  >
+                    <Users className="h-3.5 w-3.5 text-blue-600" />
+                    <span>Presensi</span>
+                  </Link>
 
-              <div className="flex items-center gap-3">
-                {/* Pilihan Page Size */}
-                <div className="flex items-center gap-1.5">
-                  <span className="text-slate-400">Tampilkan:</span>
-                  <select
-                    value={pageSize}
-                    onChange={(e) => {
-                      setPageSize(Number(e.target.value));
-                      setCurrentPage(1);
+                  <Link
+                    href={`/kelas-saya/${c.id}`}
+                    className="px-3.5 py-1.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-bold transition-all shadow-2xs shadow-blue-500/20 flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <span>Kelola Kelas</span>
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      ) : (
+        /* B. COMPACT DATA TABLE VIEW */
+        <div className="overflow-hidden rounded-xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200/80 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-bold uppercase text-[11px] font-mono">
+                <tr>
+                  <th className="py-2.5 px-4 w-12 text-center">No</th>
+                  <th className="py-2.5 px-4">Rombel</th>
+                  <th className="py-2.5 px-4">Mata Pelajaran</th>
+                  <th className="py-2.5 px-4">Jadwal Mengajar</th>
+                  <th className="py-2.5 px-4 text-center">Beban</th>
+                  <th className="py-2.5 px-4 text-center">Siswa</th>
+                  {isAdmin && <th className="py-2.5 px-4">Guru</th>}
+                  <th className="py-2.5 px-4 text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
+                {pagedClasses.map((c, index) => (
+                  <tr
+                    key={c.id}
+                    className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors"
+                  >
+                    <td className="py-3 px-4 text-center text-slate-400 font-mono">
+                      {startIndex + index + 1}
+                    </td>
+                    <td className="py-3 px-4 font-bold text-slate-900 dark:text-white">
+                      {c.rombel_nama}
+                      {c.tingkat_nama && (
+                        <span className="ml-1.5 text-[10px] font-normal text-slate-400">
+                          ({c.tingkat_nama})
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="font-semibold text-slate-800 dark:text-slate-200">
+                        {c.mata_pelajaran_nama}
+                      </div>
+                      <span className="font-mono text-[10px] font-bold text-blue-600 dark:text-blue-400">
+                        {c.mata_pelajaran_kode}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 font-mono text-xs">
+                      {c.jadwal_hari_ini ? (
+                        <span className="px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 font-bold">
+                          Hari Ini: {c.jadwal_hari_ini}
+                        </span>
+                      ) : c.jadwal_ringkas ? (
+                        <span>{c.jadwal_ringkas}</span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setScheduleModalTarget(c)}
+                          className="px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200/60 text-[10px] font-bold cursor-pointer"
+                        >
+                          + Atur Jam
+                        </button>
+                      )}
+                    </td>
+                    <td className="py-3 px-4 text-center font-mono font-bold text-indigo-600 dark:text-indigo-400">
+                      {c.jumlah_jam_minggu} JP
+                    </td>
+                    <td className="py-3 px-4 text-center font-mono font-bold text-slate-700 dark:text-slate-300">
+                      {c.total_siswa} Siswa
+                    </td>
+                    {isAdmin && (
+                      <td className="py-3 px-4 text-xs text-slate-600 dark:text-slate-400">
+                        {c.guru_nama}
+                      </td>
+                    )}
+                    <td className="py-3 px-4 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <Link
+                          href={`/kelas-saya/${c.id}?tab=PRESENSI`}
+                          className="px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 text-[11px] font-bold text-slate-700 dark:text-slate-200"
+                        >
+                          Presensi
+                        </Link>
+                        <Link
+                          href={`/kelas-saya/${c.id}`}
+                          className="px-3 py-1 rounded-lg bg-[#2563EB] hover:bg-blue-700 text-white text-[11px] font-bold"
+                        >
+                          Kelola Kelas
+                        </Link>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* ─────────────────────────────────────────────────────────────
+          4. PAGINATION BAR (Minimalist Bottom Controls)
+      ───────────────────────────────────────────────────────────── */}
+      {filtered.length > pageSize && (
+        <div className="flex items-center justify-between pt-2 text-xs text-slate-500 dark:text-slate-400 border-t border-slate-200/80 dark:border-slate-800">
+          <span>
+            Menampilkan{" "}
+            <strong className="text-slate-800 dark:text-white font-mono">{startIndex + 1}</strong> -{" "}
+            <strong className="text-slate-800 dark:text-white font-mono">
+              {Math.min(startIndex + pageSize, filtered.length)}
+            </strong>{" "}
+            dari{" "}
+            <strong className="text-slate-800 dark:text-white font-mono">{filtered.length}</strong>{" "}
+            kelas
+          </span>
+
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              disabled={safeCurrentPage <= 1}
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 cursor-pointer shadow-2xs"
+              title="Halaman Sebelumnya"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <span className="font-mono font-bold px-2 text-slate-800 dark:text-slate-200">
+              {safeCurrentPage} / {totalPages}
+            </span>
+            <button
+              type="button"
+              disabled={safeCurrentPage >= totalPages}
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 cursor-pointer shadow-2xs"
+              title="Halaman Berikutnya"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ─────────────────────────────────────────────────────────────
+          5. MODAL RENAME & DELETE ROMBEL (Khusus Tenant Owner)
+      ───────────────────────────────────────────────────────────── */}
+      {classActionTarget && classActionMode && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4"
+          role="presentation"
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="class-action-title"
+            className="w-full max-w-md space-y-4 rounded-xl border border-slate-200 bg-white p-5 shadow-2xl dark:border-slate-800 dark:bg-slate-900"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2
+                  id="class-action-title"
+                  className="text-base font-bold text-slate-900 dark:text-white"
+                >
+                  {classActionMode === "rename" ? "Ubah Nama Kelas" : "Hapus Kelas?"}
+                </h2>
+                <p className="mt-0.5 text-xs text-slate-500">{classActionTarget.nama}</p>
+              </div>
+              <button
+                type="button"
+                aria-label="Tutup dialog"
+                onClick={() => {
+                  setClassActionTarget(null);
+                  setClassActionMode(null);
+                }}
+                className="rounded-md p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {classActionMode === "rename" ? (
+              <form onSubmit={handleRenameRombel} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="rombel-name"
+                    className="text-xs font-semibold text-slate-700 dark:text-slate-300"
+                  >
+                    Nama Kelas
+                  </label>
+                  <input
+                    id="rombel-name"
+                    name="nama"
+                    required
+                    minLength={2}
+                    maxLength={100}
+                    defaultValue={classActionTarget.nama}
+                    className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-medium text-slate-900 dark:text-white outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15"
+                  />
+                </div>
+                {classActionError && (
+                  <p role="alert" className="text-xs text-rose-700">
+                    {classActionError}
+                  </p>
+                )}
+                <div className="flex justify-end gap-2 pt-1">
+                  <button
+                    type="button"
+                    disabled={classActionLoading}
+                    onClick={() => {
+                      setClassActionTarget(null);
+                      setClassActionMode(null);
                     }}
-                    className="px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 font-bold text-slate-700 dark:text-slate-200 cursor-pointer"
+                    className="rounded-lg border border-slate-300 dark:border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50 cursor-pointer"
                   >
-                    <option value={12}>12 kartu</option>
-                    <option value={24}>24 kartu</option>
-                    <option value={48}>48 kartu</option>
-                    <option value={100}>100 kartu</option>
-                  </select>
-                </div>
-
-                {/* Navigasi Halaman */}
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    disabled={safeCurrentPage <= 1}
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
-                    title="Halaman Sebelumnya"
-                  >
-                    <ChevronLeft className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+                    Batal
                   </button>
-
-                  <span className="px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-[#2563EB] dark:text-blue-400 font-bold">
-                    {safeCurrentPage} / {totalPages}
-                  </span>
-
+                  <button
+                    type="submit"
+                    disabled={classActionLoading}
+                    className="rounded-lg bg-[#2563EB] hover:bg-blue-700 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50 cursor-pointer"
+                  >
+                    {classActionLoading ? "Menyimpan..." : "Simpan Nama Kelas"}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <div className="space-y-4">
+                <p className="text-xs leading-relaxed text-slate-600 dark:text-slate-400">
+                  Kelas akan dihapus dari workspace aktif. Riwayat presensi, penilaian, dan
+                  pembelajaran tetap tersimpan aman di database.
+                </p>
+                {classActionError && (
+                  <p role="alert" className="text-xs text-rose-700">
+                    {classActionError}
+                  </p>
+                )}
+                <div className="flex justify-end gap-2 pt-1">
                   <button
                     type="button"
-                    disabled={safeCurrentPage >= totalPages}
-                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                    className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
-                    title="Halaman Berikutnya"
+                    disabled={classActionLoading}
+                    onClick={() => {
+                      setClassActionTarget(null);
+                      setClassActionMode(null);
+                    }}
+                    className="rounded-lg border border-slate-300 dark:border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50 cursor-pointer"
                   >
-                    <ChevronRight className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+                    Batal
+                  </button>
+                  <button
+                    type="button"
+                    disabled={classActionLoading}
+                    onClick={handleDeleteRombel}
+                    className="rounded-lg bg-rose-600 hover:bg-rose-700 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50 cursor-pointer"
+                  >
+                    {classActionLoading ? "Menghapus..." : "Konfirmasi Hapus"}
                   </button>
                 </div>
               </div>
-            </div>
-          )}
-        </>
+            )}
+          </section>
+        </div>
       )}
     </div>
   );

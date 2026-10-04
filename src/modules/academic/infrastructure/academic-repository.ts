@@ -182,6 +182,16 @@ export class AcademicRepository {
     sekolahId: string,
     input: UpdateAcademicYearInput
   ): Promise<AcademicYearDTO> {
+    const existing = await prisma.tahunAjaran.findFirst({
+      where: { id, ...(sekolahId ? { sekolah_id: sekolahId } : {}) },
+      select: { id: true },
+    });
+    if (!existing) {
+      throw new Error(
+        `Tahun ajaran dengan ID '${id}' tidak ditemukan atau bukan milik sekolah aktif.`
+      );
+    }
+
     const r = await prisma.tahunAjaran.update({
       where: { id },
       data: {
@@ -229,10 +239,15 @@ export class AcademicRepository {
     });
   }
 
-  async deleteAcademicYear(id: string): Promise<void> {
-    await prisma.tahunAjaran.delete({
-      where: { id },
+  async deleteAcademicYear(id: string, sekolahId?: string): Promise<void> {
+    const deleted = await prisma.tahunAjaran.deleteMany({
+      where: { id, ...(sekolahId ? { sekolah_id: sekolahId } : {}) },
     });
+    if (deleted.count === 0) {
+      throw new Error(
+        `Tahun ajaran dengan ID '${id}' tidak ditemukan atau bukan milik sekolah aktif.`
+      );
+    }
   }
 
   // =========================================================================
@@ -413,6 +428,14 @@ export class AcademicRepository {
     sekolahId: string,
     input: UpdateSemesterInput
   ): Promise<SemesterDTO> {
+    const existing = await prisma.semester.findFirst({
+      where: { id, ...(sekolahId ? { sekolah_id: sekolahId } : {}) },
+      select: { id: true },
+    });
+    if (!existing) {
+      throw new Error(`Semester dengan ID '${id}' tidak ditemukan atau bukan milik sekolah aktif.`);
+    }
+
     const r = await prisma.semester.update({
       where: { id },
       data: {
@@ -463,10 +486,13 @@ export class AcademicRepository {
     });
   }
 
-  async deleteSemester(id: string): Promise<void> {
-    await prisma.semester.delete({
-      where: { id },
+  async deleteSemester(id: string, sekolahId?: string): Promise<void> {
+    const deleted = await prisma.semester.deleteMany({
+      where: { id, ...(sekolahId ? { sekolah_id: sekolahId } : {}) },
     });
+    if (deleted.count === 0) {
+      throw new Error(`Semester dengan ID '${id}' tidak ditemukan atau bukan milik sekolah aktif.`);
+    }
   }
 
   // =========================================================================
@@ -581,6 +607,14 @@ export class AcademicRepository {
   }
 
   async updatePhase(id: string, sekolahId: string, input: UpdatePhaseInput): Promise<PhaseDTO> {
+    const existing = await prisma.fase.findFirst({
+      where: { id, ...(sekolahId ? { sekolah_id: sekolahId } : {}) },
+      select: { id: true },
+    });
+    if (!existing) {
+      throw new Error(`Fase dengan ID '${id}' tidak ditemukan atau bukan milik sekolah aktif.`);
+    }
+
     const r = await prisma.fase.update({
       where: { id },
       data: {
@@ -613,10 +647,13 @@ export class AcademicRepository {
     };
   }
 
-  async deletePhase(id: string): Promise<void> {
-    await prisma.fase.delete({
-      where: { id },
+  async deletePhase(id: string, sekolahId?: string): Promise<void> {
+    const deleted = await prisma.fase.deleteMany({
+      where: { id, ...(sekolahId ? { sekolah_id: sekolahId } : {}) },
     });
+    if (deleted.count === 0) {
+      throw new Error(`Fase dengan ID '${id}' tidak ditemukan atau bukan milik sekolah aktif.`);
+    }
   }
 
   // =========================================================================
@@ -746,6 +783,16 @@ export class AcademicRepository {
     sekolahId: string,
     input: UpdateGradeLevelInput
   ): Promise<GradeLevelDTO> {
+    const existing = await prisma.tingkatKelas.findFirst({
+      where: { id, ...(sekolahId ? { sekolah_id: sekolahId } : {}) },
+      select: { id: true },
+    });
+    if (!existing) {
+      throw new Error(
+        `Tingkat kelas dengan ID '${id}' tidak ditemukan atau bukan milik sekolah aktif.`
+      );
+    }
+
     const r = await prisma.tingkatKelas.update({
       where: { id },
       data: {
@@ -778,10 +825,15 @@ export class AcademicRepository {
     };
   }
 
-  async deleteGradeLevel(id: string): Promise<void> {
-    await prisma.tingkatKelas.delete({
-      where: { id },
+  async deleteGradeLevel(id: string, sekolahId?: string): Promise<void> {
+    const deleted = await prisma.tingkatKelas.deleteMany({
+      where: { id, ...(sekolahId ? { sekolah_id: sekolahId } : {}) },
     });
+    if (deleted.count === 0) {
+      throw new Error(
+        `Tingkat kelas dengan ID '${id}' tidak ditemukan atau bukan milik sekolah aktif.`
+      );
+    }
   }
 
   // =========================================================================
@@ -896,6 +948,16 @@ export class AcademicRepository {
     sekolahId: string,
     input: UpdateProgramInput
   ): Promise<AcademicProgramDTO> {
+    const existing = await prisma.programKeahlian.findFirst({
+      where: { id, ...(sekolahId ? { sekolah_id: sekolahId } : {}) },
+      select: { id: true },
+    });
+    if (!existing) {
+      throw new Error(
+        `Program keahlian dengan ID '${id}' tidak ditemukan atau bukan milik sekolah aktif.`
+      );
+    }
+
     const r = await prisma.programKeahlian.update({
       where: { id },
       data: {
@@ -926,10 +988,15 @@ export class AcademicRepository {
     };
   }
 
-  async deleteProgram(id: string): Promise<void> {
-    await prisma.programKeahlian.delete({
-      where: { id },
+  async deleteProgram(id: string, sekolahId?: string): Promise<void> {
+    const deleted = await prisma.programKeahlian.deleteMany({
+      where: { id, ...(sekolahId ? { sekolah_id: sekolahId } : {}) },
     });
+    if (deleted.count === 0) {
+      throw new Error(
+        `Program keahlian dengan ID '${id}' tidak ditemukan atau bukan milik sekolah aktif.`
+      );
+    }
   }
 
   // =========================================================================
@@ -1109,6 +1176,14 @@ export class AcademicRepository {
   }
 
   async updateRombel(id: string, sekolahId: string, input: UpdateRombelInput): Promise<RombelDTO> {
+    const existing = await prisma.rombel.findFirst({
+      where: { id, ...(sekolahId ? { sekolah_id: sekolahId } : {}) },
+      select: { id: true },
+    });
+    if (!existing) {
+      throw new Error(`Rombel dengan ID '${id}' tidak ditemukan atau bukan milik sekolah aktif.`);
+    }
+
     const r = await prisma.rombel.update({
       where: { id },
       data: {
@@ -1157,9 +1232,28 @@ export class AcademicRepository {
     };
   }
 
-  async deleteRombel(id: string): Promise<void> {
-    await prisma.rombel.delete({
-      where: { id },
+  async deleteRombel(id: string, sekolahId: string): Promise<void> {
+    const existing = await prisma.rombel.findFirst({
+      where: { id, sekolah_id: sekolahId },
+      select: { id: true },
+    });
+    if (!existing) {
+      throw new Error(`Rombel dengan ID '${id}' tidak ditemukan atau bukan milik sekolah aktif.`);
+    }
+
+    await prisma.$transaction(async (tx) => {
+      const archived = await tx.rombel.updateMany({
+        where: { id, sekolah_id: sekolahId, status: { not: "DIARSIPKAN" } },
+        data: { status: "DIARSIPKAN" },
+      });
+      if (archived.count === 0) {
+        throw new Error(`Rombel dengan ID '${id}' tidak ditemukan atau bukan milik sekolah aktif.`);
+      }
+
+      await tx.penugasanMengajar.updateMany({
+        where: { sekolah_id: sekolahId, rombel_id: id, status: "AKTIF" },
+        data: { status: "ARSIP", berlaku_sampai: new Date() },
+      });
     });
   }
 }

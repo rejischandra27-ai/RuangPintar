@@ -121,7 +121,7 @@ export class PhaseGradeService {
       );
     }
 
-    await this.repo.deletePhase(id);
+    await this.repo.deletePhase(id, sekolahId);
 
     await recordAuditEvent({
       sekolah_id: sekolahId,
@@ -237,7 +237,7 @@ export class PhaseGradeService {
       );
     }
 
-    await this.repo.deleteGradeLevel(id);
+    await this.repo.deleteGradeLevel(id, sekolahId);
 
     await recordAuditEvent({
       sekolah_id: sekolahId,

@@ -11,6 +11,7 @@
  */
 
 import React, { useState, useTransition } from "react";
+import Link from "next/link";
 import {
   Layers,
   Plus,
@@ -29,6 +30,7 @@ import {
   Key,
   RefreshCw,
   Printer,
+  ShieldCheck,
 } from "lucide-react";
 import { UjianCbtDTO } from "../domain/cbt-types";
 import {
@@ -339,13 +341,21 @@ export function ClassCbtTabView({
 
                   {canManage && isPublished && (
                     <>
+                      <Link
+                        href={`/cbt-ujian/proctor/${exam.id}`}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition shadow-2xs"
+                      >
+                        <ShieldCheck className="h-3.5 w-3.5 text-blue-400" />
+                        Live Proctor
+                      </Link>
+
                       <button
                         type="button"
                         onClick={() => setSelectedResultsExamId(exam.id)}
                         className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition shadow-2xs"
                       >
                         <Award className="h-3.5 w-3.5" />
-                        Monitor & Hasil
+                        Hasil
                       </button>
 
                       <button

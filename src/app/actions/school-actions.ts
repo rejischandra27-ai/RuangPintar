@@ -24,15 +24,25 @@ import { ZodError } from "zod";
 import { prisma } from "@/shared/infrastructure/database/prisma";
 import { generateUlid } from "@/shared/lib/ulid";
 import { recordAuditEvent } from "@/shared/infrastructure/audit/audit-logger";
+import { tenantLifecycleService } from "@/shared/infrastructure/tenant/tenant-lifecycle-service";
 
 async function getAuditContext(actor: { id: string; peran_dasar: string }): Promise<AuditContext> {
-  const h = await headers();
-  return {
-    aktor_id: actor.id,
-    aktor_role: actor.peran_dasar,
-    ip_address: h.get("x-forwarded-for") ?? h.get("x-real-ip") ?? "127.0.0.1",
-    user_agent: h.get("user-agent") ?? "Internal-Server-Action",
-  };
+  try {
+    const h = await headers();
+    return {
+      aktor_id: actor.id,
+      aktor_role: actor.peran_dasar,
+      ip_address: h.get("x-forwarded-for") ?? h.get("x-real-ip") ?? "127.0.0.1",
+      user_agent: h.get("user-agent") ?? "Internal-Server-Action",
+    };
+  } catch {
+    return {
+      aktor_id: actor.id,
+      aktor_role: actor.peran_dasar,
+      ip_address: "127.0.0.1",
+      user_agent: "Internal-Server-Action",
+    };
+  }
 }
 
 export type ActionResponse<T = unknown> =
@@ -457,37 +467,43 @@ export async function createSchoolTenantAction(formData: FormData): Promise<Acti
       }
     }
 
-    const schoolId = generateUlid();
-    const trialBerakhir =
-      tipeLisensi === "FREEMIUM" ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) : null;
+    const ownerUserIdRaw = formData.get("owner_user_id")
+      ? String(formData.get("owner_user_id")).trim()
+      : null;
+    let targetOwnerId = actor.id;
 
-    const createdSchool = await prisma.sekolah.create({
-      data: {
-        id: schoolId,
-        nama,
-        npsn,
-        jenjang,
-        tipe_lisensi: tipeLisensi,
-        trial_berakhir_pada: trialBerakhir,
-        alamat,
-        telepon,
-        email,
-        zona_waktu: "Asia/Jakarta",
-        status_aktif: true,
-      },
-    });
+    if (ownerUserIdRaw) {
+      const ownerUser = await prisma.pengguna.findUnique({
+        where: { id: ownerUserIdRaw },
+        select: { id: true },
+      });
+      if (!ownerUser) {
+        return {
+          success: false,
+          error: `Pengguna owner dengan ID '${ownerUserIdRaw}' tidak ditemukan.`,
+          code: "OWNER_NOT_FOUND",
+        };
+      }
+      targetOwnerId = ownerUser.id;
+    }
 
-    await recordAuditEvent({
-      sekolah_id: schoolId,
-      aktor_id: actor.id,
-      aktor_role: actor.peran_dasar,
-      aksi: "CREATE",
-      tipe_sumber: "SEKOLAH",
-      id_sumber: schoolId,
-      payload_sebelum: null,
-      payload_sesudah: createdSchool as unknown as Record<string, unknown>,
-      ip_address: auditContext.ip_address,
-      user_agent: auditContext.user_agent,
+    const result = await tenantLifecycleService.provisionTenant({
+      nama,
+      npsn,
+      jenjang,
+      tipeLisensi,
+      alamat,
+      telepon,
+      email,
+      zonaWaktu: "Asia/Jakarta",
+      ownerId: targetOwnerId,
+      ownerRole: "SUPER_ADMIN",
+      trialDurationDays: 30,
+      sumberPendaftaran: "OWNER_CREATE",
+      aktorId: actor.id,
+      aktorRole: actor.peran_dasar,
+      ipAddress: auditContext.ip_address,
+      userAgent: auditContext.user_agent,
     });
 
     revalidatePath("/sekolah");
@@ -495,8 +511,250 @@ export async function createSchoolTenantAction(formData: FormData): Promise<Acti
 
     return {
       success: true,
-      data: createdSchool,
-      message: `Sekolah ${nama} berhasil didaftarkan ke platform SaaS.`,
+      data: result.sekolah,
+      message: `Sekolah ${nama} berhasil didaftarkan ke platform SaaS dengan owner aktif dan trial 30 hari.`,
+    };
+  } catch (error) {
+    return handleActionError(error);
+  }
+}
+
+// -----------------------------------------------------------------------------
+// 6. MANAJEMEN LISENSI & PROVISIONING KUOTA SEKOLAH (SUPER_ADMIN ONLY)
+// -----------------------------------------------------------------------------
+
+export interface UpdateSchoolLicenseInput {
+  sekolah_id: string;
+  tipe_lisensi: "FREEMIUM" | "SEKOLAH";
+  paket: "TRIAL" | "BASIC" | "PRO" | "ENTERPRISE";
+  durasi_bulan: number;
+  kuota_siswa?: number;
+  nomor_referensi?: string;
+  catatan?: string;
+}
+
+export async function updateSchoolLicenseAction(
+  input: UpdateSchoolLicenseInput
+): Promise<ActionResponse> {
+  try {
+    const actor = await requireAuth();
+    if (actor.peran_dasar !== "SUPER_ADMIN") {
+      return {
+        success: false,
+        error: "Akses ditolak: Hanya Super Admin SaaS yang dapat mengelola lisensi sekolah.",
+        code: "FORBIDDEN",
+      };
+    }
+
+    const auditContext = await getAuditContext(actor);
+    const sekolah = await prisma.sekolah.findUnique({
+      where: { id: input.sekolah_id },
+    });
+
+    if (!sekolah) {
+      return {
+        success: false,
+        error: `Sekolah dengan ID '${input.sekolah_id}' tidak ditemukan.`,
+        code: "NOT_FOUND",
+      };
+    }
+
+    const durasiHari = Math.max(1, input.durasi_bulan) * 30;
+    const now = new Date();
+    const berakhirPada = new Date(now.getTime() + durasiHari * 24 * 60 * 60 * 1000);
+    const kuotaSiswa = input.kuota_siswa ?? 500;
+
+    const entitlementData = {
+      kuota_siswa: kuotaSiswa,
+      paket: input.paket,
+      durasi_bulan: input.durasi_bulan,
+      nomor_referensi: input.nomor_referensi || null,
+      catatan: input.catatan || null,
+      fitur_aktif: [
+        "AKADEMIK_DASAR",
+        "JADWAL_ROSTER",
+        "PRESENSI_QR_KBM",
+        "PENILAIAN_FORMATIF_SUMATIF",
+        "CBT_EXAM_PROCTOR",
+        "RAPOR_MERDEKA_M18",
+        "MULTI_USER_STAFF",
+      ],
+      diperbarui_oleh: actor.nama_lengkap,
+      tanggal_pembaruan: now.toISOString(),
+    };
+
+    const isFullLicense = input.tipe_lisensi === "SEKOLAH";
+    const subStatus = isFullLicense ? "ACTIVE" : "TRIAL_ACTIVE";
+
+    await prisma.$transaction(async (tx) => {
+      // 1. Update entitas Sekolah
+      await tx.sekolah.update({
+        where: { id: input.sekolah_id },
+        data: {
+          tipe_lisensi: input.tipe_lisensi,
+          trial_berakhir_pada: isFullLicense ? null : berakhirPada,
+          status_aktif: true,
+        },
+      });
+
+      // 2. Ambil atau buat LanggananTenant
+      const existingSub = await tx.langgananTenant.findFirst({
+        where: { sekolah_id: input.sekolah_id },
+        orderBy: { created_at: "desc" },
+      });
+
+      if (existingSub) {
+        await tx.langgananTenant.update({
+          where: { id: existingSub.id },
+          data: {
+            paket: input.paket,
+            status: subStatus,
+            mulai_pada: now,
+            berakhir_pada: berakhirPada,
+            entitlement_json: JSON.stringify(entitlementData),
+            sumber_aktivasi: isFullLicense ? "MANUAL_INVOICE" : "TRIAL_PROVISIONING",
+            updated_at: now,
+          },
+        });
+      } else {
+        await tx.langgananTenant.create({
+          data: {
+            id: generateUlid(),
+            sekolah_id: input.sekolah_id,
+            paket: input.paket,
+            status: subStatus,
+            mulai_pada: now,
+            berakhir_pada: berakhirPada,
+            entitlement_json: JSON.stringify(entitlementData),
+            sumber_aktivasi: isFullLicense ? "MANUAL_INVOICE" : "TRIAL_PROVISIONING",
+          },
+        });
+      }
+
+      // 3. Catat Audit Log Transaksional
+      await recordAuditEvent(
+        {
+          sekolah_id: input.sekolah_id,
+          aktor_id: actor.id,
+          aktor_role: actor.peran_dasar,
+          aksi: "SCHOOL_LICENSE_UPDATED",
+          tipe_sumber: "SEKOLAH",
+          id_sumber: input.sekolah_id,
+          payload_sebelum: {
+            tipe_lisensi: sekolah.tipe_lisensi,
+            trial_berakhir_pada: sekolah.trial_berakhir_pada,
+          },
+          payload_sesudah: {
+            tipe_lisensi: input.tipe_lisensi,
+            paket: input.paket,
+            berakhir_pada: berakhirPada.toISOString(),
+            kuota_siswa: kuotaSiswa,
+            nomor_referensi: input.nomor_referensi,
+          },
+          ip_address: auditContext.ip_address,
+          user_agent: auditContext.user_agent,
+        },
+        tx
+      );
+    });
+
+    revalidatePath("/sekolah");
+    revalidatePath("/dashboard");
+
+    return {
+      success: true,
+      data: { sekolah_id: input.sekolah_id, tipe_lisensi: input.tipe_lisensi, berakhirPada },
+      message: `Lisensi sekolah ${sekolah.nama} berhasil diperbarui menjadi ${input.tipe_lisensi} (${input.paket}) berlaku hingga ${berakhirPada.toLocaleDateString("id-ID")}.`,
+    };
+  } catch (error) {
+    return handleActionError(error);
+  }
+}
+
+// -----------------------------------------------------------------------------
+// 7. TOGGLE STATUS OPERASIONAL SEKOLAH (SUPER_ADMIN ONLY)
+// -----------------------------------------------------------------------------
+
+export async function toggleSchoolActiveStatusAction(
+  sekolahId: string,
+  targetStatus: boolean,
+  reason?: string
+): Promise<ActionResponse> {
+  try {
+    const actor = await requireAuth();
+    if (actor.peran_dasar !== "SUPER_ADMIN") {
+      return {
+        success: false,
+        error:
+          "Akses ditolak: Hanya Super Admin SaaS yang dapat mengubah status operasional tenant.",
+        code: "FORBIDDEN",
+      };
+    }
+
+    const auditContext = await getAuditContext(actor);
+    const sekolah = await prisma.sekolah.findUnique({
+      where: { id: sekolahId },
+    });
+
+    if (!sekolah) {
+      return {
+        success: false,
+        error: "Sekolah tidak ditemukan.",
+        code: "NOT_FOUND",
+      };
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.sekolah.update({
+        where: { id: sekolahId },
+        data: { status_aktif: targetStatus },
+      });
+
+      // Update langganan status jika nonaktif
+      const sub = await tx.langgananTenant.findFirst({
+        where: { sekolah_id: sekolahId },
+        orderBy: { created_at: "desc" },
+      });
+
+      if (sub) {
+        await tx.langgananTenant.update({
+          where: { id: sub.id },
+          data: { status: targetStatus ? "ACTIVE" : "SUSPENDED" },
+        });
+      }
+
+      // Jika disuspend, bersihkan konteks aktif dari sesi pengguna sekolah ini
+      if (!targetStatus) {
+        await tx.sesiPengguna.updateMany({
+          where: { sekolah_aktif_id: sekolahId },
+          data: { sekolah_aktif_id: null },
+        });
+      }
+
+      await recordAuditEvent(
+        {
+          sekolah_id: sekolahId,
+          aktor_id: actor.id,
+          aktor_role: actor.peran_dasar,
+          aksi: targetStatus ? "TENANT_ACTIVATED" : "TENANT_SUSPENDED",
+          tipe_sumber: "SEKOLAH",
+          id_sumber: sekolahId,
+          payload_sebelum: { status_aktif: sekolah.status_aktif },
+          payload_sesudah: { status_aktif: targetStatus, reason: reason ?? null },
+          ip_address: auditContext.ip_address,
+          user_agent: auditContext.user_agent,
+        },
+        tx
+      );
+    });
+
+    revalidatePath("/sekolah");
+    revalidatePath("/dashboard");
+
+    return {
+      success: true,
+      data: { sekolahId, status_aktif: targetStatus },
+      message: `Status sekolah ${sekolah.nama} berhasil diubah menjadi ${targetStatus ? "Aktif" : "Nonaktif (Suspended)"}.`,
     };
   } catch (error) {
     return handleActionError(error);

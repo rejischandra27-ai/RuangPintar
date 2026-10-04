@@ -108,7 +108,7 @@ export class ProgramService {
       );
     }
 
-    await this.repo.deleteProgram(id);
+    await this.repo.deleteProgram(id, sekolahId);
 
     await recordAuditEvent({
       sekolah_id: sekolahId,

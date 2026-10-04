@@ -19,12 +19,21 @@ import {
   PengajuanWaliItem,
   RelationshipType,
   VerificationStatus,
+  StudentClaimVerificationInput,
+  StudentClaimPreviewDTO,
+  ConfirmStudentClaimInput,
+  StudentClaimResultDTO,
 } from "../domain/guardian-types";
 import { PengajuanWaliFormInput } from "../domain/guardian-validation";
 import {
   ChildNotLinkedError,
   GuardianNotFoundError,
   UnverifiedRelationshipError,
+  StudentNotFoundError,
+  StudentVerificationMismatchError,
+  DuplicateGuardianClaimError,
+  CrossTenantClaimError,
+  InvalidRelationshipError,
 } from "../domain/guardian-errors";
 
 export class GuardianRepository {
@@ -761,5 +770,310 @@ export class GuardianRepository {
       catatan_tanggapan: r.catatan_tanggapan,
       created_at: r.created_at.toISOString(),
     }));
+  }
+
+  /**
+   * Mencari dan memverifikasi identitas siswa untuk alur klaim wali murid (Fitur 01 & 02)
+   */
+  async findStudentForVerification(
+    sekolahId: string,
+    query: StudentClaimVerificationInput
+  ): Promise<StudentClaimPreviewDTO> {
+    const rawNis = query.nis?.trim() || null;
+    const rawNisn = query.nisn?.trim() || null;
+    const normalize = (val: string) => val.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+    // 1. Pencarian siswa di institusi sekolah aktif terlebih dahulu
+    let student = null;
+    if (rawNis) {
+      student = await prisma.siswa.findFirst({
+        where: {
+          sekolah_id: sekolahId,
+          nis: rawNis,
+        },
+        include: {
+          sekolah: true,
+          keikutsertaan: {
+            where: { status: "AKTIF" },
+            include: {
+              penempatan: {
+                where: { status: "AKTIF" },
+                include: {
+                  rombel: {
+                    include: {
+                      tingkat: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      // Jika tidak ditemukan di sekolah aktif, periksa apakah siswa ada di sekolah lain (Cross-Tenant Guard)
+      if (!student) {
+        const anyTenantStudent = await prisma.siswa.findFirst({
+          where: { nis: rawNis },
+          select: { id: true, sekolah_id: true },
+        });
+        if (anyTenantStudent && anyTenantStudent.sekolah_id !== sekolahId) {
+          throw new CrossTenantClaimError(
+            "Siswa dengan NIS tersebut terdaftar di sekolah yang berbeda dengan akun Anda."
+          );
+        }
+      }
+    } else if (rawNisn) {
+      student = await prisma.siswa.findFirst({
+        where: {
+          sekolah_id: sekolahId,
+          nisn: rawNisn,
+        },
+        include: {
+          sekolah: true,
+          keikutsertaan: {
+            where: { status: "AKTIF" },
+            include: {
+              penempatan: {
+                where: { status: "AKTIF" },
+                include: {
+                  rombel: {
+                    include: {
+                      tingkat: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      // Jika tidak ditemukan di sekolah aktif, periksa apakah siswa ada di sekolah lain (Cross-Tenant Guard)
+      if (!student) {
+        const anyTenantStudent = await prisma.siswa.findFirst({
+          where: { nisn: rawNisn },
+          select: { id: true, sekolah_id: true },
+        });
+        if (anyTenantStudent && anyTenantStudent.sekolah_id !== sekolahId) {
+          throw new CrossTenantClaimError(
+            "Siswa dengan NISN tersebut terdaftar di sekolah yang berbeda dengan akun Anda."
+          );
+        }
+      }
+    } else {
+      // Jalur Nama Siswa + Rombel
+      const candidates = await prisma.siswa.findMany({
+        where: {
+          sekolah_id: sekolahId,
+          status_akademik: "AKTIF",
+        },
+        include: {
+          sekolah: true,
+          keikutsertaan: {
+            where: { status: "AKTIF" },
+            include: {
+              penempatan: {
+                where: { status: "AKTIF" },
+                include: {
+                  rombel: {
+                    include: {
+                      tingkat: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const normTarget = normalize(query.nama_lengkap);
+      student =
+        candidates.find((c) => {
+          const normCand = normalize(c.nama_lengkap);
+          const nameMatches =
+            normCand === normTarget ||
+            (normCand.includes(normTarget) && normTarget.length >= 3) ||
+            (normTarget.includes(normCand) && normCand.length >= 3);
+
+          if (!nameMatches) return false;
+
+          if (query.rombel_nama || query.rombel_id) {
+            const hasRombelMatch = c.keikutsertaan.some((k) =>
+              k.penempatan.some((p) => {
+                if (query.rombel_id && p.rombel_id === query.rombel_id) return true;
+                if (
+                  query.rombel_nama &&
+                  p.rombel.nama.toLowerCase().trim() === query.rombel_nama.toLowerCase().trim()
+                ) {
+                  return true;
+                }
+                return false;
+              })
+            );
+            if (!hasRombelMatch) return false;
+          }
+          return true;
+        }) || null;
+    }
+
+    if (!student) {
+      const searchKey = rawNis || rawNisn || query.nama_lengkap;
+      throw new StudentNotFoundError(searchKey);
+    }
+
+    // Verifikasi Faktor Nama Lengkap
+    const normInput = normalize(query.nama_lengkap);
+    const normStudent = normalize(student.nama_lengkap);
+    const isNameMatch =
+      normStudent === normInput ||
+      (normStudent.includes(normInput) && normInput.length >= 3) ||
+      (normInput.includes(normStudent) && normStudent.length >= 3);
+
+    if (!isNameMatch) {
+      throw new StudentVerificationMismatchError(
+        `Nama lengkap "${query.nama_lengkap}" tidak cocok dengan data resmi siswa terdaftar.`
+      );
+    }
+
+    // Verifikasi Tanggal Lahir jika tercatat pada data siswa
+    if (student.tanggal_lahir && query.tanggal_lahir) {
+      const studentDob = student.tanggal_lahir.toISOString().split("T")[0];
+      const queryDob = query.tanggal_lahir.trim().split("T")[0];
+      if (studentDob !== queryDob) {
+        throw new StudentVerificationMismatchError(
+          "Tanggal lahir siswa tidak sesuai dengan data resmi sekolah."
+        );
+      }
+    }
+
+    // Ekstraksi nama rombel & tingkat
+    let rombelNama = "Belum Ada Rombel";
+    let tingkatKelas = "Siswa";
+    for (const keikut of student.keikutsertaan) {
+      for (const penempatan of keikut.penempatan) {
+        if (penempatan.rombel) {
+          rombelNama = penempatan.rombel.nama;
+          tingkatKelas = penempatan.rombel.tingkat?.nama || "Kelas";
+          break;
+        }
+      }
+    }
+
+    // Return Safe Preview (Fitur 03: ZERO sensitive data leakage)
+    return {
+      siswa_id: student.id,
+      nama_lengkap: student.nama_lengkap,
+      nis: student.nis,
+      nisn: student.nisn,
+      rombel_nama: rombelNama,
+      tingkat_kelas: tingkatKelas,
+      sekolah_id: student.sekolah_id,
+      sekolah_nama: student.sekolah?.nama || "Sekolah",
+      foto_url: student.foto_url,
+      jenis_kelamin: student.jenis_kelamin,
+    };
+  }
+
+  /**
+   * Memeriksa keberadaan relasi aktif antara wali dan siswa (Fitur 05: Proteksi Klaim Duplikat)
+   */
+  async checkExistingRelationship(
+    waliId: string,
+    siswaId: string
+  ): Promise<{ id: string; status_verifikasi: string; jenis_hubungan: string } | null> {
+    const existing = await prisma.hubunganWaliSiswa.findUnique({
+      where: {
+        wali_id_siswa_id: {
+          wali_id: waliId,
+          siswa_id: siswaId,
+        },
+      },
+      select: {
+        id: true,
+        status_verifikasi: true,
+        jenis_hubungan: true,
+      },
+    });
+
+    return existing;
+  }
+
+  /**
+   * Membuat relasi wali dan siswa baru (Fitur 01: Hubungan Terverifikasi)
+   */
+  async createHubunganWali(data: {
+    sekolah_id: string;
+    wali_id: string;
+    siswa_id: string;
+    jenis_hubungan: RelationshipType;
+    apakah_wali_utama?: boolean;
+    status_verifikasi?: VerificationStatus;
+    catatan?: string | null;
+  }) {
+    const id = generateUlid();
+    return await prisma.hubunganWaliSiswa.create({
+      data: {
+        id,
+        sekolah_id: data.sekolah_id,
+        wali_id: data.wali_id,
+        siswa_id: data.siswa_id,
+        jenis_hubungan: data.jenis_hubungan,
+        apakah_wali_utama: data.apakah_wali_utama ?? false,
+        status_verifikasi: data.status_verifikasi ?? "TERVERIFIKASI",
+        catatan: data.catatan ?? null,
+      },
+      include: {
+        siswa: true,
+        wali: true,
+      },
+    });
+  }
+
+  /**
+   * Memastikan atau membuat record WaliMurid untuk akun pengguna
+   */
+  async ensureGuardianProfile(
+    userId: string,
+    sekolahId: string,
+    data: {
+      nama_lengkap: string;
+      no_telepon?: string | null;
+      email?: string | null;
+      alamat?: string | null;
+    }
+  ): Promise<GuardianProfile> {
+    let wali = await prisma.waliMurid.findFirst({
+      where: { pengguna_id: userId },
+    });
+
+    if (!wali) {
+      const id = generateUlid();
+      wali = await prisma.waliMurid.create({
+        data: {
+          id,
+          sekolah_id: sekolahId,
+          pengguna_id: userId,
+          nama_lengkap: data.nama_lengkap,
+          no_telepon: data.no_telepon ?? null,
+          email: data.email ?? null,
+          alamat: data.alamat ?? null,
+        },
+      });
+    }
+
+    return {
+      id: wali.id,
+      sekolah_id: wali.sekolah_id,
+      pengguna_id: wali.pengguna_id,
+      nama_lengkap: wali.nama_lengkap,
+      jenis_kelamin: wali.jenis_kelamin,
+      no_telepon: wali.no_telepon,
+      email: wali.email,
+      pekerjaan: wali.pekerjaan,
+      penghasilan: wali.penghasilan,
+      alamat: wali.alamat,
+    };
   }
 }

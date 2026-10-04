@@ -77,9 +77,9 @@ describe("Phase 21: Presentation Views (AI Assistance & SaaS Onboarding)", () =>
 
     expect(searchSchoolsAction).toHaveBeenCalledWith("SMP Nusantara");
     expect(screen.getByText("SMP Nusantara")).toBeInTheDocument();
-    expect(screen.getByText("Kota/Kabupaten: Kota Bandung")).toBeInTheDocument();
-    expect(screen.getByText("NPSN 12345678")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Gabung Sekolah" }));
+    expect(screen.getByText("Kota Bandung")).toBeInTheDocument();
+    expect(screen.getAllByText("NPSN 12345678")).toHaveLength(2);
+    fireEvent.click(screen.getByRole("button", { name: "Ajukan Bergabung" }));
     expect(onSelect).toHaveBeenLastCalledWith({ sekolah_id: "school-1" });
     vi.useRealTimers();
   });

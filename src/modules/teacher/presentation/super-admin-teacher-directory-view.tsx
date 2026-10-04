@@ -6,12 +6,9 @@ import { useRouter } from "next/navigation";
 import {
   GraduationCap,
   Plus,
-  Search,
   School,
   BookOpen,
-  Layers,
   ChevronRight,
-  Filter,
   CheckCircle2,
   XCircle,
   Mail,
@@ -22,6 +19,11 @@ import {
   Loader2,
   ShieldCheck,
 } from "lucide-react";
+import {
+  AcademicDataTable,
+  DataTableColumn,
+  DataTableFilterOption,
+} from "@/shared/components/ui/academic-data-table";
 import { createTeacherAction } from "@/app/actions/teacher-actions";
 
 export interface GlobalTeacherItem {
@@ -78,9 +80,6 @@ export function SuperAdminTeacherDirectoryView({
   totalTeachingAssignments,
 }: SuperAdminTeacherDirectoryViewProps) {
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = React.useState("");
-  const [selectedSchoolId, setSelectedSchoolId] = React.useState<string>("ALL");
-  const [selectedStatus, setSelectedStatus] = React.useState<string>("ALL");
   const [isCreateModalOpen, setIsCreateModalOpen] = React.useState(false);
 
   // Metrics
@@ -88,29 +87,211 @@ export function SuperAdminTeacherDirectoryView({
   const activeTeachers = teachers.filter((t) => t.status_aktif).length;
   const totalSchoolsWithTeachers = new Set(teachers.map((t) => t.sekolah_id)).size;
 
-  // Filtered list
-  const filteredTeachers = React.useMemo(() => {
-    return teachers.filter((teacher) => {
-      const fullName = [teacher.gelar_depan, teacher.nama_lengkap, teacher.gelar_belakang]
-        .filter(Boolean)
-        .join(" ");
+  // Columns Definition for AcademicDataTable
+  const columns: DataTableColumn<GlobalTeacherItem>[] = React.useMemo(
+    () => [
+      {
+        key: "nama",
+        header: "Nama Guru & Akun",
+        sortable: true,
+        sortAccessor: (t) => t.nama_lengkap,
+        cell: (teacher) => {
+          const displayName = [teacher.gelar_depan, teacher.nama_lengkap, teacher.gelar_belakang]
+            .filter(Boolean)
+            .join(" ");
+          return (
+            <div className="flex items-center gap-3">
+              <div className="size-9 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-[#2563EB] dark:text-blue-400 flex items-center justify-center font-bold text-xs shrink-0">
+                {teacher.nama_lengkap.slice(0, 2).toUpperCase()}
+              </div>
+              <div>
+                <div className="font-bold text-slate-900 dark:text-white">{displayName}</div>
+                <div className="flex items-center gap-1.5 mt-0.5 text-slate-400 text-xs">
+                  {teacher.pengguna ? (
+                    <span className="font-mono text-[11px]">@{teacher.pengguna.username}</span>
+                  ) : (
+                    <span className="italic text-[11px]">Belum aktivasi login</span>
+                  )}
+                  <span>•</span>
+                  <span>{teacher.jenis_kelamin === "L" ? "Laki-laki" : "Perempuan"}</span>
+                </div>
+              </div>
+            </div>
+          );
+        },
+      },
+      {
+        key: "nip",
+        header: "NIP / NUPTK",
+        sortable: true,
+        sortAccessor: (t) => t.nip || t.nuptk || "",
+        cell: (teacher) => (
+          <div>
+            <div className="font-mono text-xs font-semibold text-slate-800 dark:text-slate-200">
+              {teacher.nip || teacher.nuptk || (
+                <span className="text-slate-400 font-sans italic">Tanpa NIP</span>
+              )}
+            </div>
+            <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+              Status: {teacher.status_kepegawaian}
+            </div>
+          </div>
+        ),
+      },
+      {
+        key: "sekolah",
+        header: "Asal Sekolah Mitra",
+        sortable: true,
+        sortAccessor: (t) => t.sekolah.nama,
+        cell: (teacher) => (
+          <div>
+            <div className="font-semibold text-slate-900 dark:text-white flex items-center gap-1.5">
+              <School className="size-3.5 text-[#2563EB] shrink-0" />
+              <span className="truncate max-w-[180px]">{teacher.sekolah.nama}</span>
+            </div>
+            <div className="text-[11px] text-slate-400 mt-0.5">
+              Jenjang {teacher.sekolah.jenjang}
+            </div>
+          </div>
+        ),
+      },
+      {
+        key: "status_aktif",
+        header: "Status",
+        sortable: true,
+        sortAccessor: (t) => (t.status_aktif ? 1 : 0),
+        cell: (teacher) =>
+          teacher.status_aktif ? (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-xs font-medium">
+              <CheckCircle2 className="size-3" /> Aktif
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 text-xs font-medium">
+              <XCircle className="size-3" /> Nonaktif
+            </span>
+          ),
+      },
+      {
+        key: "penugasan",
+        header: "Penugasan KBM",
+        sortable: true,
+        sortAccessor: (t) => t.penugasan_mengajar.length,
+        cell: (teacher) =>
+          teacher.penugasan_mengajar.length > 0 ? (
+            <div className="space-y-1">
+              {teacher.penugasan_mengajar.slice(0, 2).map((pm, idx) => (
+                <div
+                  key={idx}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 text-[10px] font-semibold mr-1"
+                >
+                  <span>{pm.mata_pelajaran.kode}</span>
+                  <span className="opacity-60">•</span>
+                  <span>{pm.rombel.nama}</span>
+                </div>
+              ))}
+              {teacher.penugasan_mengajar.length > 2 && (
+                <span className="text-[10px] text-slate-400">
+                  +{teacher.penugasan_mengajar.length - 2} lainnya
+                </span>
+              )}
+            </div>
+          ) : (
+            <span className="text-slate-400 italic text-xs">Belum ada penugasan</span>
+          ),
+      },
+      {
+        key: "aksi",
+        header: "Aksi",
+        align: "right",
+        sortable: false,
+        cell: (teacher) => (
+          <Link
+            href={`/guru-pengajaran?sekolahId=${teacher.sekolah_id}`}
+            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-950/50 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 text-xs font-semibold transition-all"
+          >
+            <span>Kelola di Sekolah</span>
+            <ChevronRight className="size-3.5" />
+          </Link>
+        ),
+      },
+    ],
+    []
+  );
 
-      const matchesSearch =
-        fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (teacher.nip && teacher.nip.includes(searchQuery)) ||
-        (teacher.nuptk && teacher.nuptk.includes(searchQuery)) ||
-        teacher.sekolah.nama.toLowerCase().includes(searchQuery.toLowerCase());
+  const filters: DataTableFilterOption<GlobalTeacherItem>[] = React.useMemo(
+    () => [
+      {
+        id: "sekolah",
+        label: "Sekolah Mitra",
+        options: [
+          { value: "ALL", label: "Semua Sekolah Mitra" },
+          ...schools.map((s) => ({ value: s.id, label: `${s.nama} (${s.jenjang})` })),
+        ],
+        filterAccessor: (teacher, selected) => teacher.sekolah_id === selected,
+      },
+      {
+        id: "status",
+        label: "Status",
+        options: [
+          { value: "ALL", label: "Semua Status" },
+          { value: "AKTIF", label: "Aktif" },
+          { value: "NONAKTIF", label: "Nonaktif" },
+        ],
+        filterAccessor: (teacher, selected) =>
+          selected === "AKTIF" ? teacher.status_aktif : !teacher.status_aktif,
+      },
+    ],
+    [schools]
+  );
 
-      const matchesSchool = selectedSchoolId === "ALL" || teacher.sekolah_id === selectedSchoolId;
-
-      const matchesStatus =
-        selectedStatus === "ALL" ||
-        (selectedStatus === "AKTIF" && teacher.status_aktif) ||
-        (selectedStatus === "NONAKTIF" && !teacher.status_aktif);
-
-      return matchesSearch && matchesSchool && matchesStatus;
-    });
-  }, [teachers, searchQuery, selectedSchoolId, selectedStatus]);
+  const renderMobileTeacherCard = (teacher: GlobalTeacherItem) => {
+    const displayName = [teacher.gelar_depan, teacher.nama_lengkap, teacher.gelar_belakang]
+      .filter(Boolean)
+      .join(" ");
+    return (
+      <div className="p-4 rounded-2xl bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-3">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex items-start gap-2.5">
+            <div className="size-8 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-[#2563EB] dark:text-blue-400 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+              {teacher.nama_lengkap.slice(0, 2).toUpperCase()}
+            </div>
+            <div>
+              <h4 className="font-bold text-slate-900 dark:text-white text-sm">{displayName}</h4>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="text-xs text-slate-500">{teacher.sekolah.nama}</span>
+                {teacher.nip && (
+                  <span className="font-mono text-[10px] text-slate-400">NIP: {teacher.nip}</span>
+                )}
+              </div>
+            </div>
+          </div>
+          <span className="shrink-0">
+            {teacher.status_aktif ? (
+              <span className="px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold">
+                Aktif
+              </span>
+            ) : (
+              <span className="px-2 py-0.5 rounded-md bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 text-[10px] font-bold">
+                Nonaktif
+              </span>
+            )}
+          </span>
+        </div>
+        <div className="pt-2 flex items-center justify-between text-xs border-t border-slate-100 dark:border-slate-800">
+          <span className="text-slate-400 text-[10px]">
+            {teacher.penugasan_mengajar.length} Penugasan KBM
+          </span>
+          <Link
+            href={`/guru-pengajaran?sekolahId=${teacher.sekolah_id}`}
+            className="inline-flex items-center gap-1 text-[#2563EB] dark:text-blue-400 font-bold hover:underline"
+          >
+            <span>Kelola di Sekolah</span>
+            <ChevronRight className="size-3.5" />
+          </Link>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-6 pb-12">
@@ -235,301 +416,46 @@ export function SuperAdminTeacherDirectoryView({
         </div>
       </div>
 
-      {/* Filter & Search Bar */}
-      <div className="p-4 sm:p-5 rounded-2xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-3">
-        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
-          {/* Search Box */}
-          <div className="relative flex-1">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari berdasarkan nama guru, NIP, NUPTK, atau nama sekolah..."
-              className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
-            />
-          </div>
-
-          {/* School Dropdown Filter */}
-          <div className="flex items-center gap-2">
-            <select
-              value={selectedSchoolId}
-              onChange={(e) => setSelectedSchoolId(e.target.value)}
-              className="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
+      {/* Global Academic DataTable */}
+      <AcademicDataTable<GlobalTeacherItem>
+        data={teachers}
+        columns={columns}
+        filters={filters}
+        searchPlaceholder="Cari berdasarkan nama guru, NIP, NUPTK, atau nama sekolah..."
+        searchKeys={[
+          "nama_lengkap",
+          "nip",
+          "nuptk",
+          (t) => t.sekolah.nama,
+          (t) => t.pengguna?.username || "",
+        ]}
+        exportFilename="direktori-guru-ruang-pintar"
+        emptyStateTitle="Belum Ada Data Guru Terdaftar"
+        emptyStateDescription="Belum ada guru yang terdaftar atau tidak ada data yang cocok dengan kriteria pencarian saat ini."
+        primaryAction={
+          schools.length > 0 ? (
+            <button
+              type="button"
+              onClick={() => setIsCreateModalOpen(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white font-bold text-xs shadow-sm transition-all hover:scale-[1.02] active:scale-95 cursor-pointer whitespace-nowrap"
             >
-              <option value="ALL">Semua Sekolah Mitra</option>
-              {schools.map((school) => (
-                <option key={school.id} value={school.id}>
-                  {school.nama} ({school.jenjang})
-                </option>
-              ))}
-            </select>
-
-            {/* Status Filter */}
-            <div className="flex items-center gap-1">
-              {[
-                { label: "Semua", value: "ALL" },
-                { label: "Aktif", value: "AKTIF" },
-                { label: "Nonaktif", value: "NONAKTIF" },
-              ].map((tab) => (
-                <button
-                  key={tab.value}
-                  onClick={() => setSelectedStatus(tab.value)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
-                    selectedStatus === tab.value
-                      ? "bg-[#2563EB] text-white shadow-xs"
-                      : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Content Area */}
-      {filteredTeachers.length === 0 ? (
-        /* Empty State */
-        <div className="rounded-3xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-slate-200/80 dark:border-slate-800 p-12 text-center shadow-xs">
-          <div className="size-16 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-[#2563EB] dark:text-blue-400 flex items-center justify-center mx-auto mb-4">
-            <GraduationCap className="size-8" />
-          </div>
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">
-            {teachers.length === 0
-              ? "Belum Ada Data Guru Terdaftar"
-              : "Tidak Ada Guru yang Sesuai Filter"}
-          </h3>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto mb-6">
-            {teachers.length === 0
-              ? schools.length === 0
-                ? "Platform SaaS Ruang Pintar belum memiliki sekolah mitra. Daftarkan sekolah terlebih dahulu sebelum menambahkan dewan guru."
-                : "Belum ada akun guru yang tercatat di platform SaaS Ruang Pintar. Anda dapat mulai menambahkan akun guru ke salah satu sekolah mitra aktif."
-              : "Coba sesuaikan kata kunci pencarian atau reset filter sekolah dan status."}
-          </p>
-
-          {teachers.length === 0 &&
-            (schools.length === 0 ? (
-              <Link
-                href="/sekolah"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-[#2563EB] hover:bg-blue-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-blue-500/25 transition-all active:scale-95"
-              >
-                <School className="size-4" />
-                <span>Daftarkan Sekolah Mitra Terlebih Dahulu</span>
-              </Link>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setIsCreateModalOpen(true)}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-[#2563EB] hover:bg-blue-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-blue-500/25 transition-all active:scale-95 cursor-pointer"
-              >
-                <Plus className="size-4" />
-                <span>Daftarkan Guru Pertama</span>
-              </button>
-            ))}
-        </div>
-      ) : (
-        <>
-          {/* Desktop Table View */}
-          <div className="hidden sm:block rounded-2xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-slate-200/80 dark:border-slate-800 shadow-xs overflow-hidden">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                  <th className="py-3.5 px-5">Nama Guru & Akun</th>
-                  <th className="py-3.5 px-4">NIP / NUPTK</th>
-                  <th className="py-3.5 px-4">Asal Sekolah Mitra</th>
-                  <th className="py-3.5 px-4">Status</th>
-                  <th className="py-3.5 px-4">Penugasan KBM</th>
-                  <th className="py-3.5 px-5 text-right">Aksi</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs sm:text-sm">
-                {filteredTeachers.map((teacher) => {
-                  const displayName = [
-                    teacher.gelar_depan,
-                    teacher.nama_lengkap,
-                    teacher.gelar_belakang,
-                  ]
-                    .filter(Boolean)
-                    .join(" ");
-
-                  return (
-                    <tr
-                      key={teacher.id}
-                      className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors"
-                    >
-                      {/* Nama & Akun */}
-                      <td className="py-4 px-5">
-                        <div className="flex items-center gap-3">
-                          <div className="size-9 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-[#2563EB] dark:text-blue-400 flex items-center justify-center font-bold text-xs shrink-0">
-                            {teacher.nama_lengkap.slice(0, 2).toUpperCase()}
-                          </div>
-                          <div>
-                            <div className="font-bold text-slate-900 dark:text-white">
-                              {displayName}
-                            </div>
-                            <div className="flex items-center gap-1.5 mt-0.5 text-slate-400 text-xs">
-                              {teacher.pengguna ? (
-                                <span className="font-mono text-[11px]">
-                                  @{teacher.pengguna.username}
-                                </span>
-                              ) : (
-                                <span className="italic text-[11px]">Belum aktivasi login</span>
-                              )}
-                              <span>•</span>
-                              <span>
-                                {teacher.jenis_kelamin === "L" ? "Laki-laki" : "Perempuan"}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-
-                      {/* NIP / NUPTK */}
-                      <td className="py-4 px-4">
-                        <div className="font-mono text-xs font-semibold text-slate-800 dark:text-slate-200">
-                          {teacher.nip || teacher.nuptk || (
-                            <span className="text-slate-400 font-sans italic">Tanpa NIP</span>
-                          )}
-                        </div>
-                        <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                          Status: {teacher.status_kepegawaian}
-                        </div>
-                      </td>
-
-                      {/* Asal Sekolah */}
-                      <td className="py-4 px-4">
-                        <div className="font-semibold text-slate-900 dark:text-white flex items-center gap-1.5">
-                          <School className="size-3.5 text-[#2563EB] shrink-0" />
-                          <span className="truncate max-w-[180px]">{teacher.sekolah.nama}</span>
-                        </div>
-                        <div className="text-[11px] text-slate-400 mt-0.5">
-                          Jenjang {teacher.sekolah.jenjang}
-                        </div>
-                      </td>
-
-                      {/* Status */}
-                      <td className="py-4 px-4">
-                        {teacher.status_aktif ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-xs font-medium">
-                            <CheckCircle2 className="size-3" /> Aktif
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 text-xs font-medium">
-                            <XCircle className="size-3" /> Nonaktif
-                          </span>
-                        )}
-                      </td>
-
-                      {/* Penugasan Mengajar */}
-                      <td className="py-4 px-4">
-                        {teacher.penugasan_mengajar.length > 0 ? (
-                          <div className="space-y-1">
-                            {teacher.penugasan_mengajar.slice(0, 2).map((pm, idx) => (
-                              <div
-                                key={idx}
-                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 text-[10px] font-semibold mr-1"
-                              >
-                                <span>{pm.mata_pelajaran.kode}</span>
-                                <span className="opacity-60">•</span>
-                                <span>{pm.rombel.nama}</span>
-                              </div>
-                            ))}
-                            {teacher.penugasan_mengajar.length > 2 && (
-                              <span className="text-[10px] text-slate-400">
-                                +{teacher.penugasan_mengajar.length - 2} lainnya
-                              </span>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-slate-400 italic text-xs">Belum ada penugasan</span>
-                        )}
-                      </td>
-
-                      {/* Aksi */}
-                      <td className="py-4 px-5 text-right">
-                        <Link
-                          href={`/guru-pengajaran?sekolahId=${teacher.sekolah_id}`}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-950/50 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 text-xs font-semibold transition-all"
-                        >
-                          <span>Kelola di Sekolah</span>
-                          <ChevronRight className="size-3.5" />
-                        </Link>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Mobile Card View (sm:hidden) */}
-          <div className="sm:hidden space-y-3">
-            {filteredTeachers.map((teacher) => {
-              const displayName = [
-                teacher.gelar_depan,
-                teacher.nama_lengkap,
-                teacher.gelar_belakang,
-              ]
-                .filter(Boolean)
-                .join(" ");
-
-              return (
-                <div
-                  key={teacher.id}
-                  className="p-4 rounded-2xl bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-3"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-start gap-2.5">
-                      <div className="size-8 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-[#2563EB] dark:text-blue-400 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
-                        {teacher.nama_lengkap.slice(0, 2).toUpperCase()}
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-slate-900 dark:text-white text-sm">
-                          {displayName}
-                        </h4>
-                        <div className="flex items-center gap-1.5 mt-0.5 text-xs text-slate-400">
-                          <span>{teacher.sekolah.nama}</span>
-                          <span>•</span>
-                          <span className="font-mono text-[10px]">
-                            {teacher.nip || "Tanpa NIP"}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <span className="shrink-0">
-                      {teacher.status_aktif ? (
-                        <span className="px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold">
-                          Aktif
-                        </span>
-                      ) : (
-                        <span className="px-2 py-0.5 rounded-md bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 text-[10px] font-bold">
-                          Nonaktif
-                        </span>
-                      )}
-                    </span>
-                  </div>
-
-                  <div className="pt-2 flex items-center justify-between text-xs border-t border-slate-100 dark:border-slate-800">
-                    <span className="text-slate-400 text-[10px]">
-                      {teacher.penugasan_mengajar.length} Penugasan KBM
-                    </span>
-                    <Link
-                      href={`/guru-pengajaran?sekolahId=${teacher.sekolah_id}`}
-                      className="inline-flex items-center gap-1 text-[#2563EB] dark:text-blue-400 font-bold hover:underline"
-                    >
-                      <span>Kelola di Sekolah</span>
-                      <ChevronRight className="size-3.5" />
-                    </Link>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </>
-      )}
+              <Plus className="size-4" />
+              <span>Tambah Guru</span>
+            </button>
+          ) : (
+            <Link
+              href="/sekolah"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white font-bold text-xs shadow-sm transition-all hover:scale-[1.02] active:scale-95 whitespace-nowrap"
+            >
+              <School className="size-4" />
+              <span>Daftarkan Sekolah Terlebih Dahulu</span>
+            </Link>
+          )
+        }
+        renderMobileCard={renderMobileTeacherCard}
+        pageSizeOptions={[10, 25, 50, 100]}
+        defaultPageSize={10}
+      />
 
       {/* Modal Dialog Daftarkan Guru Baru */}
       <CreateTeacherTenantModal

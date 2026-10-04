@@ -116,7 +116,11 @@ describe("M14 CBT (Computer-Based Test) — CbtService Domain Invariants", () =>
       await service.publishExam(mockUjianId, mockSekolahId, mockGuruOwnerId, false);
 
       expect(mockRepo.freezeSnapshot).toHaveBeenCalledWith(mockUjianId, mockSekolahId);
-      expect(mockRepo.updateUjianStatus).toHaveBeenCalledWith(mockUjianId, "DIPUBLIKASI");
+      expect(mockRepo.updateUjianStatus).toHaveBeenCalledWith(
+        mockUjianId,
+        "DIPUBLIKASI",
+        mockSekolahId
+      );
     });
   });
 
@@ -270,6 +274,7 @@ describe("M14 CBT (Computer-Based Test) — CbtService Domain Invariants", () =>
     it("locks the attempt automatically when strikes reach 2 exit screen events", async () => {
       mockRepo.findSessionById.mockResolvedValue({
         id: mockSessionId,
+        sekolah_id: mockSekolahId,
         siswa_id: mockSiswaId,
         status: "SEDANG_MENGERJAKAN",
       });
@@ -293,7 +298,8 @@ describe("M14 CBT (Computer-Based Test) — CbtService Domain Invariants", () =>
       expect(result.isLocked).toBe(true);
       expect(mockRepo.lockAttemptForViolation).toHaveBeenCalledWith(
         mockSessionId,
-        expect.stringContaining("Terdeteksi 2 kali")
+        expect.stringContaining("Terdeteksi 2 kali"),
+        mockSekolahId
       );
     });
 

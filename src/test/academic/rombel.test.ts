@@ -162,4 +162,57 @@ describe("M06 — Rombel Service", () => {
       )
     ).rejects.toThrow(GradeLevelNotFoundError);
   });
+
+  it("mengarsipkan rombel dan assignment aktif tanpa menghapus riwayat", async () => {
+    const rombel = await rombelService.createRombel(
+      sekolahId,
+      {
+        tahun_ajaran_id: yearId,
+        tingkat_id: gradeId,
+        nama: "X RPL Archive Test",
+      },
+      actorId,
+      actorRole
+    );
+    const teacherId = ulid();
+    const subjectId = ulid();
+    const assignmentId = ulid();
+
+    await prisma.guru.create({
+      data: {
+        id: teacherId,
+        sekolah_id: sekolahId,
+        nama_lengkap: "Guru Arsip",
+        jenis_kelamin: "L",
+      },
+    });
+    await prisma.mataPelajaran.create({
+      data: {
+        id: subjectId,
+        sekolah_id: sekolahId,
+        kode: `ARSIP${subjectId.slice(0, 5)}`,
+        nama: "Mapel Arsip",
+      },
+    });
+    await prisma.penugasanMengajar.create({
+      data: {
+        id: assignmentId,
+        sekolah_id: sekolahId,
+        guru_id: teacherId,
+        mata_pelajaran_id: subjectId,
+        tahun_ajaran_id: yearId,
+        rombel_id: rombel.id,
+        status: "AKTIF",
+      },
+    });
+
+    await rombelService.deleteRombel(rombel.id, sekolahId, actorId, actorRole);
+
+    const archivedRombel = await prisma.rombel.findUnique({ where: { id: rombel.id } });
+    const archivedAssignment = await prisma.penugasanMengajar.findUnique({
+      where: { id: assignmentId },
+    });
+    expect(archivedRombel?.status).toBe("DIARSIPKAN");
+    expect(archivedAssignment?.status).toBe("ARSIP");
+  });
 });

@@ -7,8 +7,9 @@
  */
 
 import * as React from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Users, ChevronDown, Check, GraduationCap } from "lucide-react";
+import { Users, ChevronDown, Check, GraduationCap, PlusCircle } from "lucide-react";
 import { LinkedChildSummary } from "../domain/guardian-types";
 import { switchActiveChildAction } from "@/app/actions/guardian-actions";
 
@@ -126,7 +127,7 @@ export function ChildSwitcherDropdown({
                   <div>
                     <div className="text-xs text-slate-900">{child.nama_lengkap}</div>
                     <div className="text-[11px] text-slate-500 font-normal">
-                      NIS: {child.nis} • {child.rombel_nama}
+                      NIS: {child.nis || "-"} • {child.rombel_nama}
                     </div>
                   </div>
                 </div>
@@ -134,6 +135,16 @@ export function ChildSwitcherDropdown({
               </button>
             );
           })}
+
+          <div className="pt-1 border-t border-slate-100">
+            <Link
+              href="/guardian/klaim-anak"
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-[#2563EB] hover:bg-blue-50 transition-colors"
+            >
+              <PlusCircle className="h-4 w-4" />
+              <span>Klaim Putra/Putri Lainnya</span>
+            </Link>
+          </div>
         </div>
       )}
     </div>

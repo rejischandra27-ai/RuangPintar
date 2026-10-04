@@ -6,6 +6,7 @@ import {
   GOOGLE_OAUTH_VERIFIER_COOKIE,
   GOOGLE_PENDING_REGISTRATION_COOKIE,
   completeGoogleAuthentication,
+  getGoogleAppUrl,
   getGoogleErrorRedirect,
   getGoogleOAuthExpiredCookieOptions,
   getGoogleOAuthCookieOptions,
@@ -29,7 +30,9 @@ export async function GET(request: NextRequest) {
 
   const clearCookieOptions = getGoogleOAuthExpiredCookieOptions();
   const fail = () => {
-    const response = NextResponse.redirect(new URL(getGoogleErrorRedirect(mode), request.url));
+    const response = NextResponse.redirect(
+      getGoogleAppUrl(getGoogleErrorRedirect(mode), request.url)
+    );
     response.cookies.set(GOOGLE_OAUTH_STATE_COOKIE, "", clearCookieOptions);
     response.cookies.set(GOOGLE_OAUTH_NONCE_COOKIE, "", clearCookieOptions);
     response.cookies.set(GOOGLE_OAUTH_VERIFIER_COOKIE, "", clearCookieOptions);
@@ -57,7 +60,7 @@ export async function GET(request: NextRequest) {
       : result.needsAvatar
         ? "/onboarding/pilih-avatar"
         : "/dashboard";
-    const response = NextResponse.redirect(new URL(redirectPath, request.url));
+    const response = NextResponse.redirect(getGoogleAppUrl(redirectPath, request.url));
     if (result.rawSessionToken) {
       const sessionOptions = getSessionCookieOptions(result.rawSessionToken, true);
       response.cookies.set(sessionOptions.name, sessionOptions.value, {

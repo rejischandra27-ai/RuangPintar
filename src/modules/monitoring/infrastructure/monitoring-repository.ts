@@ -991,14 +991,18 @@ export class MonitoringRepository {
    */
   static async updateMonitoringNote(
     id: string,
-    input: UpdateMonitoringNoteInput
+    input: UpdateMonitoringNoteInput,
+    sekolahId?: string
   ): Promise<CatatanMonitoringItem> {
-    const existing = await prisma.catatanMonitoring.findUnique({
-      where: { id },
+    const existing = await prisma.catatanMonitoring.findFirst({
+      where: { id, ...(sekolahId ? { sekolah_id: sekolahId } : {}) },
+      select: { id: true },
     });
 
     if (!existing) {
-      throw new MonitoringNoteNotFoundError(`Catatan monitoring dengan ID ${id} tidak ditemukan.`);
+      throw new MonitoringNoteNotFoundError(
+        `Catatan monitoring dengan ID ${id} tidak ditemukan atau bukan milik sekolah aktif.`
+      );
     }
 
     const updated = await prisma.catatanMonitoring.update({
@@ -1110,14 +1114,21 @@ export class MonitoringRepository {
   /**
    * Mengupdate Status Tindak Lanjut
    */
-  static async updateFollowUpStatus(input: UpdateFollowUpStatusInput): Promise<TindakLanjutItem> {
-    const existing = await prisma.tindakLanjutMonitoring.findUnique({
-      where: { id: input.id },
+  static async updateFollowUpStatus(
+    input: UpdateFollowUpStatusInput,
+    sekolahId?: string
+  ): Promise<TindakLanjutItem> {
+    const existing = await prisma.tindakLanjutMonitoring.findFirst({
+      where: {
+        id: input.id,
+        ...(sekolahId ? { catatan: { sekolah_id: sekolahId } } : {}),
+      },
+      select: { id: true },
     });
 
     if (!existing) {
       throw new FollowUpNotFoundError(
-        `Tindak lanjut monitoring dengan ID ${input.id} tidak ditemukan.`
+        `Tindak lanjut monitoring dengan ID ${input.id} tidak ditemukan atau bukan milik sekolah aktif.`
       );
     }
 

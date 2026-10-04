@@ -49,6 +49,10 @@ export class LearningRepository {
             penempatan_rombel: {
               where: { status: "AKTIF" },
             },
+            penugasan_wali: {
+              where: { status: "AKTIF" },
+              include: { guru: { select: { nama_lengkap: true } } },
+            },
           },
         },
         mata_pelajaran: true,
@@ -85,10 +89,60 @@ export class LearningRepository {
       6: "SABTU",
       0: "MINGGU",
     };
+    const dayOrder: Record<string, number> = {
+      SENIN: 1,
+      SELASA: 2,
+      RABU: 3,
+      KAMIS: 4,
+      JUMAT: 5,
+      SABTU: 6,
+      MINGGU: 7,
+    };
+    const dayNameId: Record<string, string> = {
+      SENIN: "Senin",
+      SELASA: "Selasa",
+      RABU: "Rabu",
+      KAMIS: "Kamis",
+      JUMAT: "Jumat",
+      SABTU: "Sabtu",
+      MINGGU: "Minggu",
+    };
     const todayName = hariMap[new Date().getDay()] || "SENIN";
 
     return assignments.map((a) => {
       const todaySchedule = a.jadwal_pelajaran.find((j) => j.hari === todayName);
+
+      const schedules = a.jadwal_pelajaran;
+      const byDay: Record<string, (typeof schedules)[0]["slot_waktu"][]> = {};
+      for (const s of schedules) {
+        if (!byDay[s.hari]) byDay[s.hari] = [];
+        byDay[s.hari].push(s.slot_waktu);
+      }
+      const daysSorted = Object.keys(byDay).sort(
+        (x, y) => (dayOrder[x] || 99) - (dayOrder[y] || 99)
+      );
+      const daySchedules = daysSorted.map((d) => {
+        const slots = byDay[d].sort((x, y) => x.urutan - y.urutan);
+        const start = slots[0]?.jam_mulai || "";
+        const end = slots[slots.length - 1]?.jam_selesai || "";
+        return {
+          hari: dayNameId[d] || d,
+          jam: start && end ? `${start}–${end}` : "",
+          jp: slots.length,
+        };
+      });
+
+      const hari_mengajar =
+        daySchedules.length > 0 ? daySchedules.map((d) => d.hari).join(", ") : null;
+      const jam_mengajar =
+        daySchedules.length > 0
+          ? daySchedules
+              .map((d) => d.jam)
+              .filter(Boolean)
+              .join(", ")
+          : null;
+      const jadwal_ringkas =
+        daySchedules.length > 0 ? daySchedules.map((d) => `${d.hari} ${d.jam}`).join(" • ") : null;
 
       return {
         id: a.id,
@@ -112,6 +166,10 @@ export class LearningRepository {
         jadwal_hari_ini: todaySchedule
           ? `${todaySchedule.slot_waktu.jam_mulai} - ${todaySchedule.slot_waktu.jam_selesai}`
           : null,
+        hari_mengajar,
+        jam_mengajar,
+        jadwal_ringkas,
+        wali_kelas_nama: a.rombel.penugasan_wali[0]?.guru?.nama_lengkap || null,
       };
     });
   }

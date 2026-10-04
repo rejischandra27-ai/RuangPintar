@@ -10,6 +10,7 @@ import { prisma } from "@/shared/infrastructure/database/prisma";
 import { learningService } from "@/modules/learning/application/learning-service";
 import { TeacherClassesView } from "@/modules/learning/presentation/teacher-classes-view";
 import { AcademicShell } from "@/shared/components/shell/academic-shell";
+import { getTenantEntitlement } from "@/shared/infrastructure/tenant/tenant-entitlement-service";
 import { PageHeader } from "@/shared/components/ui/page-header";
 import { Badge } from "@/shared/components/ui/badge";
 import { BookOpen, ShieldCheck } from "lucide-react";
@@ -70,53 +71,37 @@ export default async function KelasSayaPage() {
     isAdmin ? null : guruId
   );
 
+  const school = await prisma.sekolah.findUnique({
+    where: { id: user.sekolah_id },
+    select: { id: true, nama: true, tipe_lisensi: true },
+  });
+
+  const entitlement = await getTenantEntitlement(user.sekolah_id);
+  const isSubscribed = entitlement.status === "ACTIVE" || school?.tipe_lisensi === "SEKOLAH";
+
+  // Kontrol mutasi rombel (Ubah/Hapus) HANYA berlaku untuk Guru Mandiri perorangan (Solo Workspace).
+  // Guru di sekolah institusi formal/berlangganan DILARANG KERAS memutasi rombel sekolah.
+  const isSoloTeacher =
+    !isSubscribed && school?.tipe_lisensi !== "SEKOLAH" && Boolean(user.is_owner_tenant);
+
   return (
     <AcademicShell
       user={user}
       userCapabilities={staffCapabilities}
+      isSubscribed={isSubscribed}
       breadcrumbItems={[
         { label: "Dashboard", href: "/dashboard" },
         { label: isAdmin ? "Supervisi Pembelajaran" : "Kelas Saya" },
       ]}
     >
-      <div className="space-y-4 sm:space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 sm:pb-4 border-b border-slate-100 dark:border-slate-800">
-          <div>
-            <div className="flex items-center gap-2.5">
-              <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white">
-                {isAdmin ? "Supervisi Kelas & Pembelajaran" : "Kelas Saya"}
-              </h1>
-              {isAdmin ? (
-                <Badge
-                  variant="info"
-                  className="gap-1.5 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800 text-xs"
-                >
-                  <ShieldCheck className="h-3.5 w-3.5" />
-                  <span>Supervisi Admin</span>
-                </Badge>
-              ) : (
-                <Badge
-                  variant="info"
-                  className="gap-1.5 bg-blue-50 dark:bg-blue-950/60 text-[#2563EB] dark:text-blue-400 border-blue-200 dark:border-blue-900/50 text-xs"
-                >
-                  <BookOpen className="h-3.5 w-3.5" />
-                  <span>Workspace Guru</span>
-                </Badge>
-              )}
-            </div>
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 hidden sm:block">
-              {isAdmin
-                ? "Direktori supervisi kurikulum, modul materi, tugas, dan rekam jurnal KBM seluruh guru dan rombel sekolah"
-                : "Ruang kerja pembelajaran terpadu untuk mengelola Lingkup Materi (BAB), modul bacaan, tugas, dan jurnal KBM"}
-            </p>
-          </div>
-        </div>
-
+      <div className="pt-2 sm:pt-4">
         <TeacherClassesView
           classes={classes}
           teacherName={teacherName}
           isAdmin={isAdmin}
           teachersList={teachersList}
+          isSubscribed={isSubscribed}
+          isTenantOwner={isSoloTeacher}
         />
       </div>
     </AcademicShell>

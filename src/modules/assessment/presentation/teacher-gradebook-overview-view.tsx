@@ -80,8 +80,11 @@ export function TeacherGradebookOverviewView({
 
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-slate-50 border border-slate-200 text-xs">
-              <span className="text-slate-400">Total Kelas Diampu:</span>
-              <strong className="text-slate-800 text-sm">{totalClasses}</strong>
+              <span className="text-slate-400">Total Rombel:</span>
+              <strong className="text-slate-800 text-sm">
+                {new Set(overviewList.map((item) => item.rombel_id)).size} Rombel
+              </strong>
+              <span className="text-slate-400 text-[11px]">({totalClasses} Penugasan)</span>
             </div>
           </div>
         </div>

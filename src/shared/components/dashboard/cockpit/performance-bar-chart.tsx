@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { ChevronRight, TrendingUp, BarChart2 } from "lucide-react";
+import { motion } from "@/shared/components/motion/motion-elements";
 
 export interface ClassPerformanceItem {
   id: string;
@@ -79,7 +80,7 @@ export function PerformanceBarChart({
             </span>
             <div className="flex items-baseline gap-2 mt-0.5">
               <span className="font-mono text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
-                0%
+                -
               </span>
               <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
                 Belum Ada Nilai Masuk
@@ -93,7 +94,7 @@ export function PerformanceBarChart({
       {hasData ? (
         <div className="pt-6 pb-2">
           <div className="grid grid-cols-6 gap-2 sm:gap-3 items-end h-32 sm:h-36 px-1">
-            {chartData.map((c) => {
+            {chartData.map((c, idx) => {
               const isTop = c.score === highestScore;
               const heightPercent = Math.min(100, Math.max(15, c.score));
 
@@ -106,9 +107,15 @@ export function PerformanceBarChart({
 
                   {/* Pill Track Bar Container */}
                   <div className="w-full max-w-[28px] sm:max-w-[34px] h-24 sm:h-28 rounded-full bg-slate-100 dark:bg-slate-800/80 p-1 flex flex-col justify-end overflow-hidden">
-                    <div
-                      style={{ height: `${heightPercent}%` }}
-                      className={`w-full rounded-full transition-all duration-700 ease-out ${
+                    <motion.div
+                      initial={{ height: 0 }}
+                      animate={{ height: `${heightPercent}%` }}
+                      transition={{
+                        duration: 0.7,
+                        delay: idx * 0.08,
+                        ease: [0.16, 1, 0.3, 1],
+                      }}
+                      className={`w-full rounded-full ${
                         isTop
                           ? "bg-gradient-to-t from-blue-600 to-indigo-500 shadow-sm shadow-blue-500/30"
                           : "bg-blue-500/80 dark:bg-blue-600/70 group-hover:bg-blue-600"

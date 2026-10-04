@@ -296,7 +296,7 @@ export class StudentRepository {
       data: {
         id,
         sekolah_id: sekolahId,
-        nis: input.nis.trim(),
+        nis: input.nis ? input.nis.trim() : "",
         nisn: input.nisn?.trim() || null,
         nama_lengkap: input.nama_lengkap.trim(),
         jenis_kelamin: input.jenis_kelamin,
@@ -346,10 +346,18 @@ export class StudentRepository {
     sekolahId: string,
     input: UpdateStudentIdentityInput
   ): Promise<StudentIdentityDTO> {
+    const existing = await this.db.siswa.findFirst({
+      where: { id, sekolah_id: sekolahId },
+      select: { id: true },
+    });
+    if (!existing) {
+      throw new Error(`Siswa dengan ID '${id}' tidak ditemukan atau bukan milik sekolah aktif.`);
+    }
+
     const updated = await this.db.siswa.update({
       where: { id },
       data: {
-        ...(input.nis !== undefined ? { nis: input.nis.trim() } : {}),
+        ...(input.nis !== undefined ? { nis: input.nis ? input.nis.trim() : "" } : {}),
         ...(input.nisn !== undefined ? { nisn: input.nisn?.trim() || null } : {}),
         ...(input.nama_lengkap !== undefined ? { nama_lengkap: input.nama_lengkap.trim() } : {}),
         ...(input.jenis_kelamin !== undefined ? { jenis_kelamin: input.jenis_kelamin } : {}),
@@ -402,10 +410,13 @@ export class StudentRepository {
     };
   }
 
-  async deleteStudent(id: string): Promise<void> {
-    await this.db.siswa.delete({
-      where: { id },
+  async deleteStudent(id: string, sekolahId: string): Promise<void> {
+    const deleted = await this.db.siswa.deleteMany({
+      where: { id, sekolah_id: sekolahId },
     });
+    if (deleted.count === 0) {
+      throw new Error(`Siswa dengan ID '${id}' tidak ditemukan atau bukan milik sekolah aktif.`);
+    }
   }
 
   // =========================================================================
@@ -636,6 +647,16 @@ export class StudentRepository {
     sekolahId: string,
     input: UpdateStudentEnrollmentStatusInput
   ): Promise<StudentEnrollmentDTO> {
+    const existing = await this.db.keikutsertaanSiswa.findFirst({
+      where: { id, sekolah_id: sekolahId },
+      select: { id: true },
+    });
+    if (!existing) {
+      throw new Error(
+        `Keikutsertaan siswa dengan ID '${id}' tidak ditemukan atau bukan milik sekolah aktif.`
+      );
+    }
+
     const updated = await this.db.keikutsertaanSiswa.update({
       where: { id },
       data: {
@@ -673,10 +694,15 @@ export class StudentRepository {
     };
   }
 
-  async deleteEnrollment(id: string): Promise<void> {
-    await this.db.keikutsertaanSiswa.delete({
-      where: { id },
+  async deleteEnrollment(id: string, sekolahId: string): Promise<void> {
+    const deleted = await this.db.keikutsertaanSiswa.deleteMany({
+      where: { id, sekolah_id: sekolahId },
     });
+    if (deleted.count === 0) {
+      throw new Error(
+        `Keikutsertaan siswa dengan ID '${id}' tidak ditemukan atau bukan milik sekolah aktif.`
+      );
+    }
   }
 
   // =========================================================================
@@ -943,6 +969,16 @@ export class StudentRepository {
       catatan?: string | null;
     }
   ): Promise<RombelPlacementDTO> {
+    const existing = await this.db.penempatanRombel.findFirst({
+      where: { id, sekolah_id: sekolahId },
+      select: { id: true },
+    });
+    if (!existing) {
+      throw new Error(
+        `Penempatan rombel dengan ID '${id}' tidak ditemukan atau bukan milik sekolah aktif.`
+      );
+    }
+
     const updated = await this.db.penempatanRombel.update({
       where: { id },
       data,
@@ -988,10 +1024,15 @@ export class StudentRepository {
     };
   }
 
-  async deletePlacement(id: string): Promise<void> {
-    await this.db.penempatanRombel.delete({
-      where: { id },
+  async deletePlacement(id: string, sekolahId: string): Promise<void> {
+    const deleted = await this.db.penempatanRombel.deleteMany({
+      where: { id, sekolah_id: sekolahId },
     });
+    if (deleted.count === 0) {
+      throw new Error(
+        `Penempatan rombel dengan ID '${id}' tidak ditemukan atau bukan milik sekolah aktif.`
+      );
+    }
   }
 
   // =========================================================================

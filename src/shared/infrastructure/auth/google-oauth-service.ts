@@ -45,13 +45,39 @@ interface GoogleJwk {
   e: string;
 }
 
+export function getGoogleAppUrl(path: string, requestUrl?: string): URL {
+  const configuredUrl = process.env.FRONTEND_URL?.trim() || process.env.APP_URL?.trim();
+  const appUrl = new URL(configuredUrl || requestUrl || "http://localhost:3000");
+  if (appUrl.hostname === "0.0.0.0" || appUrl.hostname === "::") {
+    appUrl.hostname = "localhost";
+  }
+  appUrl.pathname = "/";
+  appUrl.search = "";
+  appUrl.hash = "";
+  return new URL(path, appUrl);
+}
+
+function getGoogleRedirectUri(): string {
+  const configuredRedirectUri = process.env.GOOGLE_REDIRECT_URI?.trim();
+  if (!configuredRedirectUri) {
+    return getGoogleAppUrl("/api/auth/google/callback").toString();
+  }
+
+  const redirectUri = new URL(configuredRedirectUri);
+  if (redirectUri.hostname === "0.0.0.0" || redirectUri.hostname === "::") {
+    const publicOrigin = getGoogleAppUrl("/");
+    redirectUri.protocol = publicOrigin.protocol;
+    redirectUri.hostname = publicOrigin.hostname;
+    redirectUri.port = publicOrigin.port;
+  }
+  return redirectUri.toString();
+}
+
 function getGoogleConfig(): GoogleConfig {
   const values = {
     clientId: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    redirectUri:
-      process.env.GOOGLE_REDIRECT_URI ||
-      `${process.env.APP_URL || "http://localhost:3000"}/api/auth/google/callback`,
+    redirectUri: getGoogleRedirectUri(),
     stateSecret: process.env.GOOGLE_OAUTH_STATE_SECRET,
   };
 
@@ -102,6 +128,18 @@ function randomPassword(): string {
   return `${base64Url(crypto.randomBytes(32))}Aa1!`;
 }
 
+function getStateSecret(): string {
+  const secret =
+    process.env.GOOGLE_OAUTH_STATE_SECRET ||
+    (process.env.NODE_ENV === "development"
+      ? "dev-google-oauth-state-secret-ruang-pintar-2026"
+      : "");
+  if (!secret) {
+    throw new Error("Google Login belum dikonfigurasi.");
+  }
+  return secret;
+}
+
 export function createGoogleRegistrationPassword(): string {
   return randomPassword();
 }
@@ -109,14 +147,11 @@ export function createGoogleRegistrationPassword(): string {
 export function createGooglePendingRegistrationCookie(
   registration: GooglePendingRegistration
 ): string {
-  const config = getGoogleConfig();
+  const stateSecret = getStateSecret();
   const payload = base64Url(
     Buffer.from(JSON.stringify({ ...registration, issuedAt: Date.now() }), "utf8")
   );
-  const signature = crypto
-    .createHmac("sha256", config.stateSecret)
-    .update(payload)
-    .digest("base64url");
+  const signature = crypto.createHmac("sha256", stateSecret).update(payload).digest("base64url");
   return `${payload}.${signature}`;
 }
 
@@ -127,21 +162,18 @@ export function readGooglePendingRegistrationCookie(
   const [payload, signature] = value.split(".");
   if (!payload || !signature) return null;
 
-  const config = getGoogleConfig();
-  const expected = crypto
-    .createHmac("sha256", config.stateSecret)
-    .update(payload)
-    .digest("base64url");
-  const actualBuffer = Buffer.from(signature);
-  const expectedBuffer = Buffer.from(expected);
-  if (
-    actualBuffer.length !== expectedBuffer.length ||
-    !crypto.timingSafeEqual(actualBuffer, expectedBuffer)
-  ) {
-    return null;
-  }
-
   try {
+    const stateSecret = getStateSecret();
+    const expected = crypto.createHmac("sha256", stateSecret).update(payload).digest("base64url");
+    const actualBuffer = Buffer.from(signature);
+    const expectedBuffer = Buffer.from(expected);
+    if (
+      actualBuffer.length !== expectedBuffer.length ||
+      !crypto.timingSafeEqual(actualBuffer, expectedBuffer)
+    ) {
+      return null;
+    }
+
     const registration = decodeJson<GooglePendingRegistration & { issuedAt: number }>(payload);
     if (
       !registration.subject ||
@@ -153,6 +185,7 @@ export function readGooglePendingRegistrationCookie(
     ) {
       return null;
     }
+
     return {
       subject: registration.subject,
       email: registration.email,

@@ -725,6 +725,14 @@ export async function createRombelAction(formData: FormData): Promise<ActionResp
       sekolah_id: actor.sekolah_id,
     });
 
+    if (actor.is_owner_tenant) {
+      return {
+        success: false,
+        error: "Buat kelas melalui Kelas Saya agar penugasan mengajar dibuat otomatis.",
+        code: "USE_ATOMIC_CLASS_CREATION",
+      };
+    }
+
     const raw = {
       tahun_ajaran_id: String(formData.get("tahun_ajaran_id") ?? ""),
       semester_id: formData.get("semester_id") ? String(formData.get("semester_id")) : null,
@@ -764,23 +772,27 @@ export async function updateRombelAction(id: string, formData: FormData): Promis
       return { success: false, error: "Konteks sekolah tidak valid.", code: "INVALID_CONTEXT" };
     }
 
-    await requirePermission("academic.structure.manage", {
+    await requirePermission("academic.classes.manage", {
       sekolah_id: actor.sekolah_id,
     });
 
     const raw = {
-      tahun_ajaran_id: formData.get("tahun_ajaran_id")
+      tahun_ajaran_id: formData.has("tahun_ajaran_id")
         ? String(formData.get("tahun_ajaran_id"))
         : undefined,
-      semester_id: formData.get("semester_id") ? String(formData.get("semester_id")) : null,
-      tingkat_id: formData.get("tingkat_id") ? String(formData.get("tingkat_id")) : undefined,
-      fase_id: formData.get("fase_id") ? String(formData.get("fase_id")) : null,
-      program_id: formData.get("program_id") ? String(formData.get("program_id")) : null,
-      nama: formData.get("nama") ? String(formData.get("nama")) : undefined,
-      kode: formData.get("kode") ? String(formData.get("kode")) : null,
-      kapasitas: formData.get("kapasitas") ? Number(formData.get("kapasitas")) : undefined,
-      status: formData.get("status") ? (String(formData.get("status")) as any) : undefined,
-      catatan: formData.get("catatan") ? String(formData.get("catatan")) : null,
+      semester_id: formData.has("semester_id")
+        ? String(formData.get("semester_id")) || null
+        : undefined,
+      tingkat_id: formData.has("tingkat_id") ? String(formData.get("tingkat_id")) : undefined,
+      fase_id: formData.has("fase_id") ? String(formData.get("fase_id")) || null : undefined,
+      program_id: formData.has("program_id")
+        ? String(formData.get("program_id")) || null
+        : undefined,
+      nama: formData.has("nama") ? String(formData.get("nama")) : undefined,
+      kode: formData.has("kode") ? String(formData.get("kode")) || null : undefined,
+      kapasitas: formData.has("kapasitas") ? Number(formData.get("kapasitas")) : undefined,
+      status: formData.has("status") ? (String(formData.get("status")) as any) : undefined,
+      catatan: formData.has("catatan") ? String(formData.get("catatan")) || null : undefined,
     };
 
     const validated = updateRombelSchema.parse(raw);
@@ -793,6 +805,8 @@ export async function updateRombelAction(id: string, formData: FormData): Promis
     );
 
     revalidatePath("/struktur-akademik");
+    revalidatePath("/kelas-saya");
+    revalidatePath("/dashboard");
     return {
       success: true,
       data: result,
@@ -810,16 +824,18 @@ export async function deleteRombelAction(id: string): Promise<ActionResponse> {
       return { success: false, error: "Konteks sekolah tidak valid.", code: "INVALID_CONTEXT" };
     }
 
-    await requirePermission("academic.structure.manage", {
+    await requirePermission("academic.classes.manage", {
       sekolah_id: actor.sekolah_id,
     });
 
     await rombelService.deleteRombel(id, actor.sekolah_id, actor.id, actor.peran_dasar);
 
     revalidatePath("/struktur-akademik");
+    revalidatePath("/kelas-saya");
+    revalidatePath("/dashboard");
     return {
       success: true,
-      message: "Rombel berhasil dihapus.",
+      message: "Kelas berhasil dihapus dari workspace. Riwayat akademik tetap tersimpan.",
     };
   } catch (err) {
     return handleActionError(err);

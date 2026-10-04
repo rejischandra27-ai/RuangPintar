@@ -24,6 +24,7 @@ import {
   AutosaveJawabanInput,
   RecordIntegrityEventInput,
   TransferToGradebookInput,
+  HasilUjianCbtDTO,
 } from "@/modules/cbt/domain/cbt-types";
 import {
   generateQuestionsWithGemini,
@@ -39,7 +40,7 @@ export interface CbtActionResult<T = unknown> {
 }
 
 function getSafeErrorMessage(error: any): string {
-  if (error?.name?.includes("Cbt") || error?.name?.includes("Error")) {
+  if (error?.message) {
     return error.message;
   }
   return "Terjadi kendala pada pemrosesan sistem CBT.";
@@ -55,6 +56,17 @@ async function resolveTeacherContext(userId: string, role: string, sekolahId: st
     });
     if (guru) {
       guruId = guru.id;
+    }
+  }
+
+  // Fallback for SUPER_ADMIN or teachers without specific guru profile in current tenant
+  if (!guruId) {
+    const fallbackGuru = await prisma.guru.findFirst({
+      where: { sekolah_id: sekolahId },
+      orderBy: { created_at: "asc" },
+    });
+    if (fallbackGuru) {
+      guruId = fallbackGuru.id;
     }
   }
 
@@ -514,6 +526,109 @@ export async function unlockAttemptAction(
   }
 }
 
+export async function resetAttemptAction(
+  attemptId: string,
+  penugasanId: string
+): Promise<CbtActionResult<any>> {
+  try {
+    const user = await requireAuth();
+    if (!user.sekolah_id) return { success: false, message: "Sekolah tidak teridentifikasi." };
+
+    await requirePermission("cbt.attempt.monitor", { sekolah_id: user.sekolah_id });
+    const { isSuperAdmin, guruId } = await resolveTeacherContext(
+      user.id,
+      user.peran_dasar,
+      user.sekolah_id
+    );
+
+    await cbtService.resetAttempt(attemptId, user.sekolah_id, guruId, isSuperAdmin);
+
+    await recordAuditEvent({
+      sekolah_id: user.sekolah_id,
+      aktor_id: user.id,
+      aktor_role: user.peran_dasar,
+      aksi: "CBT_ATTEMPT_RESET",
+      tipe_sumber: "SesiUjianSiswa",
+      id_sumber: attemptId,
+      payload_sesudah: { reset_by: user.id },
+    });
+
+    revalidatePath(`/kelas-saya/${penugasanId}`);
+    return {
+      success: true,
+      message: "Sesi ujian siswa berhasil di-reset. Siswa dapat memulai ulang.",
+    };
+  } catch (err) {
+    return { success: false, message: getSafeErrorMessage(err) };
+  }
+}
+
+export async function forceSubmitAttemptAction(
+  attemptId: string,
+  penugasanId: string
+): Promise<CbtActionResult<any>> {
+  try {
+    const user = await requireAuth();
+    if (!user.sekolah_id) return { success: false, message: "Sekolah tidak teridentifikasi." };
+
+    await requirePermission("cbt.attempt.monitor", { sekolah_id: user.sekolah_id });
+    const { isSuperAdmin, guruId } = await resolveTeacherContext(
+      user.id,
+      user.peran_dasar,
+      user.sekolah_id
+    );
+
+    const hasil = await cbtService.forceSubmitAttempt(
+      attemptId,
+      user.sekolah_id,
+      guruId,
+      isSuperAdmin
+    );
+
+    await recordAuditEvent({
+      sekolah_id: user.sekolah_id,
+      aktor_id: user.id,
+      aktor_role: user.peran_dasar,
+      aksi: "CBT_ATTEMPT_FORCE_SUBMIT",
+      tipe_sumber: "SesiUjianSiswa",
+      id_sumber: attemptId,
+      payload_sesudah: { forced_by: user.id, skor: hasil.skor_mentah },
+    });
+
+    revalidatePath(`/kelas-saya/${penugasanId}`);
+    return {
+      success: true,
+      message: "Ujian siswa berhasil dikumpulkan dan dinilai secara authoritative oleh server.",
+      data: hasil,
+    };
+  } catch (err) {
+    return { success: false, message: getSafeErrorMessage(err) };
+  }
+}
+
+export async function getCbtMapelListAction(): Promise<
+  CbtActionResult<Array<{ id: string; nama: string; kode: string }>>
+> {
+  try {
+    const user = await requireAuth();
+    if (!user.sekolah_id) return { success: false, message: "Sekolah tidak teridentifikasi." };
+
+    const mapelList = await prisma.mataPelajaran.findMany({
+      where: { sekolah_id: user.sekolah_id },
+      select: { id: true, nama: true, kode: true },
+      orderBy: { nama: "asc" },
+    });
+
+    return {
+      success: true,
+      message: "Daftar mata pelajaran berhasil dimuat.",
+      data: mapelList,
+    };
+  } catch (err) {
+    return { success: false, message: getSafeErrorMessage(err) };
+  }
+}
+
 export async function transferToGradebookAction(
   input: TransferToGradebookInput,
   penugasanId: string
@@ -550,6 +665,87 @@ export async function transferToGradebookAction(
     return {
       success: true,
       message: `Berhasil mentransfer ${result.transferredCount} nilai CBT ke Buku Nilai.`,
+      data: result,
+    };
+  } catch (err) {
+    return { success: false, message: getSafeErrorMessage(err) };
+  }
+}
+
+export async function submitPaperLjmExamAction(
+  ujianId: string,
+  siswaId: string,
+  jawabanMap: Record<number, string>,
+  penugasanId: string
+): Promise<CbtActionResult<HasilUjianCbtDTO>> {
+  try {
+    const user = await requireAuth();
+    if (!user.sekolah_id) return { success: false, message: "Sekolah tidak teridentifikasi." };
+
+    await requirePermission("cbt.attempt.monitor", { sekolah_id: user.sekolah_id });
+    const { isSuperAdmin, guruId } = await resolveTeacherContext(
+      user.id,
+      user.peran_dasar,
+      user.sekolah_id
+    );
+
+    const hasil = await cbtService.submitPaperExam(
+      ujianId,
+      siswaId,
+      jawabanMap,
+      user.sekolah_id,
+      guruId,
+      isSuperAdmin
+    );
+
+    await recordAuditEvent({
+      sekolah_id: user.sekolah_id,
+      aktor_id: user.id,
+      aktor_role: user.peran_dasar,
+      aksi: "CBT_PAPER_LJM_SUBMIT",
+      tipe_sumber: "HasilUjianCbt",
+      id_sumber: hasil.id,
+      payload_sesudah: { siswa_id: siswaId, nilai_akhir: hasil.nilai_akhir },
+    });
+
+    revalidatePath(`/kelas-saya/${penugasanId}`);
+    return {
+      success: true,
+      message: `Berhasil mengoreksi dan mencatat hasil LJM kertas. Nilai: ${hasil.nilai_akhir} (${hasil.status_kelulusan})`,
+      data: hasil,
+    };
+  } catch (err) {
+    return { success: false, message: getSafeErrorMessage(err) };
+  }
+}
+
+export async function scanPaperLjmPhotoAction(
+  ujianId: string,
+  imageBase64: string,
+  mimeType?: string
+): Promise<
+  CbtActionResult<{
+    detectedAnswers: Record<number, string>;
+    confidence: number;
+    detectedStudentName?: string;
+    detectedNis?: string;
+    notes: string;
+  }>
+> {
+  try {
+    const user = await requireAuth();
+    if (!user.sekolah_id) return { success: false, message: "Sekolah tidak teridentifikasi." };
+
+    await requirePermission("cbt.attempt.monitor", { sekolah_id: user.sekolah_id });
+
+    // Cek snapshot untuk total soal
+    const examDetail = await cbtService.getExamDetail(ujianId, user.sekolah_id);
+    const totalSoal = examDetail?.total_soal || 25;
+
+    const result = await cbtService.scanPaperLjmPhoto(imageBase64, totalSoal, mimeType);
+    return {
+      success: true,
+      message: "Pemindaian lembar jawaban selesai.",
       data: result,
     };
   } catch (err) {

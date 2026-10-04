@@ -60,7 +60,7 @@ export interface StudentGradeIndicator {
 export interface StudentMonitoringSummary {
   siswa_id: string;
   nama_lengkap: string;
-  nis: string;
+  nis: string | null;
   nisn: string | null;
   jenis_kelamin: string;
   foto_url: string | null;
@@ -100,7 +100,7 @@ export interface CatatanMonitoringItem {
   rombel_id: string;
   siswa_id: string;
   siswa_nama: string;
-  siswa_nis: string;
+  siswa_nis: string | null;
   penulis_id: string;
   penulis_nama: string;
   penulis_peran: string;
@@ -144,7 +144,7 @@ export interface HomeroomOverviewDTO {
 export interface StudentMonitoringDetailDTO {
   siswa: {
     id: string;
-    nis: string;
+    nis: string | null;
     nisn: string | null;
     nama_lengkap: string;
     jenis_kelamin: string;

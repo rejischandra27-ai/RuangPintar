@@ -67,13 +67,17 @@ export class CommunicationRepository {
   /**
    * Memperbarui pengumuman.
    */
-  async update(id: string, input: UpdateAnnouncementInput): Promise<AnnouncementItem> {
-    const existing = await prisma.pengumuman.findUnique({
-      where: { id },
+  async update(
+    id: string,
+    input: UpdateAnnouncementInput,
+    sekolahId?: string
+  ): Promise<AnnouncementItem> {
+    const existing = await prisma.pengumuman.findFirst({
+      where: { id, ...(sekolahId ? { sekolah_id: sekolahId } : {}) },
     });
 
     if (!existing) {
-      throw new Error(`Pengumuman dengan ID ${id} tidak ditemukan`);
+      throw new Error(`Pengumuman dengan ID ${id} tidak ditemukan atau bukan milik sekolah aktif.`);
     }
 
     let dipublikasikanPada = existing.dipublikasikan_pada;
@@ -119,9 +123,9 @@ export class CommunicationRepository {
   /**
    * Menemukan pengumuman berdasarkan ID.
    */
-  async findById(id: string): Promise<AnnouncementItem | null> {
-    const row = await prisma.pengumuman.findUnique({
-      where: { id },
+  async findById(id: string, sekolahId?: string): Promise<AnnouncementItem | null> {
+    const row = await prisma.pengumuman.findFirst({
+      where: { id, ...(sekolahId ? { sekolah_id: sekolahId } : {}) },
       include: {
         penulis: {
           select: {
@@ -145,10 +149,13 @@ export class CommunicationRepository {
   /**
    * Menghapus pengumuman.
    */
-  async delete(id: string): Promise<void> {
-    await prisma.pengumuman.delete({
-      where: { id },
+  async delete(id: string, sekolahId?: string): Promise<void> {
+    const deleted = await prisma.pengumuman.deleteMany({
+      where: { id, ...(sekolahId ? { sekolah_id: sekolahId } : {}) },
     });
+    if (deleted.count === 0) {
+      throw new Error(`Pengumuman dengan ID ${id} tidak ditemukan atau bukan milik sekolah aktif.`);
+    }
   }
 
   /**

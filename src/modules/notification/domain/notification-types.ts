@@ -9,7 +9,10 @@ export type NotificationType =
   | "NILAI_DITERBITKAN"
   | "PENGAJUAN_IZIN"
   | "JADWAL_BERUBAH"
-  | "SISTEM";
+  | "SISTEM"
+  | "JOIN_REQUEST_RECEIVED"
+  | "JOIN_REQUEST_APPROVED"
+  | "JOIN_REQUEST_REJECTED";
 
 export interface InAppNotificationItem {
   id: string;

@@ -210,8 +210,8 @@ export class MonitoringService {
     }
 
     const validData = parseResult.data;
-    const existing = await prisma.catatanMonitoring.findUnique({
-      where: { id: validData.id },
+    const existing = await prisma.catatanMonitoring.findFirst({
+      where: { id: validData.id, ...(user.sekolah_id ? { sekolah_id: user.sekolah_id } : {}) },
     });
 
     if (!existing) {
@@ -228,7 +228,11 @@ export class MonitoringService {
       status: validData.status,
     };
 
-    const updated = await MonitoringRepository.updateMonitoringNote(validData.id, input);
+    const updated = await MonitoringRepository.updateMonitoringNote(
+      validData.id,
+      input,
+      user.sekolah_id || undefined
+    );
 
     await recordAuditEvent({
       sekolah_id: user.sekolah_id ?? null,
@@ -311,8 +315,11 @@ export class MonitoringService {
     }
 
     const validData = parseResult.data;
-    const followUp = await prisma.tindakLanjutMonitoring.findUnique({
-      where: { id: validData.id },
+    const followUp = await prisma.tindakLanjutMonitoring.findFirst({
+      where: {
+        id: validData.id,
+        ...(user.sekolah_id ? { catatan: { sekolah_id: user.sekolah_id } } : {}),
+      },
       include: {
         catatan: true,
       },
@@ -335,7 +342,10 @@ export class MonitoringService {
           : null,
     };
 
-    const updated = await MonitoringRepository.updateFollowUpStatus(input);
+    const updated = await MonitoringRepository.updateFollowUpStatus(
+      input,
+      user.sekolah_id || undefined
+    );
 
     await recordAuditEvent({
       sekolah_id: user.sekolah_id ?? null,

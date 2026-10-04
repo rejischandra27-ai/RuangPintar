@@ -222,7 +222,7 @@ export interface CbtPlayerStateDTO {
   rombel_nama: string;
   siswa_id: string;
   siswa_nama: string;
-  siswa_nis: string;
+  siswa_nis: string | null;
   durasi_menit: number;
   waktu_mulai: string; // ISO String
   batas_waktu_server: string; // ISO String: Authoritative deadline
@@ -277,7 +277,7 @@ export interface HasilUjianCbtDTO {
   ujian_cbt_id: string;
   siswa_id: string;
   siswa_nama: string;
-  siswa_nis: string;
+  siswa_nis: string | null;
   total_soal: number;
   total_dijawab: number;
   jumlah_benar: number;

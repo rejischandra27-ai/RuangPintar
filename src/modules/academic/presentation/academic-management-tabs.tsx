@@ -21,11 +21,16 @@ import { RombelsView } from "./rombels-view";
 interface AcademicManagementTabsProps {
   initialData: AcademicStructureData;
   canManage: boolean;
+  isTenantOwner?: boolean;
 }
 
 export type AcademicTabKey = "YEARS" | "GRADES" | "PROGRAMS" | "ROMBELS";
 
-export function AcademicManagementTabs({ initialData, canManage }: AcademicManagementTabsProps) {
+export function AcademicManagementTabs({
+  initialData,
+  canManage,
+  isTenantOwner = false,
+}: AcademicManagementTabsProps) {
   const [activeTab, setActiveTab] = useState<AcademicTabKey>("YEARS");
 
   return (
@@ -150,6 +155,7 @@ export function AcademicManagementTabs({ initialData, canManage }: AcademicManag
             phases={initialData.phases}
             programs={initialData.programs}
             canManage={canManage}
+            isTenantOwner={isTenantOwner}
           />
         )}
       </div>

@@ -36,6 +36,7 @@ import {
   X,
   Image as ImageIcon,
   ArrowRight,
+  WifiOff,
 } from "lucide-react";
 import { SesiUjianSiswaDTO, ManifestItemSoal, HasilUjianCbtDTO } from "../domain/cbt-types";
 import {
@@ -43,6 +44,9 @@ import {
   recordIntegrityEventAction,
   submitAttemptAction,
 } from "@/app/actions/cbt-actions";
+import { MathRenderer } from "@/shared/components/cbt/math-renderer";
+import { ImageStimulus } from "@/shared/components/cbt/image-stimulus";
+import { AudioStimulusPlayer } from "@/shared/components/cbt/audio-stimulus-player";
 
 interface CbtPlayerViewProps {
   initialSession: SesiUjianSiswaDTO;
@@ -75,14 +79,66 @@ export function CbtPlayerView({
   const router = useRouter();
   const [session, setSession] = useState(initialSession);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [answers, setAnswers] = useState(initialSavedAnswers);
+  const STORAGE_KEY = `rp_cbt_answers_${session.id}`;
+
+  // Exam Recovery: Restore answers from local cache on mount without cascading render
+  const [answers, setAnswers] = useState<Record<string, any>>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem(`rp_cbt_answers_${initialSession.id}`);
+        if (cached) {
+          const localAnswers = JSON.parse(cached);
+          if (localAnswers && typeof localAnswers === "object") {
+            return { ...initialSavedAnswers, ...localAnswers };
+          }
+        }
+      } catch {
+        // LocalStorage fallback
+      }
+    }
+    return initialSavedAnswers;
+  });
+
   const [secondsLeft, setSecondsLeft] = useState(initialTimeRemainingSeconds);
-  const [saveStatus, setSaveStatus] = useState<"SAVED" | "SAVING" | "ERROR">("SAVED");
+  const [isOnline, setIsOnline] = useState<boolean>(() => {
+    if (typeof navigator !== "undefined" && typeof navigator.onLine === "boolean") {
+      return navigator.onLine;
+    }
+    return true;
+  });
+  const [saveStatus, setSaveStatus] = useState<"SAVED" | "SAVING" | "OFFLINE" | "ERROR">(() => {
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      return "OFFLINE";
+    }
+    return "SAVED";
+  });
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [finalResult, setFinalResult] = useState<HasilUjianCbtDTO | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+
+  // Network connection listener
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleOnline = () => {
+      setIsOnline(true);
+      setSaveStatus("SAVED");
+    };
+    const handleOffline = () => {
+      setIsOnline(false);
+      setSaveStatus("OFFLINE");
+    };
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
 
   // Anti-Cheat Strike State
   const [strikeCount, setStrikeCount] = useState(0);
@@ -232,14 +288,93 @@ export function CbtPlayerView({
       }
     };
 
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Block Developer Tools (F12)
+      if (e.key === "F12") {
+        e.preventDefault();
+        return;
+      }
+      // Block Ctrl/Cmd combinations (Copy, Paste, Cut, Select All, View Source, Print, Save)
+      if (e.ctrlKey || e.metaKey) {
+        const key = e.key.toLowerCase();
+        if (["c", "v", "x", "a", "u", "p", "s"].includes(key)) {
+          e.preventDefault();
+        }
+      }
+      // Block PrintScreen
+      if (e.key === "PrintScreen") {
+        e.preventDefault();
+      }
+    };
+
+    const handleCopyCutPaste = (e: ClipboardEvent) => {
+      e.preventDefault();
+    };
+
+    // Mobile AI menu blocker: Prevent long-press text selection popup ("Ask Gemini", "Search Web", "Copy")
+    const handleSelectionChange = () => {
+      const activeEl = document.activeElement;
+      const isEditing =
+        activeEl && (activeEl.tagName === "INPUT" || activeEl.tagName === "TEXTAREA");
+      if (!isEditing) {
+        const sel = window.getSelection();
+        if (sel && sel.toString().length > 0) {
+          sel.removeAllRanges();
+        }
+      }
+    };
+
+    // Mobile Split-Screen / Floating Window AI Detector
+    let resizeDebounce: any;
+    const handleResize = () => {
+      clearTimeout(resizeDebounce);
+      resizeDebounce = setTimeout(() => {
+        if (typeof window === "undefined") return;
+        const isMobile =
+          window.matchMedia("(max-width: 1024px)").matches || "ontouchstart" in window;
+        if (isMobile && window.screen && window.screen.availHeight > 0) {
+          const activeEl = document.activeElement;
+          const isInputFocused =
+            activeEl && (activeEl.tagName === "INPUT" || activeEl.tagName === "TEXTAREA");
+          // If viewport height collapses significantly without keyboard open, split-screen / floating AI is active
+          const heightRatio = window.innerHeight / window.screen.availHeight;
+          if (!isInputFocused && heightRatio < 0.6 && !isStrikeModalOpen && !showSubmitModal) {
+            triggerIntegrityViolation(
+              "PINDAH_TAB_ATAU_WINDOW",
+              "Terdeteksi mode layar terbelah (Split Screen / Floating Window AI). Sesi ujian mewajibkan satu layar penuh."
+            );
+          }
+        }
+      }, 300);
+    };
+
     document.addEventListener("visibilitychange", handleVisibilityChange);
     window.addEventListener("blur", handleBlur);
     document.addEventListener("fullscreenchange", handleFullscreenChange);
+    document.addEventListener("contextmenu", handleContextMenu);
+    document.addEventListener("keydown", handleKeyDown);
+    document.addEventListener("copy", handleCopyCutPaste);
+    document.addEventListener("cut", handleCopyCutPaste);
+    document.addEventListener("paste", handleCopyCutPaste);
+    document.addEventListener("selectionchange", handleSelectionChange);
+    window.addEventListener("resize", handleResize);
 
     return () => {
+      clearTimeout(resizeDebounce);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("blur", handleBlur);
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      document.removeEventListener("contextmenu", handleContextMenu);
+      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("copy", handleCopyCutPaste);
+      document.removeEventListener("cut", handleCopyCutPaste);
+      document.removeEventListener("paste", handleCopyCutPaste);
+      document.removeEventListener("selectionchange", handleSelectionChange);
+      window.removeEventListener("resize", handleResize);
     };
   }, [finalResult, isLocked, isStrikeModalOpen, showSubmitModal, triggerIntegrityViolation]);
 
@@ -264,14 +399,29 @@ export function CbtPlayerView({
       ragu_ragu?: boolean;
     }
   ) => {
-    setSaveStatus("SAVING");
     const current = answers[nomorUrut] || {};
     const merged = { ...current, ...patch };
 
-    setAnswers((prev) => ({
-      ...prev,
-      [nomorUrut]: merged,
-    }));
+    // 1. Instant Write-Ahead Buffer to LocalStorage (Zero Answer Loss Invariant)
+    setAnswers((prev) => {
+      const updated = { ...prev, [nomorUrut]: merged };
+      try {
+        if (typeof window !== "undefined") {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+        }
+      } catch {
+        // Fallback if localStorage quota exceeded
+      }
+      return updated;
+    });
+
+    // Check offline status
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      setSaveStatus("OFFLINE");
+      return;
+    }
+
+    setSaveStatus("SAVING");
 
     try {
       const res = await autosaveAnswerAction({
@@ -287,10 +437,10 @@ export function CbtPlayerView({
       if (res.success) {
         setSaveStatus("SAVED");
       } else {
-        setSaveStatus("ERROR");
+        setSaveStatus("OFFLINE");
       }
     } catch {
-      setSaveStatus("ERROR");
+      setSaveStatus("OFFLINE");
     }
   };
 
@@ -308,9 +458,9 @@ export function CbtPlayerView({
 
   const handleToggleComplexChoice = (label: string) => {
     if (isLocked || finalResult) return;
-    const currentList = answers[activeQuestion.nomor_urut]?.jawaban_kompleks || [];
+    const currentList: string[] = answers[activeQuestion.nomor_urut]?.jawaban_kompleks || [];
     const updated = currentList.includes(label)
-      ? currentList.filter((item) => item !== label)
+      ? currentList.filter((item: string) => item !== label)
       : [...currentList, label];
     persistAnswer(activeQuestion.nomor_urut, { jawaban_kompleks: updated });
   };
@@ -327,12 +477,21 @@ export function CbtPlayerView({
   };
 
   const handleSubmitAttempt = async () => {
+    if (isSubmitting) return; // Prevent double-submit race condition
     setIsSubmitting(true);
     try {
       const res = await submitAttemptAction(session.id);
       if (res.success && res.data) {
         setFinalResult(res.data);
         setShowSubmitModal(false);
+        // Clear local storage after verified submission
+        try {
+          if (typeof window !== "undefined") {
+            localStorage.removeItem(STORAGE_KEY);
+          }
+        } catch {
+          // Ignored
+        }
       }
     } catch {
       // Ignored
@@ -433,7 +592,14 @@ export function CbtPlayerView({
   // RENDER PLAYER SCREEN
   // ============================================================================
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col select-none text-slate-900">
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col select-none text-slate-900 relative [-webkit-touch-callout:none] [-webkit-user-select:none]">
+      {/* Anti-Cheat & Anti-Leakage Dynamic Watermark */}
+      <div className="fixed inset-0 pointer-events-none z-0 flex items-center justify-center overflow-hidden opacity-[0.035] select-none">
+        <div className="text-center font-mono font-black text-xl text-slate-900 rotate-[-25deg] leading-loose whitespace-pre-wrap">
+          {`RUANG PINTAR CBT • SESI: ${session.id}\nPESERTA TERVERIFIKASI • DILARANG MENYEBARLUASKAN`}
+        </div>
+      </div>
+
       {/* Top Header Bar */}
       <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-6 py-3.5 shadow-xs">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
@@ -461,13 +627,23 @@ export function CbtPlayerView({
                   {saveStatus === "SAVED" && (
                     <>
                       <CheckCircle2 className="h-3 w-3 text-emerald-500" />
-                      <span className="text-emerald-600 font-semibold">Tersimpan</span>
+                      <span className="text-emerald-600 font-semibold">Tersimpan di Cloud</span>
+                    </>
+                  )}
+                  {saveStatus === "OFFLINE" && (
+                    <>
+                      <WifiOff className="h-3 w-3 text-amber-500" />
+                      <span className="text-amber-700 font-semibold">
+                        Tersimpan di Perangkat (Offline)
+                      </span>
                     </>
                   )}
                   {saveStatus === "ERROR" && (
                     <>
                       <AlertTriangle className="h-3 w-3 text-rose-500" />
-                      <span className="text-rose-600 font-semibold">Gagal simpan</span>
+                      <span className="text-rose-600 font-semibold">
+                        Koneksi Terganggu (Aman Lokal)
+                      </span>
                     </>
                   )}
                 </span>
@@ -578,35 +754,56 @@ export function CbtPlayerView({
 
                 {/* Question Body */}
                 <div className="p-6 sm:p-8 flex-1 space-y-6">
-                  {/* Stimulus Image if present */}
-                  {activeQuestion.gambar_url && (
-                    <div className="rounded-2xl border border-slate-200/80 bg-slate-50/60 p-3 overflow-hidden flex flex-col items-center">
-                      <button
-                        type="button"
-                        onClick={() => setPreviewImage(activeQuestion.gambar_url!)}
-                        className="relative group cursor-zoom-in max-w-full rounded-xl overflow-hidden focus:outline-hidden focus:ring-2 focus:ring-blue-500"
-                        title="Klik untuk memperbesar gambar"
-                      >
-                        <img
-                          src={activeQuestion.gambar_url}
-                          alt="Ilustrasi / Stimulus Soal"
-                          className="max-h-72 w-auto object-contain rounded-xl transition duration-200 group-hover:scale-[1.02]"
-                        />
-                        <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-semibold gap-1.5 backdrop-blur-[2px]">
-                          <Maximize2 className="h-4 w-4" />
-                          <span>Klik untuk resolusi penuh</span>
-                        </div>
-                      </button>
-                      <span className="text-[11px] text-slate-500 mt-2 flex items-center gap-1.5 font-medium">
-                        <ImageIcon className="h-3.5 w-3.5 text-slate-400" />
-                        Gambar / Stimulus Soal (Klik untuk resolusi penuh)
-                      </span>
-                    </div>
-                  )}
+                  {/* Audio Stimulus if present */}
+                  {(() => {
+                    const isAudioMedia = Boolean(
+                      activeQuestion.gambar_url &&
+                      (/\.(mp3|wav|ogg|m4a)(\?.*)?$/i.test(activeQuestion.gambar_url) ||
+                        activeQuestion.gambar_url.startsWith("data:audio") ||
+                        activeQuestion.gambar_url.startsWith("audio:"))
+                    );
+                    const audioMatch = activeQuestion.pertanyaan?.match(
+                      /\[audio:(https?:\/\/[^\s|\]]+)(?:\|limit:(\d+))?\]/i
+                    );
+                    const extractedAudioUrl = audioMatch
+                      ? audioMatch[1]
+                      : isAudioMedia
+                        ? activeQuestion.gambar_url
+                        : null;
+                    const audioPlayLimit =
+                      audioMatch && audioMatch[2] ? parseInt(audioMatch[2], 10) : 2;
+                    const cleanPertanyaan = activeQuestion.pertanyaan
+                      ? activeQuestion.pertanyaan.replace(/\[audio:[^\]]+\]/gi, "").trim()
+                      : "";
 
-                  <div className="text-sm sm:text-base font-normal text-slate-800 leading-relaxed whitespace-pre-wrap">
-                    {activeQuestion.pertanyaan}
-                  </div>
+                    return (
+                      <>
+                        {extractedAudioUrl && (
+                          <div className="my-2">
+                            <AudioStimulusPlayer
+                              src={extractedAudioUrl}
+                              maxPlayCount={audioPlayLimit}
+                              title={`Audio Listening — Soal No. ${activeQuestion.nomor_urut}`}
+                            />
+                          </div>
+                        )}
+
+                        {activeQuestion.gambar_url && !isAudioMedia && (
+                          <div className="flex justify-center">
+                            <ImageStimulus
+                              src={activeQuestion.gambar_url}
+                              alt="Ilustrasi / Stimulus Soal"
+                              caption="Klik gambar untuk memperbesar resolusi penuh"
+                            />
+                          </div>
+                        )}
+
+                        <div className="text-sm sm:text-base font-normal text-slate-800 leading-relaxed">
+                          <MathRenderer content={cleanPertanyaan} />
+                        </div>
+                      </>
+                    );
+                  })()}
 
                   {/* Answer Options according to question type */}
                   {(currentQuestionType === "PILIHAN_GANDA" ||
@@ -639,7 +836,10 @@ export function CbtPlayerView({
                               >
                                 {choiceLabel}
                               </span>
-                              <span className="text-sm flex-1 leading-relaxed">{op.teks}</span>
+                              <MathRenderer
+                                content={op.teks}
+                                className="text-sm flex-1 leading-relaxed"
+                              />
                               {isSelected && <Check className="h-4 w-4 text-blue-600 shrink-0" />}
                             </button>
                           );
@@ -680,7 +880,10 @@ export function CbtPlayerView({
                               >
                                 {choiceLabel}
                               </span>
-                              <span className="text-sm flex-1 leading-relaxed">{op.teks}</span>
+                              <MathRenderer
+                                content={op.teks}
+                                className="text-sm flex-1 leading-relaxed"
+                              />
                               {isChecked && <Check className="h-4 w-4 text-blue-600 shrink-0" />}
                             </button>
                           );
@@ -713,9 +916,10 @@ export function CbtPlayerView({
                                 <span className="w-7 h-7 rounded-xl bg-blue-100 text-blue-700 font-mono text-xs font-bold flex items-center justify-center shrink-0">
                                   {item.id}
                                 </span>
-                                <span className="text-sm text-slate-800 font-medium leading-relaxed">
-                                  {item.teks}
-                                </span>
+                                <MathRenderer
+                                  content={item.teks}
+                                  className="text-sm text-slate-800 font-medium leading-relaxed"
+                                />
                               </div>
 
                               <div className="flex items-center gap-2 sm:w-72 shrink-0">

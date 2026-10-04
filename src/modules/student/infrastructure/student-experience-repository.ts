@@ -440,6 +440,9 @@ export class StudentExperienceRepository {
     });
 
     if (existingSubmission) {
+      if (existingSubmission.sekolah_id !== schoolId) {
+        throw new Error(`Pengumpulan tugas bukan milik sekolah aktif.`);
+      }
       return prisma.pengumpulanTugas.update({
         where: { id: existingSubmission.id },
         data: {
@@ -854,9 +857,21 @@ export class StudentExperienceRepository {
       nomorAbsen: placement.nomor_absen,
     };
 
+    const raporRecord = rombel.semester_id
+      ? await prisma.raporSiswa.findUnique({
+          where: {
+            siswa_id_semester_id: {
+              siswa_id: siswaId,
+              semester_id: rombel.semester_id,
+            },
+          },
+        })
+      : null;
+
     let catatanWaliKelas =
+      raporRecord?.catatan_wali_kelas ||
       "Ananda memiliki motivasi belajar yang konsisten dan aktif berpartisipasi dalam diskusi kelas. Pertahankan prestasinya.";
-    if (rerataKeseluruhan !== null && rerataKeseluruhan < 75) {
+    if (!raporRecord?.catatan_wali_kelas && rerataKeseluruhan !== null && rerataKeseluruhan < 75) {
       catatanWaliKelas =
         "Perlu meningkatkan kehadiran, kedisiplinan pengumpulan tugas, dan konsultasi dengan guru mata pelajaran.";
     }

@@ -467,7 +467,11 @@ export class AssessmentRepository {
     const gradeMap = new Map(allGrades.map((g) => [`${g.siswa_id}_${g.asesmen_id}`, g]));
 
     // 4. Susun baris siswa dan hitung rata-rata
-    const defaultKKTP = 75.0;
+    // Resolve dynamic KKTP: ambil KKTP dari asesmen riil pada penugasan ini, atau default 80 (SMK kejuruan/KKA), fallback 75
+    const definedKktp = asesmenList.find(
+      (a) => typeof a.kkm_kktp === "number" && a.kkm_kktp > 0
+    )?.kkm_kktp;
+    const defaultKKTP = definedKktp ?? 80.0;
     let totalAllScore = 0;
     let totalAllScoreCount = 0;
     let totalPassedKKTP = 0;
@@ -598,6 +602,16 @@ export class AssessmentRepository {
         rombel: {
           include: {
             tingkat: true,
+            _count: {
+              select: {
+                penempatan_rombel: {
+                  where: {
+                    sekolah_id: sekolahId,
+                    status: "AKTIF",
+                  },
+                },
+              },
+            },
           },
         },
         mata_pelajaran: true,
@@ -618,51 +632,43 @@ export class AssessmentRepository {
       orderBy: [{ rombel: { nama: "asc" } }, { mata_pelajaran: { nama: "asc" } }],
     });
 
-    return Promise.all(
-      penugasanList.map(async (p) => {
-        const totalSiswa = await prisma.penempatanRombel.count({
-          where: {
-            rombel_id: p.rombel_id,
-            sekolah_id: sekolahId,
-            status: "AKTIF",
-          },
-        });
+    return penugasanList.map((p) => {
+      const totalSiswa = p.rombel._count.penempatan_rombel;
 
-        const totalAsesmen = p.definisi_asesmen.length;
-        const totalFormatif = p.definisi_asesmen.filter((a) => a.kategori === "FORMATIF").length;
-        const totalSumatif = p.definisi_asesmen.filter((a) => a.kategori !== "FORMATIF").length;
-        const totalPublished = p.definisi_asesmen.filter((a) => a.status === "PUBLISHED").length;
+      const totalAsesmen = p.definisi_asesmen.length;
+      const totalFormatif = p.definisi_asesmen.filter((a) => a.kategori === "FORMATIF").length;
+      const totalSumatif = p.definisi_asesmen.filter((a) => a.kategori !== "FORMATIF").length;
+      const totalPublished = p.definisi_asesmen.filter((a) => a.status === "PUBLISHED").length;
 
-        const allGrades = p.definisi_asesmen.flatMap((a) =>
-          a.nilai_siswa
-            .map((n) => n.nilai_angka)
-            .filter((v): v is number => v !== null && v !== undefined)
-        );
+      const allGrades = p.definisi_asesmen.flatMap((a) =>
+        a.nilai_siswa
+          .map((n) => n.nilai_angka)
+          .filter((v): v is number => v !== null && v !== undefined)
+      );
 
-        const rataRata =
-          allGrades.length > 0
-            ? Number((allGrades.reduce((acc, curr) => acc + curr, 0) / allGrades.length).toFixed(1))
-            : null;
+      const rataRata =
+        allGrades.length > 0
+          ? Number((allGrades.reduce((acc, curr) => acc + curr, 0) / allGrades.length).toFixed(1))
+          : null;
 
-        return {
-          penugasan_id: p.id,
-          rombel_id: p.rombel_id,
-          rombel_nama: p.rombel.nama,
-          tingkat_nama: p.rombel.tingkat?.nama || null,
-          mata_pelajaran_id: p.mata_pelajaran_id,
-          mata_pelajaran_nama: p.mata_pelajaran.nama,
-          guru_id: p.guru_id,
-          guru_nama: p.guru.nama_lengkap,
-          tahun_ajaran_nama: p.tahun_ajaran.nama,
-          total_siswa: totalSiswa,
-          total_asesmen: totalAsesmen,
-          total_formatif: totalFormatif,
-          total_sumatif: totalSumatif,
-          total_published: totalPublished,
-          rata_rata_kelas: rataRata,
-        };
-      })
-    );
+      return {
+        penugasan_id: p.id,
+        rombel_id: p.rombel_id,
+        rombel_nama: p.rombel.nama,
+        tingkat_nama: p.rombel.tingkat?.nama || null,
+        mata_pelajaran_id: p.mata_pelajaran_id,
+        mata_pelajaran_nama: p.mata_pelajaran.nama,
+        guru_id: p.guru_id,
+        guru_nama: p.guru.nama_lengkap,
+        tahun_ajaran_nama: p.tahun_ajaran.nama,
+        total_siswa: totalSiswa,
+        total_asesmen: totalAsesmen,
+        total_formatif: totalFormatif,
+        total_sumatif: totalSumatif,
+        total_published: totalPublished,
+        rata_rata_kelas: rataRata,
+      };
+    });
   }
 }
 

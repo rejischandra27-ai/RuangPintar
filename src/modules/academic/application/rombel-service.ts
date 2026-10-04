@@ -188,7 +188,7 @@ export class RombelService {
   ): Promise<void> {
     const current = await this.getRombelById(id, sekolahId);
 
-    await this.repo.deleteRombel(id);
+    await this.repo.deleteRombel(id, sekolahId);
 
     await recordAuditEvent({
       sekolah_id: sekolahId,
@@ -196,7 +196,7 @@ export class RombelService {
       aktor_role: aktorRole,
       tipe_sumber: "ROMBEL",
       id_sumber: id,
-      aksi: "DELETE",
+      aksi: "ARCHIVE",
       payload_sebelum: current as unknown as Record<string, unknown>,
     });
   }

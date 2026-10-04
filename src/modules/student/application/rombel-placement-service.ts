@@ -233,7 +233,7 @@ export class RombelPlacementService {
   ): Promise<void> {
     const current = await this.getPlacementById(id, sekolahId);
 
-    await this.repo.deletePlacement(id);
+    await this.repo.deletePlacement(id, sekolahId);
 
     await recordAuditEvent({
       sekolah_id: sekolahId,

@@ -134,11 +134,11 @@ export function AttentionQueueCard({ items = [] }: AttentionQueueCardProps) {
           </div>
           <div className="space-y-0.5">
             <h4 className="font-mono text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">
-              Semua Siswa Terpantau Optimal
+              Menunggu Aktivitas Pembelajaran
             </h4>
             <p className="text-[11px] text-slate-500 dark:text-slate-400 max-w-sm mx-auto leading-relaxed">
-              Belum ada siswa yang memerlukan perhatian khusus (absensi berturut-turut, kendala
-              tugas, atau nilai di bawah KKTP).
+              Belum ada catatan tindak lanjut. Data perhatian khusus siswa (remedial nilai, tugas
+              tertunda, atau absensi) akan terakumulasi otomatis seiring berjalannya KBM.
             </p>
           </div>
         </div>

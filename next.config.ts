@@ -36,6 +36,7 @@ const localOrigins = [
 ];
 
 const nextConfig: NextConfig = {
+  distDir: process.env.UX02_QA_DIST_DIR || ".next",
   reactStrictMode: true,
   allowedDevOrigins: localOrigins,
   experimental: {

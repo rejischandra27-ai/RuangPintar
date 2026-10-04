@@ -16,15 +16,39 @@ import {
   ChildReportCardSummary,
   PengajuanWaliItem,
   LinkedChildSummary,
+  StudentClaimVerificationInput,
+  StudentClaimPreviewDTO,
+  ConfirmStudentClaimInput,
+  StudentClaimResultDTO,
+  GuardianRegistrationInput,
+  GuardianProfile,
 } from "../domain/guardian-types";
-import { PengajuanWaliFormInput, PengajuanWaliSchema } from "../domain/guardian-validation";
+import {
+  PengajuanWaliFormInput,
+  PengajuanWaliSchema,
+  StudentClaimVerificationSchema,
+  ConfirmStudentClaimSchema,
+  GuardianRegistrationSchema,
+} from "../domain/guardian-validation";
 import {
   ChildNotLinkedError,
   GuardianNotFoundError,
   PengajuanWaliValidationError,
   UnauthorizedGuardianActionError,
+  StudentNotFoundError,
+  StudentVerificationMismatchError,
+  DuplicateGuardianClaimError,
+  CrossTenantClaimError,
 } from "../domain/guardian-errors";
 import { recordAuditEvent } from "@/shared/infrastructure/audit/audit-logger";
+import { prisma } from "@/shared/infrastructure/database/prisma";
+import { identityService } from "@/shared/infrastructure/auth/identity-service";
+import { generateUlid } from "@/shared/lib/ulid";
+import {
+  generateSessionToken,
+  hashSessionToken,
+  SESSION_DURATION_STANDARD_MS,
+} from "@/shared/lib/session";
 
 export class GuardianService {
   constructor(private readonly repo: GuardianRepository = new GuardianRepository()) {}
@@ -231,6 +255,287 @@ export class GuardianService {
       throw new GuardianNotFoundError(actor.id);
     }
     await this.repo.assertVerifiedRelationship(guardian.id, studentId);
+  }
+
+  /**
+   * Fitur 01 & 02: Memvalidasi data verifikasi identitas siswa dan mengembalikan pratinjau aman
+   */
+  async previewStudentClaim(
+    actor: AuthenticatedUser,
+    rawInput: unknown
+  ): Promise<StudentClaimPreviewDTO> {
+    this.assertGuardianRole(actor);
+
+    const parseResult = StudentClaimVerificationSchema.safeParse(rawInput);
+    if (!parseResult.success) {
+      const errMsgs = parseResult.error.issues.map((i) => i.message).join(", ");
+      throw new PengajuanWaliValidationError(errMsgs);
+    }
+
+    const input = parseResult.data;
+
+    if (!actor.sekolah_id) {
+      throw new UnauthorizedGuardianActionError(
+        "Akun belum terhubung dengan institusi sekolah aktif."
+      );
+    }
+    const sekolahId = actor.sekolah_id;
+
+    let guardian = await this.repo.getGuardianProfileByUserId(actor.id);
+    if (!guardian) {
+      guardian = await this.repo.ensureGuardianProfile(actor.id, sekolahId, {
+        nama_lengkap: actor.nama_lengkap,
+        email: actor.email,
+        no_telepon: null,
+      });
+    }
+
+    try {
+      const preview = await this.repo.findStudentForVerification(sekolahId, input);
+
+      // Proteksi Klaim Duplikat (Fitur 05)
+      const existing = await this.repo.checkExistingRelationship(guardian.id, preview.siswa_id);
+      if (existing) {
+        throw new DuplicateGuardianClaimError(
+          `Siswa "${preview.nama_lengkap}" sudah terhubung dengan akun wali Anda.`
+        );
+      }
+
+      // Log Audit (Fitur 07): Guardian claim initiated
+      await recordAuditEvent({
+        sekolah_id: sekolahId,
+        aktor_id: actor.id,
+        aktor_role: "GUARDIAN",
+        aksi: "GUARDIAN_CLAIM_INITIATED",
+        tipe_sumber: "Siswa",
+        id_sumber: preview.siswa_id,
+        payload_sesudah: {
+          siswa_id: preview.siswa_id,
+          nama_lengkap: preview.nama_lengkap,
+          rombel_nama: preview.rombel_nama,
+        },
+      });
+
+      return preview;
+    } catch (error) {
+      // Log Audit (Fitur 07): Guardian claim rejected / failed
+      await recordAuditEvent({
+        sekolah_id: sekolahId,
+        aktor_id: actor.id,
+        aktor_role: "GUARDIAN",
+        aksi: "GUARDIAN_CLAIM_REJECTED",
+        tipe_sumber: "Siswa",
+        id_sumber: input.nis || input.nisn || input.nama_lengkap,
+        payload_sesudah: {
+          alasan: error instanceof Error ? error.message : "Gagal verifikasi identitas siswa",
+          input,
+        },
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Fitur 01 & 04 & 05: Mengonfirmasi klaim siswa dan membentuk relasi sah (HubunganWaliSiswa)
+   */
+  async confirmStudentClaim(
+    actor: AuthenticatedUser,
+    rawInput: unknown
+  ): Promise<StudentClaimResultDTO> {
+    this.assertGuardianRole(actor);
+
+    const parseResult = ConfirmStudentClaimSchema.safeParse(rawInput);
+    if (!parseResult.success) {
+      const errMsgs = parseResult.error.issues.map((i) => i.message).join(", ");
+      throw new PengajuanWaliValidationError(errMsgs);
+    }
+
+    const input = parseResult.data;
+
+    if (!actor.sekolah_id) {
+      throw new UnauthorizedGuardianActionError(
+        "Akun belum terhubung dengan institusi sekolah aktif."
+      );
+    }
+    const sekolahId = actor.sekolah_id;
+
+    let guardian = await this.repo.getGuardianProfileByUserId(actor.id);
+    if (!guardian) {
+      guardian = await this.repo.ensureGuardianProfile(actor.id, sekolahId, {
+        nama_lengkap: actor.nama_lengkap,
+        email: actor.email,
+        no_telepon: null,
+      });
+    }
+
+    // Tenant Isolation Check (Fitur 06)
+    const student = await prisma.siswa.findUnique({
+      where: { id: input.siswa_id },
+      include: { sekolah: true },
+    });
+
+    if (!student) {
+      throw new StudentNotFoundError(input.siswa_id);
+    }
+
+    if (student.sekolah_id !== sekolahId) {
+      await recordAuditEvent({
+        sekolah_id: sekolahId,
+        aktor_id: actor.id,
+        aktor_role: "GUARDIAN",
+        aksi: "GUARDIAN_CLAIM_REJECTED",
+        tipe_sumber: "Siswa",
+        id_sumber: input.siswa_id,
+        payload_sesudah: {
+          alasan: "Percobaan klaim siswa sekolah berbeda (cross-tenant violation)",
+        },
+      });
+      throw new CrossTenantClaimError(
+        "Akses ditolak. Siswa berada di institusi sekolah yang berbeda dengan akun Anda."
+      );
+    }
+
+    // Proteksi Klaim Duplikat (Fitur 05)
+    const existing = await this.repo.checkExistingRelationship(guardian.id, student.id);
+    if (existing) {
+      throw new DuplicateGuardianClaimError(
+        `Anda sudah memiliki hubungan (${existing.jenis_hubungan}) yang terdaftar dengan siswa ${student.nama_lengkap}.`
+      );
+    }
+
+    // Buat relasi terverifikasi
+    const createdRelation = await this.repo.createHubunganWali({
+      sekolah_id: sekolahId,
+      wali_id: guardian.id,
+      siswa_id: student.id,
+      jenis_hubungan: input.jenis_hubungan,
+      apakah_wali_utama: input.apakah_wali_utama ?? false,
+      status_verifikasi: "TERVERIFIKASI",
+      catatan: input.catatan,
+    });
+
+    // Log Audit (Fitur 07): Guardian claim approved & linked
+    await recordAuditEvent({
+      sekolah_id: sekolahId,
+      aktor_id: actor.id,
+      aktor_role: "GUARDIAN",
+      aksi: "GUARDIAN_LINKED_TO_STUDENT",
+      tipe_sumber: "HubunganWaliSiswa",
+      id_sumber: createdRelation.id,
+      payload_sesudah: {
+        wali_id: guardian.id,
+        siswa_id: student.id,
+        nama_siswa: student.nama_lengkap,
+        jenis_hubungan: input.jenis_hubungan,
+        apakah_wali_utama: input.apakah_wali_utama,
+      },
+    });
+
+    return {
+      hubungan_id: createdRelation.id,
+      wali_id: guardian.id,
+      siswa_id: student.id,
+      nama_siswa: student.nama_lengkap,
+      jenis_hubungan: input.jenis_hubungan,
+      status_verifikasi: "TERVERIFIKASI",
+      apakah_wali_utama: input.apakah_wali_utama ?? false,
+      pesan: `Berhasil menghubungkan data putra/putri Anda: ${student.nama_lengkap}.`,
+    };
+  }
+
+  /**
+   * Pendaftaran akun Orang Tua / Wali Murid secara mandiri (Self-Registration)
+   */
+  async registerGuardian(rawInput: unknown): Promise<{
+    user: any;
+    guardian: GuardianProfile;
+    rawSessionToken: string;
+  }> {
+    const parseResult = GuardianRegistrationSchema.safeParse(rawInput);
+    if (!parseResult.success) {
+      const errMsgs = parseResult.error.issues.map((i) => i.message).join(", ");
+      throw new PengajuanWaliValidationError(errMsgs);
+    }
+
+    const input = parseResult.data;
+
+    // Pastikan sekolah tujuan valid
+    const school = await prisma.sekolah.findUnique({
+      where: { id: input.sekolah_id },
+    });
+    if (!school) {
+      throw new Error("Sekolah tujuan tidak ditemukan.");
+    }
+
+    // Buat akun pengguna identity
+    const user = await identityService.createAccount({
+      sekolah_id: school.id,
+      username: input.username,
+      nama_lengkap: input.nama_lengkap,
+      email: input.email || null,
+      password: input.password,
+      peran_dasar: "GUARDIAN",
+      status_akun: "AKTIF",
+      harus_ganti_password: false,
+    });
+
+    // Buat keanggotaan sekolah tenant aktif
+    const keanggotaanId = generateUlid();
+    await prisma.keanggotaanSekolah.create({
+      data: {
+        id: keanggotaanId,
+        pengguna_id: user.id,
+        sekolah_id: school.id,
+        peran_dasar_di_tenant: "GUARDIAN",
+        status_keanggotaan: "ACTIVE",
+        sumber_pendaftaran: "SELF_REGISTER",
+        disetujui_pada: new Date(),
+      },
+    });
+
+    // Buat profil wali murid
+    const guardian = await this.repo.ensureGuardianProfile(user.id, school.id, {
+      nama_lengkap: input.nama_lengkap,
+      email: input.email,
+      no_telepon: input.no_telepon,
+    });
+
+    // Buat sesi login (sekolah_aktif_id null sampai disetujui / diklaim)
+    const rawSessionToken = generateSessionToken();
+    const hashedSessionToken = hashSessionToken(rawSessionToken);
+
+    await prisma.sesiPengguna.create({
+      data: {
+        id: generateUlid(),
+        pengguna_id: user.id,
+        sekolah_aktif_id: null,
+        token_hash: hashedSessionToken,
+        ip_address: "127.0.0.1",
+        user_agent: "Ruang Pintar Guardian Registration",
+        berlaku_sampai: new Date(Date.now() + SESSION_DURATION_STANDARD_MS),
+      },
+    });
+
+    // Rekam log audit
+    await recordAuditEvent({
+      sekolah_id: school.id,
+      aktor_id: user.id,
+      aktor_role: "GUARDIAN",
+      aksi: "GUARDIAN_ACCOUNT_REGISTERED",
+      tipe_sumber: "WaliMurid",
+      id_sumber: guardian.id,
+      payload_sesudah: {
+        pengguna_id: user.id,
+        username: user.username,
+        sekolah_id: school.id,
+      },
+    });
+
+    return {
+      user,
+      guardian,
+      rawSessionToken,
+    };
   }
 
   /**

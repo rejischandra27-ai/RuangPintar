@@ -139,8 +139,19 @@ export class IntegrationRepository {
   async updateConfigTestStatus(
     id: string,
     status: "BERHASIL" | "GAGAL",
-    catatan?: string
+    catatan?: string,
+    schoolId?: string
   ): Promise<void> {
+    const existing = await prisma.konfigurasiIntegrasi.findFirst({
+      where: { id, ...(schoolId ? { sekolah_id: schoolId } : {}) },
+      select: { id: true },
+    });
+    if (!existing) {
+      throw new Error(
+        `Konfigurasi integrasi dengan ID '${id}' tidak ditemukan atau bukan milik sekolah aktif.`
+      );
+    }
+
     await prisma.konfigurasiIntegrasi.update({
       where: { id },
       data: {
@@ -256,6 +267,16 @@ export class IntegrationRepository {
       timeout_detik?: number;
     }
   ) {
+    const existing = await prisma.endpointWebhook.findFirst({
+      where: { id, sekolah_id: schoolId },
+      select: { id: true },
+    });
+    if (!existing) {
+      throw new Error(
+        `Endpoint webhook dengan ID '${id}' tidak ditemukan atau bukan milik sekolah aktif.`
+      );
+    }
+
     return prisma.endpointWebhook.update({
       where: { id },
       data: {
@@ -272,12 +293,28 @@ export class IntegrationRepository {
   }
 
   async deleteWebhook(id: string, schoolId: string) {
-    return prisma.endpointWebhook.delete({
-      where: { id },
+    const deleted = await prisma.endpointWebhook.deleteMany({
+      where: { id, sekolah_id: schoolId },
     });
+    if (deleted.count === 0) {
+      throw new Error(
+        `Endpoint webhook dengan ID '${id}' tidak ditemukan atau bukan milik sekolah aktif.`
+      );
+    }
+    return deleted;
   }
 
-  async updateWebhookStats(id: string, success: boolean) {
+  async updateWebhookStats(id: string, success: boolean, schoolId?: string) {
+    const existing = await prisma.endpointWebhook.findFirst({
+      where: { id, ...(schoolId ? { sekolah_id: schoolId } : {}) },
+      select: { id: true },
+    });
+    if (!existing) {
+      throw new Error(
+        `Endpoint webhook dengan ID '${id}' tidak ditemukan atau bukan milik sekolah aktif.`
+      );
+    }
+
     return prisma.endpointWebhook.update({
       where: { id },
       data: {

@@ -31,6 +31,8 @@ import {
   getHomeroomOverviewAction,
   updateFollowUpStatusAction,
 } from "@/app/actions/monitoring-actions";
+import { RombelJoinCodeCard } from "@/modules/student/presentation/rombel-join-code-card";
+import { HomeroomReportCardTab } from "@/modules/reporting/presentation/homeroom-report-card-tab";
 
 export interface HomeroomDashboardViewProps {
   initialData: HomeroomOverviewDTO;
@@ -55,9 +57,9 @@ export function HomeroomDashboardView({
   // Filter & Search states
   const [searchQuery, setSearchQuery] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState<string>("ALL");
-  const [activeTab, setActiveTab] = React.useState<"roster" | "attention" | "notes" | "analytics">(
-    "roster"
-  );
+  const [activeTab, setActiveTab] = React.useState<
+    "roster" | "attention" | "notes" | "analytics" | "rapor"
+  >("roster");
 
   // Modals state
   const [isNoteModalOpen, setIsNoteModalOpen] = React.useState(false);
@@ -106,7 +108,7 @@ export function HomeroomDashboardView({
     return data.siswa_list.filter((s) => {
       const matchesSearch =
         s.nama_lengkap.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        s.nis.includes(searchQuery) ||
+        (s.nis && s.nis.includes(searchQuery)) ||
         (s.nisn && s.nisn.includes(searchQuery));
 
       const matchesStatus = statusFilter === "ALL" || s.status_perhatian === statusFilter;
@@ -360,6 +362,22 @@ export function HomeroomDashboardView({
             <TrendingUp className="h-4 w-4" />
             <span>Distribusi & Capaian</span>
           </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("rapor")}
+            className={`py-2.5 px-3.5 text-xs font-bold rounded-t-xl border-b-2 flex items-center gap-2 transition-all ${
+              activeTab === "rapor"
+                ? "border-blue-600 text-blue-600 bg-white shadow-2xs"
+                : "border-transparent text-slate-500 hover:text-slate-800"
+            }`}
+          >
+            <Sparkles className="h-4 w-4 text-blue-500" />
+            <span>e-Rapor Merdeka</span>
+            <span className="px-1.5 py-0.2 rounded-full bg-blue-100 text-[10px] font-bold text-blue-700">
+              Resmi
+            </span>
+          </button>
         </div>
       </div>
 
@@ -368,6 +386,9 @@ export function HomeroomDashboardView({
       {/* TAB 1: ROSTER SISWA & INDIKATOR HOLISTIK */}
       {activeTab === "roster" && (
         <div className="space-y-4">
+          {/* Kartu Kendali Kode Undangan Mandiri Rombel */}
+          <RombelJoinCodeCard rombelId={data.rombel_id} rombelNama={data.rombel_nama} />
+
           {/* Toolbar Pencarian & Filter */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 rounded-2xl bg-white border border-slate-200/80 shadow-2xs">
             <div className="relative flex-1 max-w-sm">
@@ -482,7 +503,7 @@ export function HomeroomDashboardView({
                                 {siswa.nama_lengkap}
                               </span>
                               <span className="text-[10px] text-slate-400 block truncate">
-                                NIS: {siswa.nis} •{" "}
+                                NIS: {siswa.nis || "-"} •{" "}
                                 {siswa.jenis_kelamin === "L" ? "Laki-laki" : "Perempuan"}
                               </span>
                             </div>
@@ -649,7 +670,9 @@ export function HomeroomDashboardView({
                         </div>
                         <div>
                           <h4 className="text-xs font-bold text-slate-900">{siswa.nama_lengkap}</h4>
-                          <span className="text-[10px] text-slate-500">NIS: {siswa.nis}</span>
+                          <span className="text-[10px] text-slate-500">
+                            NIS: {siswa.nis || "-"}
+                          </span>
                         </div>
                       </div>
 
@@ -989,6 +1012,9 @@ export function HomeroomDashboardView({
           </div>
         </div>
       )}
+
+      {/* TAB 5: E-RAPOR MERDEKA COCKPIT */}
+      {activeTab === "rapor" && <HomeroomReportCardTab rombelId={selectedRombelId} />}
 
       {/* MODALS */}
       <CreateMonitoringNoteModal

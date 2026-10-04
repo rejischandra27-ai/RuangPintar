@@ -189,7 +189,8 @@ export class IntegrationService {
           await this.repo.updateConfigTestStatus(
             config.id,
             res.success ? "BERHASIL" : "GAGAL",
-            res.error || "Uji coba koneksi sukses."
+            res.error || "Uji coba koneksi sukses.",
+            schoolId
           );
         }
         return {
@@ -212,7 +213,8 @@ export class IntegrationService {
           await this.repo.updateConfigTestStatus(
             config.id,
             res.success ? "BERHASIL" : "GAGAL",
-            res.error || "Uji coba sukses"
+            res.error || "Uji coba sukses",
+            schoolId
           );
         }
         return {
@@ -236,7 +238,8 @@ export class IntegrationService {
           await this.repo.updateConfigTestStatus(
             config.id,
             res.success ? "BERHASIL" : "GAGAL",
-            res.error || "Uji coba sukses"
+            res.error || "Uji coba sukses",
+            schoolId
           );
         }
         return {
@@ -444,7 +447,7 @@ export class IntegrationService {
     );
 
     // Update statistik endpoint
-    await this.repo.updateWebhookStats(endpoint.id, res.success);
+    await this.repo.updateWebhookStats(endpoint.id, res.success, schoolId);
 
     // Catat log
     await this.repo.createDeliveryLog({

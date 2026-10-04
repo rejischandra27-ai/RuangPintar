@@ -22,6 +22,7 @@ import {
   StatusPenugasan,
 } from "@/modules/teacher/domain/teacher-types";
 import { TeacherDomainError } from "@/modules/teacher/domain/teacher-errors";
+import { generateUlid } from "@/shared/lib/ulid";
 
 export interface ActionResult<T = unknown> {
   success: boolean;
@@ -432,6 +433,16 @@ export async function resetTeacherPasswordAction(
         data: {
           pengguna_id: createdAccount.id,
           email: teacher.email || createdAccount.email,
+        },
+      });
+
+      await prisma.preferensiOnboardingGuru.create({
+        data: {
+          id: generateUlid(),
+          pengguna_id: createdAccount.id,
+          sekolah_id: teacher.sekolah_id,
+          onboarding_eligible: true,
+          onboarding_completed: false,
         },
       });
 

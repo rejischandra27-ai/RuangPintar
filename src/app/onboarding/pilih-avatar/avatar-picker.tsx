@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Check, ArrowRight, Sparkles } from "lucide-react";
+import { saveTeacherAvatarAction } from "@/app/actions/teacher-onboarding-actions";
 
 export interface AvatarOption {
   id: string;
@@ -189,26 +190,40 @@ export function AvatarSvgIllustration({
   );
 }
 
-export function AvatarPicker() {
+export function AvatarPicker({ initialAvatarId }: { initialAvatarId: string }) {
   const router = useRouter();
-  const [selectedId, setSelectedId] = useState<string>("kapten-kosmik");
+  const [selectedId, setSelectedId] = useState<string>(initialAvatarId);
+  const [isSaving, setIsSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleSelect = (id: string) => {
     setSelectedId(id);
-    if (typeof window !== "undefined") {
-      sessionStorage.setItem("rp_selected_avatar", id);
-    }
   };
 
-  const handleContinue = () => {
-    if (typeof window !== "undefined") {
-      sessionStorage.setItem("rp_selected_avatar", selectedId);
+  const handleContinue = async () => {
+    setIsSaving(true);
+    setErrorMessage(null);
+    const result = await saveTeacherAvatarAction(selectedId);
+    setIsSaving(false);
+    if (!result.success) {
+      setErrorMessage(result.error ?? "Avatar belum dapat disimpan.");
+      return;
     }
-    router.push(`/onboarding/selesai?avatar=${selectedId}`);
+    router.replace("/dashboard");
+    router.refresh();
   };
 
-  const handleSkip = () => {
-    router.push("/onboarding/selesai?avatar=kapten-kosmik");
+  const handleSkip = async () => {
+    setIsSaving(true);
+    setErrorMessage(null);
+    const result = await saveTeacherAvatarAction("kapten-kosmik");
+    setIsSaving(false);
+    if (!result.success) {
+      setErrorMessage(result.error ?? "Avatar default belum dapat disimpan.");
+      return;
+    }
+    router.replace("/dashboard");
+    router.refresh();
   };
 
   return (
@@ -221,11 +236,21 @@ export function AvatarPicker() {
         <button
           type="button"
           onClick={handleSkip}
-          className="text-xs font-bold text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
+          disabled={isSaving}
+          className="text-xs font-bold text-slate-400 hover:text-slate-700 transition-colors cursor-pointer disabled:opacity-50"
         >
-          Lewati &rarr;
+          Lewati dengan Avatar Default
         </button>
       </div>
+
+      {errorMessage && (
+        <p
+          role="alert"
+          className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700"
+        >
+          {errorMessage}
+        </p>
+      )}
 
       {/* 2x3 Grid of Astronaut Avatars */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-3.5">
@@ -236,6 +261,7 @@ export function AvatarPicker() {
               key={avatar.id}
               type="button"
               onClick={() => handleSelect(avatar.id)}
+              disabled={isSaving}
               className={`group relative flex flex-col items-center text-center p-3 sm:p-4 rounded-2xl border transition-all cursor-pointer select-none ${
                 isSelected
                   ? `bg-white border-blue-500 ring-2 ${avatar.ringColor} shadow-lg scale-[1.02]`
@@ -268,9 +294,10 @@ export function AvatarPicker() {
         <button
           type="button"
           onClick={handleContinue}
+          disabled={isSaving}
           className="h-11 sm:h-12 w-full flex items-center justify-center gap-2 rounded-xl bg-[#1E293B] hover:bg-[#2B3B52] active:scale-[0.99] text-white font-semibold text-sm sm:text-base shadow-md shadow-slate-900/10 focus:outline-none focus:ring-3 focus:ring-slate-900/20 transition-all cursor-pointer"
         >
-          <span>Pilih & Lanjutkan</span>
+          <span>{isSaving ? "Menyimpan..." : "Simpan Avatar & Lanjutkan"}</span>
           <ArrowRight className="size-4 sm:size-5" />
         </button>
 

@@ -143,6 +143,16 @@ export class CalendarRepository {
   }
 
   async update(data: UpdateCalendarEventInput): Promise<CalendarEventDTO> {
+    const existing = await prisma.kalenderAkademik.findFirst({
+      where: { id: data.id, ...(data.sekolah_id ? { sekolah_id: data.sekolah_id } : {}) },
+      select: { id: true },
+    });
+    if (!existing) {
+      throw new Error(
+        `Kalender akademik dengan ID '${data.id}' tidak ditemukan atau bukan milik sekolah aktif.`
+      );
+    }
+
     const updatePayload: any = {};
     if (data.tahun_ajaran_id !== undefined) updatePayload.tahun_ajaran_id = data.tahun_ajaran_id;
     if (data.semester_id !== undefined) updatePayload.semester_id = data.semester_id || null;
@@ -185,9 +195,14 @@ export class CalendarRepository {
   }
 
   async delete(id: string, sekolah_id: string): Promise<boolean> {
-    await prisma.kalenderAkademik.deleteMany({
+    const deleted = await prisma.kalenderAkademik.deleteMany({
       where: { id, sekolah_id },
     });
+    if (deleted.count === 0) {
+      throw new Error(
+        `Kalender akademik dengan ID '${id}' tidak ditemukan atau bukan milik sekolah aktif.`
+      );
+    }
     return true;
   }
 }

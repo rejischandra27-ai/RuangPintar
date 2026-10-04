@@ -20,7 +20,7 @@
  * - Ekspor CSV Lengkap & Cetak A4 Landscape
  */
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useTransition } from "react";
 import {
   Download,
   Printer,
@@ -35,6 +35,7 @@ import {
   Plus,
   HelpCircle,
   TrendingUp,
+  Loader2,
 } from "lucide-react";
 import {
   ClassGradebookDTO,
@@ -42,6 +43,7 @@ import {
   GradebookColumnDTO,
 } from "../domain/assessment-types";
 import { ClassAttendanceRecapDTO } from "@/modules/attendance/domain/attendance-types";
+import { exportGradebookExcelAction } from "@/app/actions/assessment-actions";
 
 export interface UnifiedLedgerColumn {
   id: string; // unique key for col
@@ -461,7 +463,7 @@ export function UnifiedAcademicLedgerTable({
       const matchSearch =
         !q ||
         row.nama_lengkap.toLowerCase().includes(q) ||
-        row.nis.toLowerCase().includes(q) ||
+        (row.nis && row.nis.toLowerCase().includes(q)) ||
         (row.nisn && row.nisn.toLowerCase().includes(q));
 
       if (!matchSearch) return false;
@@ -606,7 +608,7 @@ export function UnifiedAcademicLedgerTable({
       return [
         idx + 1,
         row.nomor_absen || idx + 1,
-        `="${row.nis}"`,
+        row.nis ? `="${row.nis}"` : '=""',
         row.nisn ? `="${row.nisn}"` : '=""',
         `"${row.nama_lengkap.replace(/"/g, '""')}"`,
         att.hadir,
@@ -638,6 +640,42 @@ export function UnifiedAcademicLedgerTable({
     document.body.removeChild(link);
   };
 
+  // 7b. Handler Ekspor Excel (.xlsx) Resmi (Multi-Sheet, Rumus & Rubrik)
+  const [isExportingExcel, startExportExcelTransition] = useTransition();
+
+  const handleExportExcel = () => {
+    startExportExcelTransition(async () => {
+      try {
+        const res = await exportGradebookExcelAction(penugasanId);
+        if (res.success && res.data) {
+          const binaryString = window.atob(res.data.base64);
+          const len = binaryString.length;
+          const bytes = new Uint8Array(len);
+          for (let i = 0; i < len; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+          const blob = new Blob([bytes.buffer], {
+            type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = res.data.filename;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+        } else {
+          alert(res.message || "Gagal mengunduh file Excel.");
+        }
+      } catch (err: unknown) {
+        const msg =
+          err instanceof Error ? err.message : "Terjadi kesalahan saat mengunduh berkas Excel.";
+        alert(msg);
+      }
+    });
+  };
+
   // 8. Cetak A4 Landscape
   const handlePrint = () => {
     window.print();
@@ -646,30 +684,30 @@ export function UnifiedAcademicLedgerTable({
   return (
     <div className="space-y-4">
       {/* Action Toolbar & Filters */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-3xl bg-white border border-slate-200/80 shadow-2xs print:hidden">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-3xl bg-white dark:bg-slate-900/75 dark:backdrop-blur-xl border border-slate-200/80 dark:border-blue-500/20 shadow-2xs print:hidden">
         {/* Left: Search & Filter */}
         <div className="flex flex-wrap items-center gap-2">
           {/* Search Box */}
           <div className="relative min-w-[220px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 dark:text-slate-500" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari Siswa, NIS, NISN..."
-              className="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl bg-slate-50 border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-[#2563EB]/20 focus:border-[#2563EB]"
+              className="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-hidden focus:ring-2 focus:ring-[#2563EB]/20 focus:border-[#2563EB]"
             />
           </div>
 
           {/* Status Filter */}
-          <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-xl text-xs">
+          <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/90 p-0.5 rounded-xl text-xs">
             <button
               type="button"
               onClick={() => setStatusFilter("ALL")}
               className={`px-2.5 py-1 rounded-lg font-medium transition-colors cursor-pointer ${
                 statusFilter === "ALL"
-                  ? "bg-white text-slate-900 shadow-2xs font-bold"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-2xs font-bold"
+                  : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
               Semua ({gradebook.rows.length})
@@ -680,7 +718,7 @@ export function UnifiedAcademicLedgerTable({
               className={`px-2.5 py-1 rounded-lg font-medium transition-colors cursor-pointer ${
                 statusFilter === "TUNTAS"
                   ? "bg-emerald-600 text-white shadow-2xs font-bold"
-                  : "text-slate-600 hover:text-emerald-700"
+                  : "text-slate-600 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-400"
               }`}
             >
               Tuntas
@@ -691,7 +729,7 @@ export function UnifiedAcademicLedgerTable({
               className={`px-2.5 py-1 rounded-lg font-medium transition-colors cursor-pointer ${
                 statusFilter === "BELUM_TUNTAS"
                   ? "bg-rose-600 text-white shadow-2xs font-bold"
-                  : "text-slate-600 hover:text-rose-700"
+                  : "text-slate-600 dark:text-slate-300 hover:text-rose-700 dark:hover:text-rose-400"
               }`}
             >
               Belum Tuntas
@@ -702,7 +740,7 @@ export function UnifiedAcademicLedgerTable({
               className={`px-2.5 py-1 rounded-lg font-medium transition-colors cursor-pointer ${
                 statusFilter === "ATTENTION"
                   ? "bg-amber-600 text-white shadow-2xs font-bold"
-                  : "text-slate-600 hover:text-amber-700"
+                  : "text-slate-600 dark:text-slate-300 hover:text-amber-700 dark:hover:text-amber-400"
               }`}
             >
               Perlu Perhatian
@@ -712,23 +750,39 @@ export function UnifiedAcademicLedgerTable({
 
         {/* Right: Export & Action Buttons */}
         <div className="flex items-center gap-2">
+          {/* Ekspor Excel (.xlsx) Resmi */}
+          <button
+            type="button"
+            onClick={handleExportExcel}
+            disabled={isExportingExcel}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-emerald-300 dark:border-emerald-700/80 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300 text-xs font-bold shadow-2xs transition-colors cursor-pointer disabled:opacity-50"
+            title="Unduh Leger Nilai resmi (.xlsx) sesuai format kurikulum sekolah (dengan rumus & sheet rubrik)"
+          >
+            {isExportingExcel ? (
+              <Loader2 className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 animate-spin" />
+            ) : (
+              <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+            )}
+            <span>{isExportingExcel ? "Mengunduh..." : "Ekspor Excel (.xlsx)"}</span>
+          </button>
+
           <button
             type="button"
             onClick={handleExportCsv}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
-            title="Unduh berkas Excel/CSV Leger Nilai & Presensi"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+            title="Unduh berkas CSV Leger Nilai & Presensi"
           >
-            <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-600" />
+            <FileSpreadsheet className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
             <span>Ekspor CSV</span>
           </button>
 
           <button
             type="button"
             onClick={handlePrint}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
             title="Cetak format cetak A4 Landscape"
           >
-            <Printer className="h-3.5 w-3.5 text-slate-600" />
+            <Printer className="h-3.5 w-3.5 text-slate-600 dark:text-slate-400" />
             <span>Cetak Leger</span>
           </button>
 
@@ -739,39 +793,39 @@ export function UnifiedAcademicLedgerTable({
               className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
             >
               <Plus className="h-3.5 w-3.5" />
-              <span>+ Asesmen Baru</span>
+              <span>Asesmen Baru</span>
             </button>
           )}
         </div>
       </div>
 
       {/* Leger Context Bar */}
-      <div className="flex flex-wrap items-center justify-between text-xs text-slate-600 px-1 print:mb-3">
+      <div className="flex flex-wrap items-center justify-between text-xs text-slate-600 dark:text-slate-300 px-1 print:mb-3">
         <div className="flex items-center gap-2">
-          <span className="font-bold text-slate-900">{gradebook.rombel_nama}</span>
-          <span className="text-slate-300">•</span>
-          <span>{gradebook.mata_pelajaran_nama}</span>
-          <span className="text-slate-300">•</span>
-          <span className="px-2 py-0.5 rounded-md bg-blue-50 text-[#2563EB] font-semibold text-[11px]">
+          <span className="font-bold text-slate-900 dark:text-white">{gradebook.rombel_nama}</span>
+          <span className="text-slate-300 dark:text-slate-600">•</span>
+          <span className="text-slate-700 dark:text-slate-200">{gradebook.mata_pelajaran_nama}</span>
+          <span className="text-slate-300 dark:text-slate-600">•</span>
+          <span className="px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/60 text-[#2563EB] dark:text-blue-400 border border-blue-200/80 dark:border-blue-800/60 font-semibold text-[11px]">
             KKTP Target: {gradebook.kkm_default}
           </span>
         </div>
 
-        <div className="flex items-center gap-3 text-[11px] text-slate-500">
+        <div className="flex items-center gap-3 text-[11px] text-slate-500 dark:text-slate-400">
           <span className="flex items-center gap-1">
-            <span className="inline-block w-2.5 h-2.5 rounded-xs bg-emerald-100 border border-emerald-300"></span>
+            <span className="inline-block w-2.5 h-2.5 rounded-xs bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700"></span>
             ≥ KKTP
           </span>
           <span className="flex items-center gap-1">
-            <span className="inline-block w-2.5 h-2.5 rounded-xs bg-rose-100 border border-rose-300"></span>
+            <span className="inline-block w-2.5 h-2.5 rounded-xs bg-rose-100 dark:bg-rose-950/60 border border-rose-300 dark:border-rose-700"></span>
             &lt; KKTP
           </span>
-          <span className="italic text-slate-400">* (-) = Belum Dinilai</span>
+          <span className="italic text-slate-400 dark:text-slate-500">* (-) = Belum Dinilai</span>
         </div>
       </div>
 
       {/* Table Container with Horizontal Scroll & Sticky Left Columns */}
-      <div className="rounded-2xl border border-slate-300/80 bg-white shadow-xs overflow-hidden print:border-slate-400 print:shadow-none">
+      <div className="rounded-2xl border border-slate-300/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden print:border-slate-400 print:shadow-none">
         <div className="overflow-x-auto max-h-[75vh]">
           <table className="w-full border-collapse text-left text-xs font-sans">
             {/* ========================================================================= */}
@@ -779,23 +833,23 @@ export function UnifiedAcademicLedgerTable({
             {/* ========================================================================= */}
             <thead className="sticky top-0 z-30 shadow-xs select-none">
               {/* HEADER ROW 1: MAJOR CATEGORIES */}
-              <tr className="bg-slate-100 border-b border-slate-300 text-slate-800 font-bold uppercase tracking-wider text-[11px]">
+              <tr className="bg-slate-100 dark:bg-slate-800 border-b border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 font-bold uppercase tracking-wider text-[11px]">
                 {/* 1. Sticky Identity Columns */}
                 <th
                   rowSpan={3}
-                  className="py-2 px-2.5 text-center border-r border-slate-300 sticky left-0 z-40 bg-slate-100 w-10 min-w-[40px]"
+                  className="py-2 px-2.5 text-center border-r border-slate-300 dark:border-slate-700 sticky left-0 z-40 bg-slate-100 dark:bg-slate-800 w-10 min-w-[40px]"
                 >
                   No
                 </th>
                 <th
                   rowSpan={3}
-                  className="py-2 px-3 border-r border-slate-300 sticky left-[40px] z-40 bg-slate-100 w-28 min-w-[110px]"
+                  className="py-2 px-3 border-r border-slate-300 dark:border-slate-700 sticky left-[40px] z-40 bg-slate-100 dark:bg-slate-800 w-28 min-w-[110px]"
                 >
                   NIS / NISN
                 </th>
                 <th
                   rowSpan={3}
-                  className="py-2 px-3 border-r-2 border-slate-400 sticky left-[150px] z-40 bg-slate-100 shadow-[2px_0_5px_rgba(0,0,0,0.04)] min-w-[180px] max-w-[220px]"
+                  className="py-2 px-3 border-r-2 border-slate-400 dark:border-slate-600 sticky left-[150px] z-40 bg-slate-100 dark:bg-slate-800 shadow-[2px_0_5px_rgba(0,0,0,0.04)] dark:shadow-[2px_0_5px_rgba(0,0,0,0.3)] min-w-[180px] max-w-[220px]"
                 >
                   Nama Siswa
                 </th>
@@ -803,7 +857,7 @@ export function UnifiedAcademicLedgerTable({
                 {/* 2. Kehadiran */}
                 <th
                   colSpan={5}
-                  className="py-2 px-2 text-center border-r-2 border-slate-400 bg-emerald-50 text-emerald-950 font-extrabold"
+                  className="py-2 px-2 text-center border-r-2 border-slate-400 dark:border-slate-600 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-950 dark:text-emerald-300 font-extrabold"
                 >
                   Kehadiran
                 </th>
@@ -811,7 +865,7 @@ export function UnifiedAcademicLedgerTable({
                 {/* 3. FORMATIF (Multi-TP grouped by Lingkup Materi) */}
                 <th
                   colSpan={Math.max(1, allFormatifColumns.length)}
-                  className="py-2 px-3 text-center border-r-2 border-slate-400 bg-blue-50 text-blue-950 font-extrabold"
+                  className="py-2 px-3 text-center border-r-2 border-slate-400 dark:border-slate-600 bg-blue-50 dark:bg-blue-950/60 text-blue-950 dark:text-blue-300 font-extrabold"
                 >
                   FORMATIF
                 </th>
@@ -819,7 +873,7 @@ export function UnifiedAcademicLedgerTable({
                 {/* 4. SUMATIF LINGKUP MATERI */}
                 <th
                   colSpan={Math.max(1, sumatifLmColumns.length)}
-                  className="py-2 px-3 text-center border-r-2 border-slate-400 bg-indigo-50 text-indigo-950 font-extrabold"
+                  className="py-2 px-3 text-center border-r-2 border-slate-400 dark:border-slate-600 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-950 dark:text-indigo-300 font-extrabold"
                 >
                   SUMATIF LINGKUP MATERI
                 </th>
@@ -827,7 +881,7 @@ export function UnifiedAcademicLedgerTable({
                 {/* 5. SUMATIF AKHIR SEMESTER (SAS) */}
                 <th
                   colSpan={Math.max(1, sasColumns.length)}
-                  className="py-2 px-2 text-center border-r-2 border-slate-400 bg-purple-50 text-purple-950 font-extrabold"
+                  className="py-2 px-2 text-center border-r-2 border-slate-400 dark:border-slate-600 bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-purple-300 font-extrabold"
                 >
                   SUMATIF AKHIR
                 </th>
@@ -835,46 +889,46 @@ export function UnifiedAcademicLedgerTable({
                 {/* 6. REKAPITULASI NILAI AKHIR */}
                 <th
                   colSpan={4}
-                  className="py-2 px-3 text-center bg-amber-50 text-amber-950 font-extrabold"
+                  className="py-2 px-3 text-center bg-amber-50 dark:bg-amber-950/60 text-amber-950 dark:text-amber-300 font-extrabold"
                 >
                   NILAI AKHIR
                 </th>
               </tr>
 
               {/* HEADER ROW 2: SUB-GROUPINGS */}
-              <tr className="bg-slate-50 border-b border-slate-300 text-slate-700 text-[10px] font-bold">
+              <tr className="bg-slate-50 dark:bg-slate-850/80 border-b border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-[10px] font-bold">
                 {/* Under Kehadiran: H, S, I, A, % */}
                 <th
                   rowSpan={2}
-                  className="py-1.5 px-1.5 text-center border-r border-slate-200 bg-emerald-50/70 text-emerald-800 w-8"
+                  className="py-1.5 px-1.5 text-center border-r border-slate-200 dark:border-slate-700 bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 w-8"
                   title="Hadir"
                 >
                   H
                 </th>
                 <th
                   rowSpan={2}
-                  className="py-1.5 px-1.5 text-center border-r border-slate-200 bg-amber-50/70 text-amber-800 w-8"
+                  className="py-1.5 px-1.5 text-center border-r border-slate-200 dark:border-slate-700 bg-amber-50/70 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 w-8"
                   title="Sakit"
                 >
                   S
                 </th>
                 <th
                   rowSpan={2}
-                  className="py-1.5 px-1.5 text-center border-r border-slate-200 bg-blue-50/70 text-blue-800 w-8"
+                  className="py-1.5 px-1.5 text-center border-r border-slate-200 dark:border-slate-700 bg-blue-50/70 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 w-8"
                   title="Izin"
                 >
                   I
                 </th>
                 <th
                   rowSpan={2}
-                  className="py-1.5 px-1.5 text-center border-r border-slate-200 bg-rose-50/70 text-rose-800 w-8"
+                  className="py-1.5 px-1.5 text-center border-r border-slate-200 dark:border-slate-700 bg-rose-50/70 dark:bg-rose-950/40 text-rose-800 dark:text-rose-300 w-8"
                   title="Alpha"
                 >
                   A
                 </th>
                 <th
                   rowSpan={2}
-                  className="py-1.5 px-1.5 text-center border-r-2 border-slate-400 bg-emerald-100/70 text-emerald-900 w-11"
+                  className="py-1.5 px-1.5 text-center border-r-2 border-slate-400 dark:border-slate-600 bg-emerald-100/70 dark:bg-emerald-900/50 text-emerald-900 dark:text-emerald-200 w-11"
                   title="Persentase Kehadiran (%)"
                 >
                   %
@@ -885,7 +939,7 @@ export function UnifiedAcademicLedgerTable({
                   <th
                     key={grp.lmId}
                     colSpan={grp.columns.length}
-                    className="py-1.5 px-2 text-center border-r border-slate-300 bg-blue-100/50 text-blue-900 font-bold"
+                    className="py-1.5 px-2 text-center border-r border-slate-300 dark:border-slate-700 bg-blue-100/50 dark:bg-blue-900/40 text-blue-900 dark:text-blue-200 font-bold"
                     title={grp.judul}
                   >
                     <div className="truncate max-w-[160px] mx-auto">{grp.kode || grp.judul}</div>
@@ -897,8 +951,10 @@ export function UnifiedAcademicLedgerTable({
                   <th
                     key={col.id}
                     rowSpan={2}
-                    className={`py-1.5 px-2 text-center border-r border-slate-300 bg-indigo-50/60 text-indigo-900 min-w-[56px] ${
-                      col.assessmentId && canManage ? "cursor-pointer hover:bg-indigo-100/80" : ""
+                    className={`py-1.5 px-2 text-center border-r border-slate-300 dark:border-slate-700 bg-indigo-50/60 dark:bg-indigo-950/40 text-indigo-900 dark:text-indigo-200 min-w-[56px] transition-colors ${
+                      col.assessmentId && canManage
+                        ? "cursor-pointer hover:bg-indigo-100/80 dark:hover:bg-indigo-900/60"
+                        : ""
                     }`}
                     onClick={() => {
                       if (col.assessmentId && onOpenInputGrades) {
@@ -910,7 +966,7 @@ export function UnifiedAcademicLedgerTable({
                     title={`${col.fullTitle} — Klik untuk input nilai asesmen`}
                   >
                     <div className="font-extrabold text-[11px]">{col.title}</div>
-                    <div className="text-[9px] text-slate-400 font-normal">
+                    <div className="text-[9px] text-slate-400 dark:text-slate-500 font-normal">
                       {col.assessmentId ? `K:${col.kkm}` : "(+)"}
                     </div>
                   </th>
@@ -921,8 +977,10 @@ export function UnifiedAcademicLedgerTable({
                   <th
                     key={col.id}
                     rowSpan={2}
-                    className={`py-1.5 px-2 text-center border-r-2 border-slate-400 bg-purple-50/60 text-purple-900 min-w-[56px] ${
-                      col.assessmentId && canManage ? "cursor-pointer hover:bg-purple-100/80" : ""
+                    className={`py-1.5 px-2 text-center border-r-2 border-slate-400 dark:border-slate-600 bg-purple-50/60 dark:bg-purple-950/40 text-purple-900 dark:text-purple-200 min-w-[56px] transition-colors ${
+                      col.assessmentId && canManage
+                        ? "cursor-pointer hover:bg-purple-100/80 dark:hover:bg-purple-900/60"
+                        : ""
                     }`}
                     onClick={() => {
                       if (col.assessmentId && onOpenInputGrades) {
@@ -934,7 +992,7 @@ export function UnifiedAcademicLedgerTable({
                     title={`${col.fullTitle} — Klik untuk input nilai SAS`}
                   >
                     <div className="font-extrabold text-[11px]">{col.title}</div>
-                    <div className="text-[9px] text-slate-400 font-normal">
+                    <div className="text-[9px] text-slate-400 dark:text-slate-500 font-normal">
                       {col.assessmentId ? `K:${col.kkm}` : "(+)"}
                     </div>
                   </th>
@@ -943,28 +1001,28 @@ export function UnifiedAcademicLedgerTable({
                 {/* Under REKAPITULASI: R. Formatif, R. Sumatif, Nilai Akhir, Ketuntasan */}
                 <th
                   rowSpan={2}
-                  className="py-1.5 px-2 text-center border-r border-slate-300 bg-amber-50/50 text-slate-700 w-16"
+                  className="py-1.5 px-2 text-center border-r border-slate-300 dark:border-slate-700 bg-amber-50/50 dark:bg-amber-950/40 text-slate-700 dark:text-slate-300 w-16"
                   title="Rata-rata Nilai Formatif"
                 >
                   R. For
                 </th>
                 <th
                   rowSpan={2}
-                  className="py-1.5 px-2 text-center border-r border-slate-300 bg-amber-50/50 text-slate-700 w-16"
+                  className="py-1.5 px-2 text-center border-r border-slate-300 dark:border-slate-700 bg-amber-50/50 dark:bg-amber-950/40 text-slate-700 dark:text-slate-300 w-16"
                   title="Rata-rata Nilai Sumatif (SLM & SAS)"
                 >
                   R. Sum
                 </th>
                 <th
                   rowSpan={2}
-                  className="py-1.5 px-2 text-center border-r border-slate-300 bg-blue-100/70 text-[#2563EB] font-black w-16 text-[11px]"
+                  className="py-1.5 px-2 text-center border-r border-slate-300 dark:border-slate-700 bg-blue-100/70 dark:bg-blue-900/50 text-[#2563EB] dark:text-blue-400 font-black w-16 text-[11px]"
                   title="Nilai Akhir Rapor Siswa"
                 >
                   NA
                 </th>
                 <th
                   rowSpan={2}
-                  className="py-1.5 px-2 text-center bg-amber-50/50 text-slate-700 w-20"
+                  className="py-1.5 px-2 text-center bg-amber-50/50 dark:bg-amber-950/40 text-slate-700 dark:text-slate-300 w-20"
                   title="Status Ketuntasan KKTP"
                 >
                   Status
@@ -972,14 +1030,14 @@ export function UnifiedAcademicLedgerTable({
               </tr>
 
               {/* HEADER ROW 3: INDIVIDUAL TP HEADERS UNDER FORMATIF */}
-              <tr className="bg-white border-b border-slate-300 text-[10px] text-slate-600 font-semibold">
+              <tr className="bg-white dark:bg-slate-900 border-b border-slate-300 dark:border-slate-700 text-[10px] text-slate-600 dark:text-slate-300 font-semibold">
                 {allFormatifColumns.map((col) => (
                   <th
                     key={col.id}
-                    className={`py-1.5 px-1.5 text-center border-r border-slate-200 min-w-[50px] transition-colors ${
+                    className={`py-1.5 px-1.5 text-center border-r border-slate-200 dark:border-slate-700 min-w-[50px] transition-colors ${
                       col.assessmentId
-                        ? "bg-blue-50/40 text-blue-900 cursor-pointer hover:bg-blue-100/70"
-                        : "bg-slate-50/60 text-slate-400 hover:bg-slate-100"
+                        ? "bg-blue-50/40 dark:bg-blue-950/30 text-blue-900 dark:text-blue-200 cursor-pointer hover:bg-blue-100/70 dark:hover:bg-blue-900/50"
+                        : "bg-slate-50/60 dark:bg-slate-800/40 text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
                     }`}
                     onClick={() => {
                       if (col.assessmentId && onOpenInputGrades) {
@@ -994,8 +1052,8 @@ export function UnifiedAcademicLedgerTable({
                         : "Klik untuk buat asesmen pada TP ini"
                     }`}
                   >
-                    <div className="font-bold text-slate-800">{col.title}</div>
-                    <div className="text-[9px] text-slate-400 font-normal">
+                    <div className="font-bold text-slate-800 dark:text-slate-200">{col.title}</div>
+                    <div className="text-[9px] text-slate-400 dark:text-slate-500 font-normal">
                       {col.assessmentId ? `K:${col.kkm}` : "(+)"}
                     </div>
                   </th>
@@ -1006,7 +1064,7 @@ export function UnifiedAcademicLedgerTable({
             {/* ========================================================================= */}
             {/* TABLE BODY: STUDENT ROWS                                                  */}
             {/* ========================================================================= */}
-            <tbody className="divide-y divide-slate-200/80 bg-white">
+            <tbody className="divide-y divide-slate-200/80 dark:divide-slate-800 bg-white dark:bg-slate-900">
               {filteredRows.length === 0 ? (
                 <tr>
                   <td
@@ -1018,7 +1076,7 @@ export function UnifiedAcademicLedgerTable({
                       sasColumns.length +
                       4
                     }
-                    className="p-12 text-center text-slate-400 text-xs"
+                    className="p-12 text-center text-slate-400 dark:text-slate-500 text-xs"
                   >
                     Tidak ada data siswa yang cocok dengan filter pencarian.
                   </td>
@@ -1040,50 +1098,50 @@ export function UnifiedAcademicLedgerTable({
                   return (
                     <tr
                       key={row.siswa_id}
-                      className="hover:bg-slate-50/80 transition-colors group text-[11px]"
+                      className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors group text-[11px]"
                     >
                       {/* Sticky 1: No */}
-                      <td className="py-2 px-2 text-center text-slate-400 font-mono border-r border-slate-200 sticky left-0 z-20 bg-white group-hover:bg-slate-50">
+                      <td className="py-2 px-2 text-center text-slate-400 dark:text-slate-500 font-mono border-r border-slate-200 dark:border-slate-800 sticky left-0 z-20 bg-white dark:bg-slate-900 group-hover:bg-slate-50 dark:group-hover:bg-slate-850">
                         {row.nomor_absen || idx + 1}
                       </td>
 
                       {/* Sticky 2: NIS / NISN */}
-                      <td className="py-2 px-2.5 font-mono text-slate-600 border-r border-slate-200 sticky left-[40px] z-20 bg-white group-hover:bg-slate-50">
-                        <div className="font-semibold text-slate-700">{row.nis}</div>
+                      <td className="py-2 px-2.5 font-mono text-slate-600 dark:text-slate-300 border-r border-slate-200 dark:border-slate-800 sticky left-[40px] z-20 bg-white dark:bg-slate-900 group-hover:bg-slate-50 dark:group-hover:bg-slate-850">
+                        <div className="font-semibold text-slate-700 dark:text-slate-200">{row.nis || "-"}</div>
                         {row.nisn && (
-                          <div className="text-[9px] text-slate-400 tracking-tight">{row.nisn}</div>
+                          <div className="text-[9px] text-slate-400 dark:text-slate-500 tracking-tight">{row.nisn}</div>
                         )}
                       </td>
 
                       {/* Sticky 3: Nama Siswa */}
-                      <td className="py-2 px-3 font-bold text-slate-900 border-r-2 border-slate-400 sticky left-[150px] z-20 bg-white group-hover:bg-slate-50 shadow-[2px_0_5px_rgba(0,0,0,0.04)] truncate max-w-[220px]">
+                      <td className="py-2 px-3 font-bold text-slate-900 dark:text-white border-r-2 border-slate-400 dark:border-slate-700 sticky left-[150px] z-20 bg-white dark:bg-slate-900 group-hover:bg-slate-50 dark:group-hover:bg-slate-850 shadow-[2px_0_5px_rgba(0,0,0,0.04)] dark:shadow-[2px_0_5px_rgba(0,0,0,0.3)] truncate max-w-[220px]">
                         <span title={row.nama_lengkap}>{row.nama_lengkap}</span>
                       </td>
 
                       {/* Kehadiran: H, S, I, A, % */}
-                      <td className="py-2 px-1 text-center font-mono text-emerald-800 bg-emerald-50/30 border-r border-slate-200">
+                      <td className="py-2 px-1 text-center font-mono text-emerald-800 dark:text-emerald-400 bg-emerald-50/30 dark:bg-emerald-950/20 border-r border-slate-200 dark:border-slate-800">
                         {att.hadir}
                       </td>
-                      <td className="py-2 px-1 text-center font-mono text-amber-800 bg-amber-50/30 border-r border-slate-200">
+                      <td className="py-2 px-1 text-center font-mono text-amber-800 dark:text-amber-400 bg-amber-50/30 dark:bg-amber-950/20 border-r border-slate-200 dark:border-slate-800">
                         {att.sakit}
                       </td>
-                      <td className="py-2 px-1 text-center font-mono text-blue-800 bg-blue-50/30 border-r border-slate-200">
+                      <td className="py-2 px-1 text-center font-mono text-blue-800 dark:text-blue-400 bg-blue-50/30 dark:bg-blue-950/20 border-r border-slate-200 dark:border-slate-800">
                         {att.izin}
                       </td>
                       <td
-                        className={`py-2 px-1 text-center font-mono border-r border-slate-200 ${
+                        className={`py-2 px-1 text-center font-mono border-r border-slate-200 dark:border-slate-800 ${
                           att.alpha > 0
-                            ? "text-rose-700 font-bold bg-rose-100/70"
-                            : "text-slate-400"
+                            ? "text-rose-700 dark:text-rose-400 font-bold bg-rose-100/70 dark:bg-rose-950/50"
+                            : "text-slate-400 dark:text-slate-600"
                         }`}
                       >
                         {att.alpha}
                       </td>
                       <td
-                        className={`py-2 px-1 text-center font-mono font-bold border-r-2 border-slate-400 ${
+                        className={`py-2 px-1 text-center font-mono font-bold border-r-2 border-slate-400 dark:border-slate-700 ${
                           att.persen < 75
-                            ? "text-rose-700 bg-rose-50"
-                            : "text-emerald-700 bg-emerald-50/40"
+                            ? "text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40"
+                            : "text-emerald-700 dark:text-emerald-400 bg-emerald-50/40 dark:bg-emerald-950/20"
                         }`}
                       >
                         {att.persen}%
@@ -1095,7 +1153,7 @@ export function UnifiedAcademicLedgerTable({
                           return (
                             <td
                               key={col.id}
-                              className="py-2 px-1 text-center font-mono text-slate-300 border-r border-slate-200"
+                              className="py-2 px-1 text-center font-mono text-slate-300 dark:text-slate-600 border-r border-slate-200 dark:border-slate-800"
                               title="Asesmen belum dibuat untuk TP ini"
                             >
                               -
@@ -1111,20 +1169,20 @@ export function UnifiedAcademicLedgerTable({
                         return (
                           <td
                             key={col.id}
-                            className="py-2 px-1 text-center font-mono border-r border-slate-200"
+                            className="py-2 px-1 text-center font-mono border-r border-slate-200 dark:border-slate-800"
                           >
                             {hasScore ? (
                               <span
                                 className={`inline-block px-1.5 py-0.5 rounded text-[11px] font-bold ${
                                   isAbove
-                                    ? "text-emerald-800 bg-emerald-100/80"
-                                    : "text-rose-800 bg-rose-100/80 font-black"
+                                    ? "text-emerald-800 dark:text-emerald-300 bg-emerald-100/80 dark:bg-emerald-950/60 dark:border dark:border-emerald-800/60"
+                                    : "text-rose-800 dark:text-rose-300 bg-rose-100/80 dark:bg-rose-950/60 dark:border dark:border-rose-800/60 font-black"
                                 }`}
                               >
                                 {score}
                               </span>
                             ) : (
-                              <span className="text-slate-300 font-normal">-</span>
+                              <span className="text-slate-300 dark:text-slate-600 font-normal">-</span>
                             )}
                           </td>
                         );
@@ -1136,7 +1194,7 @@ export function UnifiedAcademicLedgerTable({
                           return (
                             <td
                               key={col.id}
-                              className="py-2 px-1 text-center font-mono text-slate-300 border-r border-slate-200 bg-indigo-50/20"
+                              className="py-2 px-1 text-center font-mono text-slate-300 dark:text-slate-600 border-r border-slate-200 dark:border-slate-800 bg-indigo-50/20 dark:bg-indigo-950/20"
                               title="Sumatif LM belum diambil"
                             >
                               -
@@ -1152,20 +1210,20 @@ export function UnifiedAcademicLedgerTable({
                         return (
                           <td
                             key={col.id}
-                            className="py-2 px-1 text-center font-mono border-r border-slate-200 bg-indigo-50/20"
+                            className="py-2 px-1 text-center font-mono border-r border-slate-200 dark:border-slate-800 bg-indigo-50/20 dark:bg-indigo-950/20"
                           >
                             {hasScore ? (
                               <span
                                 className={`inline-block px-1.5 py-0.5 rounded text-[11px] font-bold ${
                                   isAbove
-                                    ? "text-emerald-800 bg-emerald-100/80"
-                                    : "text-rose-800 bg-rose-100/80 font-black"
+                                    ? "text-emerald-800 dark:text-emerald-300 bg-emerald-100/80 dark:bg-emerald-950/60 dark:border dark:border-emerald-800/60"
+                                    : "text-rose-800 dark:text-rose-300 bg-rose-100/80 dark:bg-rose-950/60 dark:border dark:border-rose-800/60 font-black"
                                 }`}
                               >
                                 {score}
                               </span>
                             ) : (
-                              <span className="text-slate-300 font-normal">-</span>
+                              <span className="text-slate-300 dark:text-slate-600 font-normal">-</span>
                             )}
                           </td>
                         );
@@ -1177,7 +1235,7 @@ export function UnifiedAcademicLedgerTable({
                           return (
                             <td
                               key={col.id}
-                              className="py-2 px-1 text-center font-mono text-slate-300 border-r-2 border-slate-400 bg-purple-50/20"
+                              className="py-2 px-1 text-center font-mono text-slate-300 dark:text-slate-600 border-r-2 border-slate-400 dark:border-slate-700 bg-purple-50/20 dark:bg-purple-950/20"
                               title="SAS belum diambil"
                             >
                               -
@@ -1193,54 +1251,54 @@ export function UnifiedAcademicLedgerTable({
                         return (
                           <td
                             key={col.id}
-                            className="py-2 px-1 text-center font-mono border-r-2 border-slate-400 bg-purple-50/20"
+                            className="py-2 px-1 text-center font-mono border-r-2 border-slate-400 dark:border-slate-700 bg-purple-50/20 dark:bg-purple-950/20"
                           >
                             {hasScore ? (
                               <span
                                 className={`inline-block px-1.5 py-0.5 rounded text-[11px] font-bold ${
                                   isAbove
-                                    ? "text-emerald-800 bg-emerald-100/80"
-                                    : "text-rose-800 bg-rose-100/80 font-black"
+                                    ? "text-emerald-800 dark:text-emerald-300 bg-emerald-100/80 dark:bg-emerald-950/60 dark:border dark:border-emerald-800/60"
+                                    : "text-rose-800 dark:text-rose-300 bg-rose-100/80 dark:bg-rose-950/60 dark:border dark:border-rose-800/60 font-black"
                                 }`}
                               >
                                 {score}
                               </span>
                             ) : (
-                              <span className="text-slate-300 font-normal">-</span>
+                              <span className="text-slate-300 dark:text-slate-600 font-normal">-</span>
                             )}
                           </td>
                         );
                       })}
 
                       {/* Rekapitulasi: Rerata Formatif */}
-                      <td className="py-2 px-2 text-center font-mono text-slate-700 bg-amber-50/20 border-r border-slate-200">
+                      <td className="py-2 px-2 text-center font-mono text-slate-700 dark:text-slate-300 bg-amber-50/20 dark:bg-amber-950/20 border-r border-slate-200 dark:border-slate-800">
                         {row.rata_rata_formatif !== null ? row.rata_rata_formatif : "-"}
                       </td>
 
                       {/* Rekapitulasi: Rerata Sumatif */}
-                      <td className="py-2 px-2 text-center font-mono text-slate-700 bg-amber-50/20 border-r border-slate-200">
+                      <td className="py-2 px-2 text-center font-mono text-slate-700 dark:text-slate-300 bg-amber-50/20 dark:bg-amber-950/20 border-r border-slate-200 dark:border-slate-800">
                         {row.rata_rata_sumatif !== null ? row.rata_rata_sumatif : "-"}
                       </td>
 
                       {/* Rekapitulasi: Nilai Akhir (NA) */}
-                      <td className="py-2 px-2 text-center font-mono font-black text-sm text-[#2563EB] bg-blue-50/50 border-r border-slate-200">
+                      <td className="py-2 px-2 text-center font-mono font-black text-sm text-[#2563EB] dark:text-blue-400 bg-blue-50/50 dark:bg-blue-950/40 border-r border-slate-200 dark:border-slate-800">
                         {row.nilai_akhir !== null ? row.nilai_akhir : "-"}
                       </td>
 
                       {/* Rekapitulasi: Status Ketuntasan */}
-                      <td className="py-2 px-2 text-center bg-amber-50/20">
+                      <td className="py-2 px-2 text-center bg-amber-50/20 dark:bg-amber-950/20">
                         {row.nilai_akhir !== null ? (
                           <span
                             className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold tracking-tight ${
                               isLulus
-                                ? "bg-emerald-100 text-emerald-800"
-                                : "bg-rose-100 text-rose-800"
+                                ? "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 dark:border dark:border-emerald-800/60"
+                                : "bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 dark:border dark:border-rose-800/60"
                             }`}
                           >
                             {isLulus ? "TUNTAS" : "REMIDI"}
                           </span>
                         ) : (
-                          <span className="text-[10px] text-slate-400">-</span>
+                          <span className="text-[10px] text-slate-400 dark:text-slate-600">-</span>
                         )}
                       </td>
                     </tr>
@@ -1252,29 +1310,29 @@ export function UnifiedAcademicLedgerTable({
             {/* ========================================================================= */}
             {/* TABLE FOOTER: CLASS SUMMARY & AVERAGES                                    */}
             {/* ========================================================================= */}
-            <tfoot className="sticky bottom-0 z-20 bg-slate-100 border-t-2 border-slate-400 font-semibold text-[10px] text-slate-700 select-none">
+            <tfoot className="sticky bottom-0 z-20 bg-slate-100 dark:bg-slate-850 border-t-2 border-slate-400 dark:border-slate-700 font-semibold text-[10px] text-slate-700 dark:text-slate-300 select-none">
               <tr>
                 <td
                   colSpan={3}
-                  className="py-2 px-3 text-right font-bold uppercase tracking-wider border-r-2 border-slate-400 sticky left-0 z-20 bg-slate-100 shadow-[2px_0_5px_rgba(0,0,0,0.04)]"
+                  className="py-2 px-3 text-right font-bold uppercase tracking-wider border-r-2 border-slate-400 dark:border-slate-700 sticky left-0 z-20 bg-slate-100 dark:bg-slate-850 text-slate-800 dark:text-slate-200 shadow-[2px_0_5px_rgba(0,0,0,0.04)] dark:shadow-[2px_0_5px_rgba(0,0,0,0.3)]"
                 >
                   Rerata Kelas
                 </td>
 
                 {/* Kehadiran Summary */}
-                <td className="py-2 px-1 text-center font-mono text-emerald-800 border-r border-slate-200 bg-emerald-50">
+                <td className="py-2 px-1 text-center font-mono text-emerald-800 dark:text-emerald-300 border-r border-slate-200 dark:border-slate-700 bg-emerald-50 dark:bg-emerald-950/50">
                   {columnStats.attendanceTotals.hadir}
                 </td>
-                <td className="py-2 px-1 text-center font-mono text-amber-800 border-r border-slate-200 bg-amber-50">
+                <td className="py-2 px-1 text-center font-mono text-amber-800 dark:text-amber-300 border-r border-slate-200 dark:border-slate-700 bg-amber-50 dark:bg-amber-950/50">
                   {columnStats.attendanceTotals.sakit}
                 </td>
-                <td className="py-2 px-1 text-center font-mono text-blue-800 border-r border-slate-200 bg-blue-50">
+                <td className="py-2 px-1 text-center font-mono text-blue-800 dark:text-blue-300 border-r border-slate-200 dark:border-slate-700 bg-blue-50 dark:bg-blue-950/50">
                   {columnStats.attendanceTotals.izin}
                 </td>
-                <td className="py-2 px-1 text-center font-mono text-rose-800 border-r border-slate-200 bg-rose-50">
+                <td className="py-2 px-1 text-center font-mono text-rose-800 dark:text-rose-300 border-r border-slate-200 dark:border-slate-700 bg-rose-50 dark:bg-rose-950/50">
                   {columnStats.attendanceTotals.alpha}
                 </td>
-                <td className="py-2 px-1 text-center font-mono font-bold text-emerald-900 border-r-2 border-slate-400 bg-emerald-100">
+                <td className="py-2 px-1 text-center font-mono font-bold text-emerald-900 dark:text-emerald-200 border-r-2 border-slate-400 dark:border-slate-700 bg-emerald-100 dark:bg-emerald-900/50">
                   {columnStats.attendanceTotals.rerataPersen}%
                 </td>
 
@@ -1282,7 +1340,7 @@ export function UnifiedAcademicLedgerTable({
                 {allFormatifColumns.map((col) => (
                   <td
                     key={col.id}
-                    className="py-2 px-1 text-center font-mono border-r border-slate-200 bg-blue-50/70"
+                    className="py-2 px-1 text-center font-mono border-r border-slate-200 dark:border-slate-700 bg-blue-50/70 dark:bg-blue-950/40 text-blue-950 dark:text-blue-200"
                   >
                     {columnStats.formatifAverages[col.id] !== null
                       ? columnStats.formatifAverages[col.id]
@@ -1294,7 +1352,7 @@ export function UnifiedAcademicLedgerTable({
                 {sumatifLmColumns.map((col) => (
                   <td
                     key={col.id}
-                    className="py-2 px-1 text-center font-mono border-r border-slate-200 bg-indigo-50/70"
+                    className="py-2 px-1 text-center font-mono border-r border-slate-200 dark:border-slate-700 bg-indigo-50/70 dark:bg-indigo-950/40 text-indigo-950 dark:text-indigo-200"
                   >
                     {columnStats.sumatifLmAverages[col.id] !== null
                       ? columnStats.sumatifLmAverages[col.id]
@@ -1306,7 +1364,7 @@ export function UnifiedAcademicLedgerTable({
                 {sasColumns.map((col) => (
                   <td
                     key={col.id}
-                    className="py-2 px-1 text-center font-mono border-r-2 border-slate-400 bg-purple-50/70"
+                    className="py-2 px-1 text-center font-mono border-r-2 border-slate-400 dark:border-slate-700 bg-purple-50/70 dark:bg-purple-950/40 text-purple-950 dark:text-purple-200"
                   >
                     {columnStats.sasAverages[col.id] !== null
                       ? columnStats.sasAverages[col.id]
@@ -1315,24 +1373,24 @@ export function UnifiedAcademicLedgerTable({
                 ))}
 
                 {/* Overall Rerata Formatif */}
-                <td className="py-2 px-2 text-center font-mono border-r border-slate-200 bg-amber-50">
+                <td className="py-2 px-2 text-center font-mono border-r border-slate-200 dark:border-slate-700 bg-amber-50 dark:bg-amber-950/40 text-slate-700 dark:text-slate-300">
                   -
                 </td>
 
                 {/* Overall Rerata Sumatif */}
-                <td className="py-2 px-2 text-center font-mono border-r border-slate-200 bg-amber-50">
+                <td className="py-2 px-2 text-center font-mono border-r border-slate-200 dark:border-slate-700 bg-amber-50 dark:bg-amber-950/40 text-slate-700 dark:text-slate-300">
                   -
                 </td>
 
                 {/* Rata-rata Nilai Akhir Kelas */}
-                <td className="py-2 px-2 text-center font-mono font-black text-xs text-[#2563EB] bg-blue-100/70 border-r border-slate-200">
+                <td className="py-2 px-2 text-center font-mono font-black text-xs text-[#2563EB] dark:text-blue-400 bg-blue-100/70 dark:bg-blue-900/50 border-r border-slate-200 dark:border-slate-700">
                   {gradebook.statistics.rata_rata_kelas !== null
                     ? gradebook.statistics.rata_rata_kelas
                     : "-"}
                 </td>
 
                 {/* Ketuntasan Kelas (%) */}
-                <td className="py-2 px-2 text-center font-bold text-slate-800 bg-amber-50">
+                <td className="py-2 px-2 text-center font-bold text-slate-800 dark:text-slate-200 bg-amber-50 dark:bg-amber-950/40">
                   {gradebook.statistics.persentase_tuntas_kktp !== null
                     ? `${gradebook.statistics.persentase_tuntas_kktp}%`
                     : "-"}
@@ -1344,16 +1402,16 @@ export function UnifiedAcademicLedgerTable({
       </div>
 
       {/* Helper Legend / Info */}
-      <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-400 pt-1 print:hidden">
+      <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-400 dark:text-slate-500 pt-1 print:hidden">
         <div className="flex items-center gap-1.5">
-          <HelpCircle className="h-3.5 w-3.5 text-slate-400" />
+          <HelpCircle className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" />
           <span>
             Klik pada judul kolom asesmen (<strong>TP</strong>, <strong>LM</strong>, atau{" "}
             <strong>SAS</strong>) untuk membuka form input nilai siswa secara instan.
           </span>
         </div>
         <div>
-          Total Siswa Rombel: <strong className="text-slate-700">{gradebook.rows.length}</strong>
+          Total Siswa Rombel: <strong className="text-slate-700 dark:text-slate-300">{gradebook.rows.length}</strong>
         </div>
       </div>
     </div>

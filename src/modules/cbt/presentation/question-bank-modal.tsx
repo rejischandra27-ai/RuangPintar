@@ -11,7 +11,8 @@
  * - Poin, KKTP, Kunci Penilaian (Tersimpan aman di Server)
  */
 
-import React, { useState, useEffect, useTransition, useCallback } from "react";
+import React, { useState, useEffect, useTransition, useCallback, useRef } from "react";
+import Link from "next/link";
 import {
   X,
   Plus,
@@ -25,7 +26,7 @@ import {
   FileText,
   Search,
   FileSpreadsheet,
-  Sparkles,
+  Bot,
   Download,
   Upload,
   Image as ImageIcon,
@@ -34,6 +35,8 @@ import {
   Eye,
   Key,
   Copy,
+  Headphones,
+  EyeOff,
 } from "lucide-react";
 import {
   BankSoalDTO,
@@ -48,6 +51,7 @@ import {
   createQuestionVersionAction,
   bulkCreateQuestionsAction,
   generateAiQuestionsAction,
+  getCbtMapelListAction,
 } from "@/app/actions/cbt-actions";
 import {
   parseSpreadsheetText,
@@ -55,6 +59,10 @@ import {
   generateComprehensiveCsvTemplate,
   ParsedBulkQuestion,
 } from "../infrastructure/cbt-bulk-import-parser";
+import { MathFormulaToolbar } from "@/shared/components/cbt/math-formula-toolbar";
+import { MathRenderer } from "@/shared/components/cbt/math-renderer";
+import { ImageStimulus } from "@/shared/components/cbt/image-stimulus";
+import { AudioStimulusPlayer } from "@/shared/components/cbt/audio-stimulus-player";
 
 interface QuestionBankModalProps {
   isOpen: boolean;
@@ -76,6 +84,8 @@ export function QuestionBankModal({
   const [isLoading, setIsLoading] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [selectedQuestion, setSelectedQuestion] = useState<BankSoalDTO | null>(null);
+  const [mapelList, setMapelList] = useState<Array<{ id: string; nama: string; kode: string }>>([]);
+  const [selectedMapelId, setSelectedMapelId] = useState<string>(mapelId || "");
 
   // Form State for Creating / Editing Question
   const [kode, setKode] = useState("");
@@ -101,6 +111,13 @@ export function QuestionBankModal({
   const [rubrikEsai, setRubrikEsai] = useState("");
   const [alasanPerubahan, setAlasanPerubahan] = useState("");
 
+  // Rich Multi-Format State (KaTeX, Arabic RTL, Audio, Stimulus Preview)
+  const [isArabicActive, setIsArabicActive] = useState(false);
+  const [showRichPreview, setShowRichPreview] = useState(false);
+  const [audioUrl, setAudioUrl] = useState("");
+  const [audioPlayLimit, setAudioPlayLimit] = useState(2);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
   // Bulk Import State
   const [rawSpreadsheetText, setRawSpreadsheetText] = useState("");
   const [bulkParsedList, setBulkParsedList] = useState<ParsedBulkQuestion[]>([]);
@@ -121,6 +138,47 @@ export function QuestionBankModal({
   const [isAiGenerating, setIsAiGenerating] = useState(false);
   const [aiMessage, setAiMessage] = useState("");
 
+  const handleInsertFormula = (latexFormula: string) => {
+    if (!textareaRef.current) {
+      setKontenPertanyaan((prev) => prev + (prev.endsWith(" ") ? "" : " ") + latexFormula);
+      return;
+    }
+    const el = textareaRef.current;
+    const start = el.selectionStart;
+    const end = el.selectionEnd;
+    const current = el.value;
+    const nextValue = current.substring(0, start) + latexFormula + current.substring(end);
+    setKontenPertanyaan(nextValue);
+
+    setTimeout(() => {
+      el.focus();
+      el.setSelectionRange(start + latexFormula.length, start + latexFormula.length);
+    }, 0);
+  };
+
+  const handleClipboardPasteImage = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.type.indexOf("image") !== -1) {
+        const blob = item.getAsFile();
+        if (!blob) continue;
+        const reader = new FileReader();
+        reader.onload = (loadEvt) => {
+          const base64Data = loadEvt.target?.result as string;
+          if (base64Data) {
+            setGambarUrl(base64Data);
+            onShowToast("Gambar dari clipboard berhasil disematkan!", "success");
+          }
+        };
+        reader.readAsDataURL(blob);
+        break;
+      }
+    }
+  };
+
   const resetForm = useCallback(() => {
     setKode("");
     setJenisSoal("PILIHAN_GANDA");
@@ -128,6 +186,10 @@ export function QuestionBankModal({
     setBobotDefault(1);
     setKontenPertanyaan("");
     setGambarUrl("");
+    setAudioUrl("");
+    setAudioPlayLimit(2);
+    setIsArabicActive(false);
+    setShowRichPreview(false);
     setOpsiList([
       { label: "A", teks: "", isCorrect: true },
       { label: "B", teks: "", isCorrect: false },
@@ -145,16 +207,21 @@ export function QuestionBankModal({
     setSelectedQuestion(null);
   }, []);
 
-  const loadQuestions = useCallback(async () => {
-    setIsLoading(true);
-    const res = await getQuestionsAction({ mapelId });
-    if (res.success && res.data) {
-      setQuestions(res.data);
-    } else {
-      onShowToast(res.message || "Gagal memuat bank soal", "error");
-    }
-    setIsLoading(false);
-  }, [mapelId, onShowToast]);
+  const loadQuestions = useCallback(
+    async (overrideMapelId?: string) => {
+      setIsLoading(true);
+      const targetMapelId =
+        overrideMapelId !== undefined ? overrideMapelId : selectedMapelId || mapelId;
+      const res = await getQuestionsAction({ mapelId: targetMapelId || undefined });
+      if (res.success && res.data) {
+        setQuestions(res.data);
+      } else {
+        onShowToast(res.message || "Gagal memuat bank soal", "error");
+      }
+      setIsLoading(false);
+    },
+    [mapelId, selectedMapelId, onShowToast]
+  );
 
   const handleClose = () => {
     resetForm();
@@ -166,23 +233,41 @@ export function QuestionBankModal({
     if (!isOpen) return;
     let isMounted = true;
 
-    getQuestionsAction({ mapelId })
-      .then((res) => {
-        if (!isMounted) return;
-        if (res.success && res.data) {
-          setQuestions(res.data);
-        } else {
-          onShowToast(res.message || "Gagal memuat bank soal", "error");
+    const fetchInitialData = async () => {
+      try {
+        const mapelRes = await getCbtMapelListAction();
+        let targetMapel = selectedMapelId || mapelId;
+        if (isMounted && mapelRes.success && mapelRes.data && mapelRes.data.length > 0) {
+          setMapelList(mapelRes.data);
+          if (!targetMapel) {
+            targetMapel = mapelRes.data[0].id;
+            setSelectedMapelId(targetMapel);
+          }
         }
-      })
-      .finally(() => {
+
+        if (isMounted) {
+          setIsLoading(true);
+        }
+        const questionsRes = await getQuestionsAction({ mapelId: targetMapel || undefined });
+        if (isMounted) {
+          if (questionsRes.success && questionsRes.data) {
+            setQuestions(questionsRes.data);
+          } else {
+            onShowToast(questionsRes.message || "Gagal memuat bank soal", "error");
+          }
+          setIsLoading(false);
+        }
+      } catch {
         if (isMounted) setIsLoading(false);
-      });
+      }
+    };
+
+    void fetchInitialData();
 
     return () => {
       isMounted = false;
     };
-  }, [isOpen, mapelId, onShowToast]);
+  }, [isOpen, mapelId, selectedMapelId, onShowToast]);
 
   const handleAddOption = () => {
     const nextLabel = String.fromCharCode(65 + opsiList.length);
@@ -287,13 +372,24 @@ export function QuestionBankModal({
         };
       }
 
+      let finalPertanyaan = kontenPertanyaan.trim();
+      if (audioUrl.trim()) {
+        finalPertanyaan = `${finalPertanyaan}\n\n[audio:${audioUrl.trim()}|limit:${audioPlayLimit || 2}]`;
+      }
+
+      const targetMapelId = selectedMapelId || mapelId;
+      if (!targetMapelId) {
+        onShowToast("Silakan pilih mata pelajaran terlebih dahulu.", "error");
+        return;
+      }
+
       const payload = {
-        mata_pelajaran_id: mapelId,
+        mata_pelajaran_id: targetMapelId,
         kode: kode || undefined,
         jenis_soal: jenisSoal,
         tingkat_kesulitan: tingkatKesulitan,
         bobot_default: Number(bobotDefault) || 1,
-        pertanyaan: kontenPertanyaan,
+        pertanyaan: finalPertanyaan,
         gambar_url: gambarUrl.trim() || undefined,
         opsi: formatOpsi,
         kunci_jawaban: kunciJawaban,
@@ -362,8 +458,13 @@ export function QuestionBankModal({
         };
       }
 
+      let finalPertanyaan = kontenPertanyaan.trim();
+      if (audioUrl.trim()) {
+        finalPertanyaan = `${finalPertanyaan}\n\n[audio:${audioUrl.trim()}|limit:${audioPlayLimit || 2}]`;
+      }
+
       const payload = {
-        pertanyaan: kontenPertanyaan,
+        pertanyaan: finalPertanyaan,
         gambar_url: gambarUrl.trim() || undefined,
         opsi: formatOpsi,
         kunci_jawaban: kunciJawaban,
@@ -534,7 +635,8 @@ export function QuestionBankModal({
         };
       });
 
-      const res = await bulkCreateQuestionsAction(questionsToSave, mapelId);
+      const targetMapelId = selectedMapelId || mapelId;
+      const res = await bulkCreateQuestionsAction(questionsToSave, targetMapelId);
       if (res.success) {
         onShowToast(res.message, "success");
         await loadQuestions();
@@ -601,7 +703,8 @@ export function QuestionBankModal({
         pembahasan: q.pembahasan,
       }));
 
-      const res = await bulkCreateQuestionsAction(questionsToSave, mapelId);
+      const targetMapelId = selectedMapelId || mapelId;
+      const res = await bulkCreateQuestionsAction(questionsToSave, targetMapelId);
       if (res.success) {
         onShowToast(
           `Berhasil menyimpan ${res.data?.count || questionsToSave.length} soal AI ke Bank Soal!`,
@@ -625,8 +728,29 @@ export function QuestionBankModal({
     setJenisSoal(qType);
     setTingkatKesulitan(q.tingkat_kesulitan);
     setBobotDefault(latest?.bobot ?? q.bobot_default ?? 1);
-    setKontenPertanyaan(latest?.pertanyaan || q.pertanyaan || "");
-    setGambarUrl(latest?.gambar_url || q.gambar_url || "");
+
+    const rawPertanyaan = latest?.pertanyaan || q.pertanyaan || "";
+    const audioMatch = rawPertanyaan.match(/\[audio:(https?:\/\/[^\s|\]]+)(?:\|limit:(\d+))?\]/i);
+    if (audioMatch) {
+      setAudioUrl(audioMatch[1]);
+      setAudioPlayLimit(audioMatch[2] ? parseInt(audioMatch[2], 10) : 2);
+      setKontenPertanyaan(rawPertanyaan.replace(/\[audio:[^\]]+\]/gi, "").trim());
+    } else {
+      const gUrl = latest?.gambar_url || q.gambar_url || "";
+      const isAudioMedia = /\.(mp3|wav|ogg|m4a)(\?.*)?$/i.test(gUrl);
+      if (isAudioMedia) {
+        setAudioUrl(gUrl);
+        setGambarUrl("");
+      } else {
+        setAudioUrl("");
+      }
+      setAudioPlayLimit(2);
+      setKontenPertanyaan(rawPertanyaan);
+    }
+
+    if (!/\.(mp3|wav|ogg|m4a)(\?.*)?$/i.test(latest?.gambar_url || q.gambar_url || "")) {
+      setGambarUrl(latest?.gambar_url || q.gambar_url || "");
+    }
     const optionsArray = latest?.opsi || latest?.opsi_jawaban || q.opsi_jawaban || q.opsi;
     if (optionsArray && Array.isArray(optionsArray)) {
       const correctKeys: string[] = Array.isArray(latest?.kunci_jawaban?.pilihan_benar)
@@ -670,59 +794,89 @@ export function QuestionBankModal({
           </button>
         </div>
 
-        {/* Tab Switcher */}
-        <div className="flex items-center gap-2 px-6 py-3 border-b border-slate-100 bg-slate-50/30 overflow-x-auto">
-          <button
-            onClick={() => setActiveTab("LIST")}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
-              activeTab === "LIST"
-                ? "bg-blue-600 text-white shadow-xs"
-                : "text-slate-600 hover:bg-slate-100"
-            }`}
-          >
-            Daftar Soal ({questions.length})
-          </button>
-          <button
-            onClick={() => {
-              resetForm();
-              setActiveTab("CREATE");
-            }}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 ${
-              activeTab === "CREATE"
-                ? "bg-blue-600 text-white shadow-xs"
-                : "text-slate-600 hover:bg-slate-100"
-            }`}
-          >
-            <Plus className="h-3.5 w-3.5" />
-            Input Satu-per-Satu
-          </button>
-          <button
-            onClick={() => setActiveTab("EXCEL_IMPORT")}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 ${
-              activeTab === "EXCEL_IMPORT"
-                ? "bg-blue-600 text-white shadow-xs"
-                : "text-slate-600 hover:bg-slate-100"
-            }`}
-          >
-            <FileSpreadsheet className="h-3.5 w-3.5" />
-            Import Excel / CSV
-          </button>
-          <button
-            onClick={() => setActiveTab("AI_GENERATOR")}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 ${
-              activeTab === "AI_GENERATOR"
-                ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-xs"
-                : "text-blue-700 bg-blue-50/60 hover:bg-blue-100"
-            }`}
-          >
-            <Sparkles className="h-3.5 w-3.5 text-amber-300" />✨ Asisten AI Gemini
-          </button>
-          {activeTab === "NEW_VERSION" && selectedQuestion && (
-            <span className="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-100 text-amber-800 flex items-center gap-1.5 shrink-0">
-              <GitBranch className="h-3.5 w-3.5" />
-              Versi Baru: {selectedQuestion.kode || selectedQuestion.id.slice(-6)}
-            </span>
-          )}
+        {/* Tab Switcher & Mapel Selector */}
+        <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-3 border-b border-slate-100 bg-slate-50/40">
+          <div className="flex items-center gap-2 overflow-x-auto">
+            <button
+              onClick={() => setActiveTab("LIST")}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                activeTab === "LIST"
+                  ? "bg-blue-600 text-white shadow-xs"
+                  : "text-slate-600 hover:bg-slate-100"
+              }`}
+            >
+              Daftar Soal ({questions.length})
+            </button>
+            <button
+              onClick={() => {
+                resetForm();
+                setActiveTab("CREATE");
+              }}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 ${
+                activeTab === "CREATE"
+                  ? "bg-blue-600 text-white shadow-xs"
+                  : "text-slate-600 hover:bg-slate-100"
+              }`}
+            >
+              <Plus className="h-3.5 w-3.5" />
+              Input Satu-per-Satu
+            </button>
+            <button
+              onClick={() => setActiveTab("EXCEL_IMPORT")}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 ${
+                activeTab === "EXCEL_IMPORT"
+                  ? "bg-blue-600 text-white shadow-xs"
+                  : "text-slate-600 hover:bg-slate-100"
+              }`}
+            >
+              <FileSpreadsheet className="h-3.5 w-3.5" />
+              Import Excel / CSV
+            </button>
+            <button
+              onClick={() => setActiveTab("AI_GENERATOR")}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 ${
+                activeTab === "AI_GENERATOR"
+                  ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-xs"
+                  : "text-blue-700 bg-blue-50/60 hover:bg-blue-100"
+              }`}
+            >
+              <Bot className="h-3.5 w-3.5" /> Asisten AI Gemini
+            </button>
+            {activeTab === "NEW_VERSION" && selectedQuestion && (
+              <span className="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-100 text-amber-800 flex items-center gap-1.5 shrink-0">
+                <GitBranch className="h-3.5 w-3.5" />
+                Versi Baru: {selectedQuestion.kode || selectedQuestion.id.slice(-6)}
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <label className="text-[11px] font-bold text-slate-500 whitespace-nowrap">Mapel:</label>
+            <select
+              value={selectedMapelId}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSelectedMapelId(val);
+                loadQuestions(val);
+              }}
+              className="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 max-w-[200px] truncate"
+            >
+              {mapelList.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.nama}
+                </option>
+              ))}
+            </select>
+            <Link
+              href="/cbt-ujian/bank-soal/buat"
+              onClick={handleClose}
+              title="Buka Editor Layar Penuh (Portal Sekolah Style)"
+              className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all flex items-center gap-1 shrink-0"
+            >
+              <span>Layar Penuh</span>
+              <ArrowRight className="h-3 w-3" />
+            </Link>
+          </div>
         </div>
 
         {/* Modal Content */}
@@ -762,7 +916,7 @@ export function QuestionBankModal({
                       onClick={() => setActiveTab("AI_GENERATOR")}
                       className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-bold hover:bg-indigo-100 transition"
                     >
-                      <Sparkles className="h-4 w-4 text-indigo-600" />
+                      <Bot className="h-4 w-4 text-indigo-600" />
                       Buat dengan AI
                     </button>
                   </div>
@@ -893,7 +1047,25 @@ export function QuestionBankModal({
                 </div>
               )}
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Mata Pelajaran <span className="text-rose-500">*</span>
+                  </label>
+                  <select
+                    value={selectedMapelId}
+                    onChange={(e) => setSelectedMapelId(e.target.value)}
+                    disabled={activeTab === "NEW_VERSION"}
+                    className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 bg-white font-medium text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 disabled:bg-slate-100"
+                  >
+                    {mapelList.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.nama}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
                     Kode Soal (Opsional)
@@ -943,56 +1115,240 @@ export function QuestionBankModal({
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Konten Pertanyaan / Stimulus <span className="text-rose-500">*</span>
-                </label>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                    <span>Konten Pertanyaan / Stimulus</span>
+                    <span className="text-rose-500">*</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowRichPreview(!showRichPreview)}
+                    className={`inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-lg transition ${
+                      showRichPreview
+                        ? "bg-blue-600 text-white shadow-2xs"
+                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    }`}
+                  >
+                    {showRichPreview ? (
+                      <EyeOff className="h-3.5 w-3.5" />
+                    ) : (
+                      <Eye className="h-3.5 w-3.5" />
+                    )}
+                    <span>
+                      {showRichPreview ? "Tutup Pratinjau Siswa" : "Pratinjau Tampilan Siswa"}
+                    </span>
+                  </button>
+                </div>
+
+                {/* Virtual Math & Arabic Toolbar */}
+                <MathFormulaToolbar
+                  onInsertLatex={handleInsertFormula}
+                  onToggleArabic={() => setIsArabicActive(!isArabicActive)}
+                  isArabicActive={isArabicActive}
+                />
+
                 <textarea
+                  ref={textareaRef}
+                  dir={isArabicActive ? "rtl" : "ltr"}
                   rows={4}
                   value={kontenPertanyaan}
                   onChange={(e) => setKontenPertanyaan(e.target.value)}
-                  placeholder="Tuliskan narasi pertanyaan atau stimulus soal di sini..."
-                  className="w-full text-xs px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
+                  onPaste={handleClipboardPasteImage}
+                  placeholder={
+                    isArabicActive
+                      ? "اكتب نص السؤال هنا... (يدعم التشكيل والرموز الرياضية)"
+                      : "Tuliskan narasi pertanyaan atau stimulus soal di sini... (Mendukung rumus LaTeX $..$ dan gambar)"
+                  }
+                  className={`w-full text-xs px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition ${
+                    isArabicActive ? "font-serif text-base leading-relaxed text-right" : "font-sans"
+                  }`}
                 />
+                <div className="text-[11px] text-slate-400 flex items-center justify-between flex-wrap gap-1">
+                  <span>
+                    💡 <span className="font-semibold text-slate-600">Tips Cepat:</span> Tekan{" "}
+                    <kbd className="px-1 py-0.5 rounded bg-slate-100 border text-[10px] font-mono text-slate-700">
+                      Ctrl+V
+                    </kbd>{" "}
+                    di textarea ini untuk menempelkan gambar tangkapan layar langsung!
+                  </span>
+                  <span>
+                    LaTeX: <code>$x^2$</code> atau <code>$$\frac&#123;a&#125;&#123;b&#125;$$</code>
+                  </span>
+                </div>
               </div>
 
-              {/* URL / Path Gambar Stimulus */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center justify-between">
-                  <span>Gambar / Diagram Soal (Opsional)</span>
-                  <span className="text-[11px] text-slate-400 font-normal">
-                    URL gambar langsung atau path storage
-                  </span>
-                </label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={gambarUrl}
-                    onChange={(e) => setGambarUrl(e.target.value)}
-                    placeholder="Contoh: https://domain.sch.id/media/jantung.png atau /images/soal-1.jpg"
-                    className="flex-1 text-xs px-3 py-2 rounded-xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
-                  />
+              {/* URL / Path Gambar Stimulus & Audio Listening Stimulus */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Gambar Stimulus */}
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-slate-700 flex items-center justify-between">
+                    <span className="flex items-center gap-1.5">
+                      <ImageIcon className="h-3.5 w-3.5 text-blue-600" />
+                      <span>Gambar / Diagram Soal</span>
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-normal">
+                      URL atau Tangkapan Layar
+                    </span>
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={gambarUrl}
+                      onChange={(e) => setGambarUrl(e.target.value)}
+                      placeholder="Contoh: https://.../grafik.png atau paste Ctrl+V"
+                      className="flex-1 text-xs px-3 py-2 rounded-xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
+                    />
+                    {gambarUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setGambarUrl("")}
+                        className="px-2.5 py-2 rounded-xl text-xs text-rose-600 border border-rose-200 hover:bg-rose-50"
+                      >
+                        Hapus
+                      </button>
+                    )}
+                  </div>
                   {gambarUrl && (
-                    <button
-                      type="button"
-                      onClick={() => setGambarUrl("")}
-                      className="px-2.5 py-2 rounded-xl text-xs text-rose-600 border border-rose-200 hover:bg-rose-50"
-                    >
-                      Hapus
-                    </button>
+                    <div className="p-2 bg-slate-50 border border-slate-200 rounded-xl">
+                      <p className="text-[10px] text-slate-500 font-medium mb-1">
+                        Pratinjau Stimulus Gambar:
+                      </p>
+                      <ImageStimulus
+                        src={gambarUrl}
+                        alt="Stimulus Soal"
+                        caption="Klik untuk zoom resolusi penuh"
+                        className="max-h-32"
+                      />
+                    </div>
                   )}
                 </div>
-                {gambarUrl && (
-                  <div className="mt-2 p-2 bg-slate-50 border border-slate-200 rounded-xl inline-block">
-                    <p className="text-[10px] text-slate-500 font-medium mb-1">Pratinjau Gambar:</p>
-                    <img
-                      src={gambarUrl}
-                      alt="Pratinjau"
-                      className="max-h-36 max-w-xs rounded-lg object-contain border border-slate-200"
+
+                {/* Audio Listening Stimulus */}
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-slate-700 flex items-center justify-between">
+                    <span className="flex items-center gap-1.5">
+                      <Headphones className="h-3.5 w-3.5 text-purple-600" />
+                      <span>Audio Stimulus (Listening)</span>
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-normal">
+                      MP3 / WAV / Cloud Audio
+                    </span>
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={audioUrl}
+                      onChange={(e) => setAudioUrl(e.target.value)}
+                      placeholder="Contoh: https://.../listening.mp3"
+                      className="flex-1 text-xs px-3 py-2 rounded-xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600"
                     />
+                    <div className="w-24 shrink-0">
+                      <select
+                        value={audioPlayLimit}
+                        onChange={(e) => setAudioPlayLimit(Number(e.target.value))}
+                        title="Batas pemutaran audio oleh siswa"
+                        className="w-full text-xs px-2 py-2 rounded-xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 bg-white"
+                      >
+                        <option value={1}>Maks 1x</option>
+                        <option value={2}>Maks 2x</option>
+                        <option value={3}>Maks 3x</option>
+                        <option value={99}>Bebas</option>
+                      </select>
+                    </div>
+                    {audioUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setAudioUrl("")}
+                        className="px-2.5 py-2 rounded-xl text-xs text-rose-600 border border-rose-200 hover:bg-rose-50"
+                      >
+                        Hapus
+                      </button>
+                    )}
                   </div>
-                )}
+                  {audioUrl && (
+                    <div className="p-2 bg-purple-50/50 border border-purple-200/80 rounded-xl">
+                      <AudioStimulusPlayer
+                        src={audioUrl}
+                        maxPlayCount={audioPlayLimit}
+                        title="Uji Putar Audio Listening (Guru Preview)"
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
+
+              {/* LIVE PREVIEW PANE (SISWA VIEW SIMULATION) */}
+              {showRichPreview && (
+                <div className="p-4 bg-gradient-to-br from-slate-50 to-blue-50/30 border border-blue-200 rounded-2xl space-y-3">
+                  <div className="flex items-center justify-between pb-2 border-b border-blue-100">
+                    <span className="text-xs font-bold text-blue-900 flex items-center gap-1.5">
+                      <Eye className="h-4 w-4 text-blue-600" />
+                      <span>Simulasi Tampilan di Layar Siswa (CBT Player)</span>
+                    </span>
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
+                      Live KaTeX & Media
+                    </span>
+                  </div>
+
+                  {audioUrl && (
+                    <AudioStimulusPlayer
+                      src={audioUrl}
+                      maxPlayCount={audioPlayLimit}
+                      title="Audio Listening — Soal Pratinjau"
+                    />
+                  )}
+
+                  {gambarUrl && (
+                    <div className="flex justify-center">
+                      <ImageStimulus
+                        src={gambarUrl}
+                        alt="Stimulus Pratinjau"
+                        caption="Klik gambar untuk memperbesar resolusi penuh"
+                      />
+                    </div>
+                  )}
+
+                  <div className="text-sm text-slate-800 leading-relaxed font-normal bg-white p-3 rounded-xl border border-slate-200/80">
+                    <MathRenderer content={kontenPertanyaan || "(Teks pertanyaan belum diisi)"} />
+                  </div>
+
+                  {(jenisSoal === "PILIHAN_GANDA" ||
+                    jenisSoal === "PILIHAN_GANDA_KOMPLEKS" ||
+                    jenisSoal === "BENAR_SALAH") && (
+                    <div className="space-y-2 pt-1">
+                      {opsiList.map((op) => (
+                        <div
+                          key={op.label}
+                          className={`p-2.5 rounded-xl border flex items-center gap-2.5 text-xs transition ${
+                            op.isCorrect
+                              ? "bg-emerald-50/80 border-emerald-300 text-emerald-950 font-medium"
+                              : "bg-white border-slate-200 text-slate-700"
+                          }`}
+                        >
+                          <span
+                            className={`w-6 h-6 rounded-lg text-xs font-bold flex items-center justify-center shrink-0 ${
+                              op.isCorrect
+                                ? "bg-emerald-600 text-white"
+                                : "bg-slate-100 text-slate-600"
+                            }`}
+                          >
+                            {op.label}
+                          </span>
+                          <div className="flex-1">
+                            <MathRenderer content={op.teks || `(Pilihan ${op.label})`} />
+                          </div>
+                          {op.isCorrect && (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-200 text-emerald-800 shrink-0">
+                              Kunci Jawaban
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* OPSI & KUNCI JAWABAN BERDASARKAN TIPE */}
               {(jenisSoal === "PILIHAN_GANDA" ||
@@ -1721,7 +2077,7 @@ export function QuestionBankModal({
                 <div className="absolute -right-8 -bottom-8 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none" />
                 <div className="flex items-center gap-2.5 mb-2">
                   <div className="p-2 rounded-xl bg-white/20 backdrop-blur-md">
-                    <Sparkles className="h-5 w-5 text-amber-300" />
+                    <Bot className="h-5 w-5 text-white" />
                   </div>
                   <h3 className="text-sm font-bold">Asisten AI Guru — Pembuat Soal Otomatis</h3>
                   <span className="ml-auto text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/20 border border-white/30 text-blue-100">
@@ -1832,7 +2188,7 @@ export function QuestionBankModal({
                       </>
                     ) : (
                       <>
-                        <Sparkles className="h-4 w-4 text-amber-300" />
+                        <Bot className="h-4 w-4" />
                         Susun Soal dengan AI Gemini
                       </>
                     )}
@@ -1843,7 +2199,7 @@ export function QuestionBankModal({
               {/* AI Generation Results */}
               {aiMessage && (
                 <p className="text-xs text-indigo-700 bg-indigo-50/70 border border-indigo-200/60 p-3 rounded-2xl flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-indigo-600 shrink-0" />
+                  <Bot className="h-4 w-4 text-indigo-600 shrink-0" />
                   {aiMessage}
                 </p>
               )}

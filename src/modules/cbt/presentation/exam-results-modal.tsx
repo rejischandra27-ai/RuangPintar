@@ -10,6 +10,7 @@
  */
 
 import React, { useState, useEffect, useTransition, useCallback } from "react";
+import Link from "next/link";
 import {
   X,
   Users,
@@ -25,6 +26,7 @@ import {
   Clock,
   Search,
   Printer,
+  ExternalLink,
 } from "lucide-react";
 import { UjianCbtDTO, SesiUjianSiswaDTO, HasilUjianCbtDTO } from "../domain/cbt-types";
 import {
@@ -157,12 +159,17 @@ export function ExamResultsModal({
     att.siswa.nama_lengkap.toLowerCase().includes(search.toLowerCase())
   );
 
+  const totalAktif = data?.attempts.filter((a) => a.status === "SEDANG_MENGERJAKAN").length ?? 0;
+
   const totalSelesai =
     data?.attempts.filter(
       (a) => a.status === "DIKUMPULKAN" || a.status === "SELESAI" || a.status === "TERLAMBAT"
     ).length ?? 0;
 
   const totalLocked = data?.attempts.filter((a) => a.status === "TERKUNCI_PELANGGARAN").length ?? 0;
+
+  const totalAutosaveBerhasil =
+    data?.attempts.reduce((sum, a: any) => sum + (a.savedAnswersCount ?? 0), 0) ?? 0;
 
   const nilaiList =
     data?.attempts
@@ -196,54 +203,73 @@ export function ExamResultsModal({
               </p>
             </div>
           </div>
-          <button
-            onClick={handleClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
-          >
-            <X className="h-5 w-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/cbt-ujian/proctor/${ujianId}`}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold border border-blue-200 shadow-2xs transition"
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+              <span>Live Proctor Cockpit</span>
+            </Link>
+            <button
+              onClick={handleClose}
+              className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
         </div>
 
-        {/* Metric Summary Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 px-6 pt-4">
-          <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80">
-            <div className="flex items-center justify-between text-slate-500 text-xs font-semibold mb-1">
-              <span>Peserta Ujian</span>
-              <Users className="h-4 w-4 text-slate-400" />
+        {/* Metric Summary Cards — Academic Glass UI */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-2.5 px-6 pt-4">
+          <div className="p-3 rounded-2xl bg-cyan-50/60 border border-cyan-100">
+            <div className="flex items-center justify-between text-cyan-700 text-xs font-semibold mb-1">
+              <span>Peserta Aktif</span>
+              <Clock className="h-3.5 w-3.5 text-cyan-500 animate-pulse" />
             </div>
-            <div className="text-xl font-bold text-slate-900">
+            <div className="text-lg font-bold text-cyan-900">{totalAktif}</div>
+            <span className="text-[10px] text-cyan-600 font-medium">sedang mengerjakan</span>
+          </div>
+
+          <div className="p-3 rounded-2xl bg-emerald-50/60 border border-emerald-100">
+            <div className="flex items-center justify-between text-emerald-700 text-xs font-semibold mb-1">
+              <span>Autosave Berhasil</span>
+              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+            </div>
+            <div className="text-lg font-bold text-emerald-900">{totalAutosaveBerhasil}</div>
+            <span className="text-[10px] text-emerald-600 font-medium">jawaban tersimpan</span>
+          </div>
+
+          <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80">
+            <div className="flex items-center justify-between text-slate-600 text-xs font-semibold mb-1">
+              <span>Peserta Selesai</span>
+              <Users className="h-3.5 w-3.5 text-slate-400" />
+            </div>
+            <div className="text-lg font-bold text-slate-900">
               {totalSelesai}{" "}
-              <span className="text-xs font-medium text-slate-400">
+              <span className="text-xs font-normal text-slate-400">
                 / {data?.attempts.length ?? 0}
               </span>
             </div>
+            <span className="text-[10px] text-slate-500 font-medium">tuntas {tuntasRate}%</span>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-blue-50/50 border border-blue-100">
+          <div className="p-3 rounded-2xl bg-blue-50/50 border border-blue-100">
             <div className="flex items-center justify-between text-blue-700 text-xs font-semibold mb-1">
               <span>Rata-rata Nilai</span>
-              <TrendingUp className="h-4 w-4 text-blue-500" />
+              <TrendingUp className="h-3.5 w-3.5 text-blue-500" />
             </div>
-            <div className="text-xl font-bold text-slate-900">{rataRata}</div>
+            <div className="text-lg font-bold text-slate-900">{rataRata}</div>
+            <span className="text-[10px] text-blue-600 font-medium">{tuntasCount} siswa lolos</span>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-emerald-50/50 border border-emerald-100">
-            <div className="flex items-center justify-between text-emerald-700 text-xs font-semibold mb-1">
-              <span>Ketuntasan KKTP</span>
-              <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-            </div>
-            <div className="text-xl font-bold text-emerald-900">
-              {tuntasRate}%{" "}
-              <span className="text-xs font-medium text-emerald-600">({tuntasCount} siswa)</span>
-            </div>
-          </div>
-
-          <div className="p-3.5 rounded-2xl bg-amber-50/50 border border-amber-100">
+          <div className="p-3 rounded-2xl bg-amber-50/50 border border-amber-100 col-span-2 md:col-span-1">
             <div className="flex items-center justify-between text-amber-700 text-xs font-semibold mb-1">
-              <span>Terkunci Integritas</span>
-              <AlertTriangle className="h-4 w-4 text-amber-500" />
+              <span>Terkunci</span>
+              <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
             </div>
-            <div className="text-xl font-bold text-amber-900">{totalLocked}</div>
+            <div className="text-lg font-bold text-amber-900">{totalLocked}</div>
+            <span className="text-[10px] text-amber-600 font-medium">pelanggaran integritas</span>
           </div>
         </div>
 
@@ -260,13 +286,24 @@ export function ExamResultsModal({
             />
           </div>
 
-          <button
-            onClick={() => setShowTransferForm(!showTransferForm)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-blue-600 text-white text-xs font-bold shadow-xs hover:bg-blue-700 transition"
-          >
-            <BookOpen className="h-3.5 w-3.5" />
-            {showTransferForm ? "Tutup Form Transfer" : "Transfer ke Buku Nilai (M13)"}
-          </button>
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/cbt/cetak/${ujianId}`}
+              target="_blank"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition shadow-2xs"
+            >
+              <Printer className="h-3.5 w-3.5 text-slate-500" />
+              <span>Cetak Naskah & LJM</span>
+            </Link>
+
+            <button
+              onClick={() => setShowTransferForm(!showTransferForm)}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-blue-600 text-white text-xs font-bold shadow-xs hover:bg-blue-700 transition"
+            >
+              <BookOpen className="h-3.5 w-3.5" />
+              {showTransferForm ? "Tutup Form Transfer" : "Transfer ke Buku Nilai (M13)"}
+            </button>
+          </div>
         </div>
 
         {/* Transfer to Gradebook Panel */}

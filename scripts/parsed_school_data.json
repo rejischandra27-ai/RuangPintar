@@ -1,0 +1,7690 @@
+{
+  "teachers": {
+    "1": {
+      "code": 1,
+      "name": "Natalia Butarbutar, S.Kom",
+      "subjects": ["PRAKTIK LAB"],
+      "target_grades": ["X,XI,XII"]
+    },
+    "2": {
+      "code": 2,
+      "name": "Drs. Rekson Pangaribuan",
+      "subjects": ["PKKR", "DDTO", "PRAKTIK TO (X TO 1 & 5)"],
+      "target_grades": ["XI", "X", "X"]
+    },
+    "3": {
+      "code": 3,
+      "name": "Wayan Budi Ismawati, M.Pd",
+      "subjects": ["PROJEK IPAS"],
+      "target_grades": ["X"]
+    },
+    "4": {
+      "code": 4,
+      "name": "Suryani, S.Ds",
+      "subjects": ["DESAIN PUBLIKASI", "TEKNIK PENGELOLAAN AUDIO VIDEO (TPAV)", "PRAKTIK LAB"],
+      "target_grades": ["XI", "XII", "XI,XII"]
+    },
+    "5": {
+      "code": 5,
+      "name": "Shafara Salsabila, S.Pd",
+      "subjects": ["BK"],
+      "target_grades": ["XI"]
+    },
+    "6": {
+      "code": 6,
+      "name": "Ruben D Sihombing, S.Pd",
+      "subjects": ["KIK"],
+      "target_grades": ["XI"]
+    },
+    "7": {
+      "code": 7,
+      "name": "Donatus Soeti P, ST",
+      "subjects": ["PRAKTEK TO (X TO 2,3,4)", "DDTO", "PSPT"],
+      "target_grades": ["X", "X", "XII"]
+    },
+    "8": {
+      "code": 8,
+      "name": "Parlindungan Siadari, S.Kom",
+      "subjects": ["INFORMATIKA", "Dasar-dasar Rekayasa Perangkat Lunak (DDRPL)", "Praktik X RPL"],
+      "target_grades": ["X", "X", "X"]
+    },
+    "9": {
+      "code": 9,
+      "name": "Slamet Riyadi, MT",
+      "subjects": ["PKKR", "PMKR"],
+      "target_grades": ["XII", "XI,XII"]
+    },
+    "10": {
+      "code": 10,
+      "name": "Sri Siswati, M.Pd",
+      "subjects": ["BAHASA INGGRIS"],
+      "target_grades": ["XI,XII"]
+    },
+    "11": {
+      "code": 11,
+      "name": "Nevada Hasibuan, S.Pd",
+      "subjects": ["KIK"],
+      "target_grades": ["XII"]
+    },
+    "12": {
+      "code": 12,
+      "name": "Rajayani Sianturi, A.Md",
+      "subjects": ["PSPT", "PRAKTIK BENGKEL"],
+      "target_grades": ["XI", "XI"]
+    },
+    "13": {
+      "code": 13,
+      "name": "Novita Ardiyanti, S.Pd",
+      "subjects": ["AGAMA KRISTEN"],
+      "target_grades": ["X,XI,XII"]
+    },
+    "14": {
+      "code": 14,
+      "name": "Anggita Pratiwi F, S.Pd",
+      "subjects": ["BK"],
+      "target_grades": ["X"]
+    },
+    "15": {
+      "code": 15,
+      "name": "Meta Pradi Wijayanti, S.Pd",
+      "subjects": ["BK"],
+      "target_grades": ["XII"]
+    },
+    "16": {
+      "code": 16,
+      "name": "Ramses Sitorus, S.Kom",
+      "subjects": ["PRAKTEK TJKT"],
+      "target_grades": ["X,XI,XII"]
+    },
+    "17": {
+      "code": 17,
+      "name": "Agung Septian, S.Kom, M.Pd",
+      "subjects": [
+        "Administrasi Sistem Jaringan (ASJ)",
+        "Perencanaan & Pengalamatan Jaringan (PPJ)",
+        "INFORMATIKA",
+        "PKPJ",
+        "KJ"
+      ],
+      "target_grades": ["XI,XII", "XI,XII", "X", "XII", "XI"]
+    },
+    "18": {
+      "code": 18,
+      "name": "Syarif Ahmad Maulana, ST",
+      "subjects": ["PRODUKTIF TO"],
+      "target_grades": ["XI,XII"]
+    },
+    "19": {
+      "code": 19,
+      "name": "Nur Azizah Ayunda, S.Kom",
+      "subjects": [
+        "Basis Data",
+        "Pemrograman Web (Pemweb)",
+        "Pemrograman Berbasis Objek (PBO)",
+        "Praktik LAB",
+        "DDTJKT"
+      ],
+      "target_grades": ["XI", "XI", "XI", "XI", "X"]
+    },
+    "20": {
+      "code": 20,
+      "name": "Muhammad Sopyan, S.Kom",
+      "subjects": [
+        "Dasar-dasar Desain Komunikasi Visual (DDKV)",
+        "Fotografi & Videografi (Fotvie)",
+        "Animasi",
+        "User Interface & User Experience (UI/UX)",
+        "Komputer Grafis",
+        "Praktik LAB"
+      ],
+      "target_grades": ["X", "XI", "XII", "XII", "XI", "X"]
+    },
+    "21": {
+      "code": 21,
+      "name": "Eri Chandra A, S.Kom",
+      "subjects": [
+        "Struktur Data",
+        "Pemrograman Berbasis Objek (PBO)",
+        "Pemrograman Perangkat Bergerak (PPB)",
+        "Praktik LAB",
+        "Koding & Kecerdasan Artifisial (KKA)"
+      ],
+      "target_grades": ["XII", "XII", "XII", "XII", "X"]
+    },
+    "22": {
+      "code": 22,
+      "name": "Aprilla Hayati, S.Pd",
+      "subjects": ["PROJEK IPAS"],
+      "target_grades": ["X"]
+    },
+    "23": {
+      "code": 23,
+      "name": "Arnah Fajarwati, SE",
+      "subjects": ["KIK"],
+      "target_grades": ["XI,XII"]
+    },
+    "24": {
+      "code": 24,
+      "name": "Elanda Widyastuti, M.Pd",
+      "subjects": ["MATEMATIKA"],
+      "target_grades": ["X"]
+    },
+    "25": {
+      "code": 25,
+      "name": "Fransina Tresia A, SP, MM",
+      "subjects": ["MATEMATIKA"],
+      "target_grades": ["X,XI"]
+    },
+    "26": {
+      "code": 26,
+      "name": "Marhanih, S.Sos.I",
+      "subjects": ["AGAMA ISLAM"],
+      "target_grades": ["X,XII"]
+    },
+    "27": {
+      "code": 27,
+      "name": "Rita Yusnita, SE, M.Pd",
+      "subjects": ["SEJARAH", "PKN"],
+      "target_grades": ["X,XI", "X,XI"]
+    },
+    "28": {
+      "code": 28,
+      "name": "Nurhayati, S.Pd",
+      "subjects": ["BAHASA INDONESIA"],
+      "target_grades": ["X"]
+    },
+    "29": {
+      "code": 29,
+      "name": "Sri Isnawati, S.Pd.I",
+      "subjects": ["AGAMA ISLAM"],
+      "target_grades": ["X,XI"]
+    },
+    "30": {
+      "code": 30,
+      "name": "Nengsih, S.Pd",
+      "subjects": ["BAHASA JEPANG"],
+      "target_grades": ["X,XII"]
+    },
+    "31": {
+      "code": 31,
+      "name": "Shabrina A Mubiina AL-H, S.Pd",
+      "subjects": ["BAHASA INDONESIA"],
+      "target_grades": ["XI"]
+    },
+    "32": {
+      "code": 32,
+      "name": "Febriana Buana Supa, S.Pd",
+      "subjects": ["PKN"],
+      "target_grades": ["X,XI,XII"]
+    },
+    "33": {
+      "code": 33,
+      "name": "Andina Try Nurcahyani, S.Pd",
+      "subjects": ["BAHASA INGGRIS"],
+      "target_grades": ["X"]
+    },
+    "34": {
+      "code": 34,
+      "name": "Einary Mahsa, S.Pd",
+      "subjects": ["MATEMATIKA"],
+      "target_grades": ["XII"]
+    },
+    "35": {
+      "code": 35,
+      "name": "Doni Pratama, S.Pd",
+      "subjects": ["PENJAS"],
+      "target_grades": ["X,XI"]
+    },
+    "36": {
+      "code": 36,
+      "name": "Ireen Oktaviyani, S.Pd",
+      "subjects": ["SENI"],
+      "target_grades": ["X,XII"]
+    },
+    "37": {
+      "code": 37,
+      "name": "Sri Ayu Ratnaningsih, S.Pd",
+      "subjects": ["BAHASA JEPANG"],
+      "target_grades": ["X,XI"]
+    },
+    "38": {
+      "code": 38,
+      "name": "Gifta Septiaman Waruwu, S.Pd",
+      "subjects": ["BAHASA INGGRIS"],
+      "target_grades": ["X,XI"]
+    }
+  },
+  "classes": {
+    "X TO 1": {
+      "name": "X TO 1",
+      "program": "Teknik Otomotif (TO)",
+      "walas": "Febriana Buana Supa, S.Pd",
+      "students": [
+        {
+          "no": 1,
+          "name": "Abdullah Azami Akbar",
+          "row": 14
+        },
+        {
+          "no": 2,
+          "name": "Abdullah Khoirul Akrom",
+          "row": 15
+        },
+        {
+          "no": 3,
+          "name": "Aditya Pratama",
+          "row": 16
+        },
+        {
+          "no": 4,
+          "name": "Afiq Dzul Fahmi",
+          "row": 17
+        },
+        {
+          "no": 5,
+          "name": "Anandito Giefari Alfairuz",
+          "row": 18
+        },
+        {
+          "no": 6,
+          "name": "Baim Firmansyah",
+          "row": 19
+        },
+        {
+          "no": 7,
+          "name": "Catur Fathi Musyaffa",
+          "row": 20
+        },
+        {
+          "no": 8,
+          "name": "Chandra Setyawan",
+          "row": 21
+        },
+        {
+          "no": 9,
+          "name": "Dellino Nadhif",
+          "row": 22
+        },
+        {
+          "no": 10,
+          "name": "Dimas Rizqi Pratama",
+          "row": 23
+        },
+        {
+          "no": 11,
+          "name": "Fairuz Sadewa",
+          "row": 24
+        },
+        {
+          "no": 12,
+          "name": "Ferdinan Alexander Harsanto",
+          "row": 25
+        },
+        {
+          "no": 13,
+          "name": "Firdhan Dwi Erlangga",
+          "row": 26
+        },
+        {
+          "no": 14,
+          "name": "Haidar Abdul Aziz",
+          "row": 27
+        },
+        {
+          "no": 15,
+          "name": "Ikram Putra Ramadhan",
+          "row": 28
+        },
+        {
+          "no": 16,
+          "name": "Kevin Ramadhan",
+          "row": 29
+        },
+        {
+          "no": 17,
+          "name": "Leo Tito Privian",
+          "row": 30
+        },
+        {
+          "no": 18,
+          "name": "Marcel Aditya Syaputra",
+          "row": 31
+        },
+        {
+          "no": 19,
+          "name": "Mohammad Naufal Putra Sayudi",
+          "row": 32
+        },
+        {
+          "no": 20,
+          "name": "Muhamad Fahry",
+          "row": 33
+        },
+        {
+          "no": 21,
+          "name": "Muhamad Rayhan",
+          "row": 34
+        },
+        {
+          "no": 22,
+          "name": "muhammad Abdurrozak",
+          "row": 35
+        },
+        {
+          "no": 23,
+          "name": "Muhammad Azzam",
+          "row": 36
+        },
+        {
+          "no": 24,
+          "name": "Muhammad Fathan Eljanisa",
+          "row": 37
+        },
+        {
+          "no": 25,
+          "name": "Muhammad Faqih Addar Quthni",
+          "row": 38
+        },
+        {
+          "no": 26,
+          "name": "Muhammad Rafa Fachriansyah",
+          "row": 39
+        },
+        {
+          "no": 27,
+          "name": "Muhammad Rifqi Rabani",
+          "row": 40
+        },
+        {
+          "no": 28,
+          "name": "Muhammad Zabran Dirham Irawan",
+          "row": 41
+        },
+        {
+          "no": 29,
+          "name": "Nakula Marnusyanto",
+          "row": 42
+        },
+        {
+          "no": 30,
+          "name": "Prabu Dwi Aryanto Putra",
+          "row": 43
+        },
+        {
+          "no": 31,
+          "name": "Rafa Dirgantara",
+          "row": 44
+        },
+        {
+          "no": 32,
+          "name": "Rafael Ayodya Al Jabbar",
+          "row": 45
+        },
+        {
+          "no": 33,
+          "name": "Rahmat Kurniawan",
+          "row": 46
+        },
+        {
+          "no": 34,
+          "name": "Ramadhani",
+          "row": 47
+        },
+        {
+          "no": 35,
+          "name": "Rava Dila Syahputra",
+          "row": 48
+        },
+        {
+          "no": 36,
+          "name": "Rizky Syahputra",
+          "row": 49
+        },
+        {
+          "no": 37,
+          "name": "Tabe Nagascha",
+          "row": 50
+        },
+        {
+          "no": 38,
+          "name": "Yupiter Aldiansyah",
+          "row": 51
+        }
+      ],
+      "student_count": 38
+    },
+    "X TO 2": {
+      "name": "X TO 2",
+      "program": "Teknik Otomotif (TO)",
+      "walas": "Febriana Buana Supa, S.Pd",
+      "students": [
+        {
+          "no": 1,
+          "name": "Akhmad Fakhri Mubarok",
+          "row": 75
+        },
+        {
+          "no": 2,
+          "name": "Akmal Aryadi",
+          "row": 76
+        },
+        {
+          "no": 3,
+          "name": "Ahmad Yusuf Irawan",
+          "row": 77
+        },
+        {
+          "no": 4,
+          "name": "Andre Andreas Siahaan",
+          "row": 78
+        },
+        {
+          "no": 5,
+          "name": "Chikal Ardiansah Putra",
+          "row": 79
+        },
+        {
+          "no": 6,
+          "name": "Dandi Zulkarnaen",
+          "row": 80
+        },
+        {
+          "no": 7,
+          "name": "Elam Sian Kuera",
+          "row": 81
+        },
+        {
+          "no": 8,
+          "name": "Fajri Mugni Fattah Sidiq",
+          "row": 82
+        },
+        {
+          "no": 9,
+          "name": "Fachri ILyasraf Sanjana",
+          "row": 83
+        },
+        {
+          "no": 10,
+          "name": "Fakhri Fadillah ( PB )",
+          "row": 84
+        },
+        {
+          "no": 11,
+          "name": "Faza Maulana Dirmansyah",
+          "row": 85
+        },
+        {
+          "no": 12,
+          "name": "Ferdinan Paulus Napitupulu",
+          "row": 86
+        },
+        {
+          "no": 13,
+          "name": "Galih Sadewo",
+          "row": 87
+        },
+        {
+          "no": 14,
+          "name": "Hafis",
+          "row": 88
+        },
+        {
+          "no": 15,
+          "name": "HARIYANSYAH ( PB )",
+          "row": 89
+        },
+        {
+          "no": 16,
+          "name": "Heskiano Rafael Hutagaol",
+          "row": 90
+        },
+        {
+          "no": 17,
+          "name": "Imanuel Saragih Manihuruk",
+          "row": 91
+        },
+        {
+          "no": 18,
+          "name": "Jonathan Wesly Rajagukguk",
+          "row": 92
+        },
+        {
+          "no": 19,
+          "name": "Khaical Mahesa Nurzamzamy",
+          "row": 93
+        },
+        {
+          "no": 20,
+          "name": "MICHAEL BENAYA ABADI ( PB )",
+          "row": 94
+        },
+        {
+          "no": 21,
+          "name": "Manumpak Efraim",
+          "row": 95
+        },
+        {
+          "no": 22,
+          "name": "Mohamad Fachri",
+          "row": 96
+        },
+        {
+          "no": 23,
+          "name": "Muhammad Faiz Putra Stiawan",
+          "row": 97
+        },
+        {
+          "no": 24,
+          "name": "Muhamad Fariz Alamsyah",
+          "row": 98
+        },
+        {
+          "no": 25,
+          "name": "Muhammad Fhadil",
+          "row": 99
+        },
+        {
+          "no": 26,
+          "name": "Muhammad Halilintar",
+          "row": 100
+        },
+        {
+          "no": 27,
+          "name": "Muhammad Rafa Saputra",
+          "row": 101
+        },
+        {
+          "no": 28,
+          "name": "Muhammad Ridho Saputra",
+          "row": 102
+        },
+        {
+          "no": 29,
+          "name": "Muhammad Zulfikar",
+          "row": 103
+        },
+        {
+          "no": 30,
+          "name": "Panji Aditya Nugroho ( PB )",
+          "row": 104
+        },
+        {
+          "no": 31,
+          "name": "Raihan Alterijisa",
+          "row": 105
+        },
+        {
+          "no": 32,
+          "name": "Reynells Satry Sumbayak",
+          "row": 106
+        },
+        {
+          "no": 33,
+          "name": "Rezky Ramot Panjaitan",
+          "row": 107
+        },
+        {
+          "no": 34,
+          "name": "Ridho Firmansyah",
+          "row": 108
+        },
+        {
+          "no": 35,
+          "name": "satria permana ( PB )",
+          "row": 109
+        },
+        {
+          "no": 36,
+          "name": "Steven Gabriel",
+          "row": 110
+        },
+        {
+          "no": 37,
+          "name": "TAUFIK QUROHMAN ( PB )",
+          "row": 111
+        },
+        {
+          "no": 38,
+          "name": "TEDY SETIADI ( PB )",
+          "row": 112
+        },
+        {
+          "no": 39,
+          "name": "Vino Atmaraza Purba",
+          "row": 113
+        },
+        {
+          "no": 40,
+          "name": "Walid Yafii Rifaat",
+          "row": 114
+        },
+        {
+          "no": 41,
+          "name": "Yehezkiel Rizky",
+          "row": 115
+        }
+      ],
+      "student_count": 41
+    },
+    "X TO 3": {
+      "name": "X TO 3",
+      "program": "Teknik Otomotif (TO)",
+      "walas": "Marhanih, S.Sos.I",
+      "students": [
+        {
+          "no": 1,
+          "name": "Ahmad Fatoni",
+          "row": 140
+        },
+        {
+          "no": 2,
+          "name": "Alif Adhitya Dirgantara",
+          "row": 141
+        },
+        {
+          "no": 3,
+          "name": "Andika Rizky Ramadhan",
+          "row": 142
+        },
+        {
+          "no": 4,
+          "name": "Ayzicho Aulia Supriyanto",
+          "row": 143
+        },
+        {
+          "no": 5,
+          "name": "Bayu Adji Setiawan",
+          "row": 144
+        },
+        {
+          "no": 6,
+          "name": "David Rama Dhani",
+          "row": 145
+        },
+        {
+          "no": 7,
+          "name": "Dzakky Dwi Putra",
+          "row": 146
+        },
+        {
+          "no": 8,
+          "name": "Fachry Azka Fauzan",
+          "row": 147
+        },
+        {
+          "no": 9,
+          "name": "Farel Ardiyansyah",
+          "row": 148
+        },
+        {
+          "no": 10,
+          "name": "Faris Rafka Alkahfi",
+          "row": 149
+        },
+        {
+          "no": 11,
+          "name": "Fathir Faturrahman",
+          "row": 150
+        },
+        {
+          "no": 12,
+          "name": "Galih Linggar Ramadhan",
+          "row": 151
+        },
+        {
+          "no": 13,
+          "name": "Galuh Sadewo",
+          "row": 152
+        },
+        {
+          "no": 14,
+          "name": "Herdy Zuan Key",
+          "row": 153
+        },
+        {
+          "no": 15,
+          "name": "Ibrahim",
+          "row": 154
+        },
+        {
+          "no": 16,
+          "name": "M Firza Tulloh",
+          "row": 155
+        },
+        {
+          "no": 17,
+          "name": "Maritza Hamizan Mahkrus",
+          "row": 156
+        },
+        {
+          "no": 18,
+          "name": "Maulana Ibrahim",
+          "row": 157
+        },
+        {
+          "no": 19,
+          "name": "Maulana Malik Ibrahim",
+          "row": 158
+        },
+        {
+          "no": 20,
+          "name": "Mohamad Alfazani",
+          "row": 159
+        },
+        {
+          "no": 21,
+          "name": "Muhammad Arsya Wijaya",
+          "row": 160
+        },
+        {
+          "no": 22,
+          "name": "Muhammad Alfa Rizky Aditya",
+          "row": 161
+        },
+        {
+          "no": 23,
+          "name": "Muhammad Fahri Amruhu Fathur",
+          "row": 162
+        },
+        {
+          "no": 24,
+          "name": "Muhammad Kahfi Fadlyansyah",
+          "row": 163
+        },
+        {
+          "no": 25,
+          "name": "Muhammad Rafa Al Farizi",
+          "row": 164
+        },
+        {
+          "no": 26,
+          "name": "Muhammad Razka Aryadi",
+          "row": 165
+        },
+        {
+          "no": 27,
+          "name": "Muhammad Safaat",
+          "row": 166
+        },
+        {
+          "no": 28,
+          "name": "Naufal Halil Pradipta",
+          "row": 167
+        },
+        {
+          "no": 29,
+          "name": "Putra Ramadhan",
+          "row": 168
+        },
+        {
+          "no": 30,
+          "name": "Raffi Aldiansyah",
+          "row": 169
+        },
+        {
+          "no": 31,
+          "name": "Ridho Pratama",
+          "row": 170
+        },
+        {
+          "no": 32,
+          "name": "Rizky Jaka jaladara",
+          "row": 171
+        },
+        {
+          "no": 33,
+          "name": "Satrio Wicaksono",
+          "row": 172
+        },
+        {
+          "no": 34,
+          "name": "Tedy Maulana",
+          "row": 173
+        },
+        {
+          "no": 35,
+          "name": "Yoghi Fauzan Azima",
+          "row": 174
+        },
+        {
+          "no": 36,
+          "name": "Yudha Rhafa Hidayat",
+          "row": 175
+        },
+        {
+          "no": 37,
+          "name": "Zulkifli Amin",
+          "row": 176
+        }
+      ],
+      "student_count": 37
+    },
+    "X TO 4": {
+      "name": "X TO 4",
+      "program": "Teknik Otomotif (TO)",
+      "walas": "Nengsih, S.Pd",
+      "students": [
+        {
+          "no": 1,
+          "name": "Abieza Praya Kurniawan",
+          "row": 201
+        },
+        {
+          "no": 2,
+          "name": "Akhdan Ibnu Mahya",
+          "row": 202
+        },
+        {
+          "no": 3,
+          "name": "Aliza Dwinovita",
+          "row": 203
+        },
+        {
+          "no": 4,
+          "name": "Alvino Dian Pratama",
+          "row": 204
+        },
+        {
+          "no": 5,
+          "name": "Agus Khalifah Akbar",
+          "row": 205
+        },
+        {
+          "no": 6,
+          "name": "Andhika Rizky Hermanda",
+          "row": 206
+        },
+        {
+          "no": 7,
+          "name": "Arya Paramudya Eliyanto",
+          "row": 207
+        },
+        {
+          "no": 8,
+          "name": "Al Asqalani Khalifah Akbar Harahap",
+          "row": 208
+        },
+        {
+          "no": 9,
+          "name": "Briliyan Rahman saputra",
+          "row": 209
+        },
+        {
+          "no": 10,
+          "name": "Dhevan Definza Ramadhan",
+          "row": 210
+        },
+        {
+          "no": 11,
+          "name": "Dicky Nur Hidayat",
+          "row": 211
+        },
+        {
+          "no": 12,
+          "name": "Diyas Mandala Febri Yulitama",
+          "row": 212
+        },
+        {
+          "no": 13,
+          "name": "Fahmi Oktabi Putra",
+          "row": 213
+        },
+        {
+          "no": 14,
+          "name": "Faris Nashwan Khayri",
+          "row": 214
+        },
+        {
+          "no": 15,
+          "name": "Firman Noviansyah",
+          "row": 215
+        },
+        {
+          "no": 16,
+          "name": "Galih Febrian",
+          "row": 216
+        },
+        {
+          "no": 17,
+          "name": "Gofur Alfayet nugroho",
+          "row": 217
+        },
+        {
+          "no": 18,
+          "name": "Haris Hendrawan",
+          "row": 218
+        },
+        {
+          "no": 19,
+          "name": "Maulana Algifahri",
+          "row": 219
+        },
+        {
+          "no": 20,
+          "name": "Muhamad Ghazi Fawwas Rizqullah",
+          "row": 220
+        },
+        {
+          "no": 21,
+          "name": "Muhammad Arif Agustian",
+          "row": 221
+        },
+        {
+          "no": 22,
+          "name": "Muhammad Dani Fairus",
+          "row": 222
+        },
+        {
+          "no": 23,
+          "name": "Muhammad Heri Putra Pratama",
+          "row": 223
+        },
+        {
+          "no": 24,
+          "name": "Muhammad Ken Alfard",
+          "row": 224
+        },
+        {
+          "no": 25,
+          "name": "Muhammad Riffat Firdaus",
+          "row": 225
+        },
+        {
+          "no": 26,
+          "name": "Rangga Putra Ernanto",
+          "row": 226
+        },
+        {
+          "no": 27,
+          "name": "Revandi Putra Ramadan",
+          "row": 227
+        },
+        {
+          "no": 28,
+          "name": "Rifantri",
+          "row": 228
+        },
+        {
+          "no": 29,
+          "name": "Riyan Syahputra",
+          "row": 229
+        },
+        {
+          "no": 30,
+          "name": "Rizkiyansah Putra",
+          "row": 230
+        },
+        {
+          "no": 31,
+          "name": "Rizky Darmawan",
+          "row": 231
+        },
+        {
+          "no": 32,
+          "name": "Rizky Rahmansyah",
+          "row": 232
+        },
+        {
+          "no": 33,
+          "name": "Rizqi Alamsyah",
+          "row": 233
+        },
+        {
+          "no": 34,
+          "name": "Sabrawi Jaya",
+          "row": 234
+        },
+        {
+          "no": 35,
+          "name": "Tri Fatria Duta Wangsa",
+          "row": 235
+        },
+        {
+          "no": 36,
+          "name": "Quais Alqorni",
+          "row": 236
+        }
+      ],
+      "student_count": 36
+    },
+    "X TO 5": {
+      "name": "X TO 5",
+      "program": "Teknik Otomotif (TO)",
+      "walas": "Nevada Hasibuan, S.Pd",
+      "students": [
+        {
+          "no": 1,
+          "name": "Agasta Anggara Putra",
+          "row": 261
+        },
+        {
+          "no": 2,
+          "name": "Ahzianur Anugrah Sanjaya",
+          "row": 262
+        },
+        {
+          "no": 3,
+          "name": "Arbian Islami Warda",
+          "row": 263
+        },
+        {
+          "no": 4,
+          "name": "Arya Ramadhan",
+          "row": 264
+        },
+        {
+          "no": 5,
+          "name": "Badar Dwi Putra Rosadi",
+          "row": 265
+        },
+        {
+          "no": 6,
+          "name": "Bima Saputra",
+          "row": 266
+        },
+        {
+          "no": 7,
+          "name": "Bintang Asif Akmal Supriyatna",
+          "row": 267
+        },
+        {
+          "no": 8,
+          "name": "Daffa Adryan Faqih",
+          "row": 268
+        },
+        {
+          "no": 9,
+          "name": "Desta ardianto",
+          "row": 269
+        },
+        {
+          "no": 10,
+          "name": "Devin Rajendra Alfarand",
+          "row": 270
+        },
+        {
+          "no": 11,
+          "name": "Dicky Fauza Ramadhan",
+          "row": 271
+        },
+        {
+          "no": 12,
+          "name": "Dida Putra Yulyani",
+          "row": 272
+        },
+        {
+          "no": 13,
+          "name": "Fadhlan Ma'ruf",
+          "row": 273
+        },
+        {
+          "no": 14,
+          "name": "Fadil Ahmad Nasution",
+          "row": 274
+        },
+        {
+          "no": 15,
+          "name": "Fais Yudistira",
+          "row": 275
+        },
+        {
+          "no": 16,
+          "name": "Ferdi Kurniawan",
+          "row": 276
+        },
+        {
+          "no": 17,
+          "name": "Hafizd Maulana",
+          "row": 277
+        },
+        {
+          "no": 18,
+          "name": "Hanafiz Adri Pratama Januarizky",
+          "row": 278
+        },
+        {
+          "no": 19,
+          "name": "Imam Safii",
+          "row": 279
+        },
+        {
+          "no": 20,
+          "name": "M. Ridwan",
+          "row": 280
+        },
+        {
+          "no": 21,
+          "name": "Muhamad Dzakwan Akbar",
+          "row": 281
+        },
+        {
+          "no": 22,
+          "name": "Muhamad Ilham",
+          "row": 282
+        },
+        {
+          "no": 23,
+          "name": "Muhamad Reza Fahlefi",
+          "row": 283
+        },
+        {
+          "no": 24,
+          "name": "Muhammad Fahrel Rizky",
+          "row": 284
+        },
+        {
+          "no": 25,
+          "name": "Muhammad Fais Ramdani",
+          "row": 285
+        },
+        {
+          "no": 26,
+          "name": "Muhammad Rayhan",
+          "row": 286
+        },
+        {
+          "no": 27,
+          "name": "Muhammad Rifki Hud Alham",
+          "row": 287
+        },
+        {
+          "no": 28,
+          "name": "Muhammad Wildhan",
+          "row": 288
+        },
+        {
+          "no": 29,
+          "name": "Parel",
+          "row": 289
+        },
+        {
+          "no": 30,
+          "name": "Raga Riezky Ariawan",
+          "row": 290
+        },
+        {
+          "no": 31,
+          "name": "Ragil Aryasatya",
+          "row": 291
+        },
+        {
+          "no": 32,
+          "name": "Raju Fitriya Al Hasby",
+          "row": 292
+        },
+        {
+          "no": 33,
+          "name": "Rava Rabbani Marento",
+          "row": 293
+        },
+        {
+          "no": 34,
+          "name": "Refaldi Aditya",
+          "row": 294
+        },
+        {
+          "no": 35,
+          "name": "Rifqi Rafif",
+          "row": 295
+        },
+        {
+          "no": 36,
+          "name": "Rio Januar Pradana",
+          "row": 296
+        },
+        {
+          "no": 37,
+          "name": "Rizki Aditia Putra",
+          "row": 297
+        },
+        {
+          "no": 38,
+          "name": "Rizky Putra Kirana",
+          "row": 298
+        }
+      ],
+      "student_count": 38
+    },
+    "X TJKT 1": {
+      "name": "X TJKT 1",
+      "program": "Teknik Jaringan Komputer dan Telekomunikasi (TJKT)",
+      "walas": "Elanda Widyastuti, M.Pd",
+      "students": [
+        {
+          "no": 1,
+          "name": "Al Hadi Nur Ramadhan",
+          "row": 323
+        },
+        {
+          "no": 2,
+          "name": "Anggita Dewi Astuti",
+          "row": 324
+        },
+        {
+          "no": 3,
+          "name": "Azkia Syalila Salwa",
+          "row": 325
+        },
+        {
+          "no": 4,
+          "name": "Bayu Adiraya Ramadhan",
+          "row": 326
+        },
+        {
+          "no": 5,
+          "name": "Caessar Azka Satya Al Fatih",
+          "row": 327
+        },
+        {
+          "no": 6,
+          "name": "DENIS OKTAVIANI ( PB )",
+          "row": 328
+        },
+        {
+          "no": 7,
+          "name": "Echa Khairunissa",
+          "row": 329
+        },
+        {
+          "no": 8,
+          "name": "Fani Nurul Sihni",
+          "row": 330
+        },
+        {
+          "no": 10,
+          "name": "Friska Oktaviani Sihombing",
+          "row": 331
+        },
+        {
+          "no": 11,
+          "name": "GENDIS ARUM NINGTYAS (PB)",
+          "row": 332
+        },
+        {
+          "no": 12,
+          "name": "HAAFIDZ PUTRA AGUS (PB)",
+          "row": 333
+        },
+        {
+          "no": 13,
+          "name": "INTAN FEBIYANI (PB)",
+          "row": 334
+        },
+        {
+          "no": 14,
+          "name": "Jeriko Fernandes Siahaan",
+          "row": 335
+        },
+        {
+          "no": 15,
+          "name": "Lutvie Sakhi Zaidane Pramutadi",
+          "row": 336
+        },
+        {
+          "no": 16,
+          "name": "Muhammad Chairul Azzam",
+          "row": 337
+        },
+        {
+          "no": 17,
+          "name": "Muhammad Fachri",
+          "row": 338
+        },
+        {
+          "no": 18,
+          "name": "Narendra Nawagraha Putra Andrian",
+          "row": 339
+        },
+        {
+          "no": 19,
+          "name": "NAUFAL RIFA'I (PB)",
+          "row": 340
+        },
+        {
+          "no": 20,
+          "name": "Niken Marito Gultom",
+          "row": 341
+        },
+        {
+          "no": 21,
+          "name": "Raden Mochamad Alfino Arfa",
+          "row": 342
+        },
+        {
+          "no": 22,
+          "name": "Rafael",
+          "row": 343
+        },
+        {
+          "no": 23,
+          "name": "Rafi Ramdhani",
+          "row": 344
+        },
+        {
+          "no": 24,
+          "name": "Rizky Agung Rajabi",
+          "row": 345
+        },
+        {
+          "no": 25,
+          "name": "Syadad Rasyid (PB)",
+          "row": 346
+        },
+        {
+          "no": 26,
+          "name": "Syahla Salsabila ( PB )",
+          "row": 347
+        },
+        {
+          "no": 27,
+          "name": "Syifa Eka Putri",
+          "row": 348
+        },
+        {
+          "no": 28,
+          "name": "Vanesya Meilani",
+          "row": 349
+        },
+        {
+          "no": 29,
+          "name": "Yosua Choiri Siahaan",
+          "row": 350
+        }
+      ],
+      "student_count": 28
+    },
+    "X TJKT 2": {
+      "name": "X TJKT 2",
+      "program": "Teknik Jaringan Komputer dan Telekomunikasi (TJKT)",
+      "walas": "Agung Septian, S.Kom, M.Pd",
+      "students": [
+        {
+          "no": 1,
+          "name": "Abdul Rohman Anggani",
+          "row": 373
+        },
+        {
+          "no": 2,
+          "name": "Ajharu Geril Putra Ganansyah",
+          "row": 374
+        },
+        {
+          "no": 3,
+          "name": "Andra Saputra",
+          "row": 375
+        },
+        {
+          "no": 4,
+          "name": "Destia Maharani",
+          "row": 376
+        },
+        {
+          "no": 5,
+          "name": "Dimas Kurniawan",
+          "row": 377
+        },
+        {
+          "no": 6,
+          "name": "Fadil Al-Ghufron",
+          "row": 378
+        },
+        {
+          "no": 7,
+          "name": "Fairuz Ghaissani",
+          "row": 379
+        },
+        {
+          "no": 8,
+          "name": "Hilmia Hapsa Farah",
+          "row": 380
+        },
+        {
+          "no": 9,
+          "name": "Ilham Angga kusuma",
+          "row": 381
+        },
+        {
+          "no": 10,
+          "name": "Inez Salsabila Putri",
+          "row": 382
+        },
+        {
+          "no": 11,
+          "name": "Lenita Eleni Widiyarto",
+          "row": 383
+        },
+        {
+          "no": 12,
+          "name": "Meisha Tigis Ayuningtyas",
+          "row": 384
+        },
+        {
+          "no": 13,
+          "name": "Muhamad Raffly",
+          "row": 385
+        },
+        {
+          "no": 14,
+          "name": "Muhammad Alfian Rifdi",
+          "row": 386
+        },
+        {
+          "no": 15,
+          "name": "Muhammad Fadilah Pratama",
+          "row": 387
+        },
+        {
+          "no": 16,
+          "name": "Muhammad Gandalf Khafi",
+          "row": 388
+        },
+        {
+          "no": 17,
+          "name": "Musthofa Sahil",
+          "row": 389
+        },
+        {
+          "no": 18,
+          "name": "Naufal Arka Alfayyed",
+          "row": 390
+        },
+        {
+          "no": 19,
+          "name": "Noval Abdillah Wibowo",
+          "row": 391
+        },
+        {
+          "no": 20,
+          "name": "Putra Triadyaska",
+          "row": 392
+        },
+        {
+          "no": 21,
+          "name": "Raisya Alfita",
+          "row": 393
+        },
+        {
+          "no": 22,
+          "name": "Shelly Septiyani",
+          "row": 394
+        },
+        {
+          "no": 23,
+          "name": "Syifa Aulia Rahmah",
+          "row": 395
+        },
+        {
+          "no": 24,
+          "name": "Vanessa Azzahra",
+          "row": 396
+        },
+        {
+          "no": 25,
+          "name": "Wahyu Prasetyo",
+          "row": 397
+        },
+        {
+          "no": 26,
+          "name": "Yusuf Ramadahan Saputra",
+          "row": 398
+        },
+        {
+          "no": 27,
+          "name": "Zidan Alfariz",
+          "row": 399
+        }
+      ],
+      "student_count": 27
+    },
+    "X DKV 1": {
+      "name": "X DKV 1",
+      "program": "Desain Komunikasi Visual (DKV)",
+      "walas": "Andina Try Nurcahyani, S.Pd",
+      "students": [
+        {
+          "no": 1,
+          "name": "Ailsa Citra Kirana",
+          "row": 423
+        },
+        {
+          "no": 2,
+          "name": "Alya Ervina Rasty",
+          "row": 424
+        },
+        {
+          "no": 3,
+          "name": "Deca Mila Rahma",
+          "row": 425
+        },
+        {
+          "no": 4,
+          "name": "Erlangga Nurrohman",
+          "row": 426
+        },
+        {
+          "no": 5,
+          "name": "Fayha Isna Afiyah",
+          "row": 427
+        },
+        {
+          "no": 6,
+          "name": "Gadis Naila Oktamaria Ruslan",
+          "row": 428
+        },
+        {
+          "no": 7,
+          "name": "Janeta Carrisa Aritonang",
+          "row": 429
+        },
+        {
+          "no": 8,
+          "name": "Ludmila Chritella Assa",
+          "row": 430
+        },
+        {
+          "no": 9,
+          "name": "MUHAMAD FURQON (PB)",
+          "row": 431
+        },
+        {
+          "no": 10,
+          "name": "MUHAMMAD ANNUR FIYAN (PB)",
+          "row": 432
+        },
+        {
+          "no": 11,
+          "name": "Muhammad Aqil al farizy (PB)",
+          "row": 433
+        },
+        {
+          "no": 12,
+          "name": "Muhammad Diky Jaya",
+          "row": 434
+        },
+        {
+          "no": 13,
+          "name": "MUHAMMAD FAHRIZAL ALKAFI (PB)",
+          "row": 435
+        },
+        {
+          "no": 14,
+          "name": "Muhamad Rifki Romdani",
+          "row": 436
+        },
+        {
+          "no": 15,
+          "name": "Mutia Cinta Sijabat",
+          "row": 437
+        },
+        {
+          "no": 16,
+          "name": "Muhammad Jabbar Aswat Marifatulloh",
+          "row": 438
+        },
+        {
+          "no": 17,
+          "name": "Nazwa Adelia",
+          "row": 439
+        },
+        {
+          "no": 18,
+          "name": "Rafael Simon Benitez Marbun",
+          "row": 440
+        },
+        {
+          "no": 19,
+          "name": "Ramadhani Saputra",
+          "row": 441
+        },
+        {
+          "no": 20,
+          "name": "RANGGA ALENDRA RAMADHAN (PB)",
+          "row": 442
+        },
+        {
+          "no": 21,
+          "name": "Rianti Anjani Putri",
+          "row": 443
+        },
+        {
+          "no": 22,
+          "name": "SALSA BILLA NURAINI (PB)",
+          "row": 444
+        },
+        {
+          "no": 23,
+          "name": "Zetnad Alvriansa Kakiay",
+          "row": 445
+        }
+      ],
+      "student_count": 23
+    },
+    "X DKV 2": {
+      "name": "X DKV 2",
+      "program": "Desain Komunikasi Visual (DKV)",
+      "walas": "Rita Yusnita, SE, M.Pd",
+      "students": [
+        {
+          "no": 1,
+          "name": "Akbar Rizky Rameyza",
+          "row": 469
+        },
+        {
+          "no": 2,
+          "name": "Ananda Tiaraputri Sopyan",
+          "row": 470
+        },
+        {
+          "no": 3,
+          "name": "Anaya putri Prasetya",
+          "row": 471
+        },
+        {
+          "no": 4,
+          "name": "Anjani Putri",
+          "row": 472
+        },
+        {
+          "no": 5,
+          "name": "Aula Suci Putri Dewi",
+          "row": 473
+        },
+        {
+          "no": 6,
+          "name": "Azura Khalycazni",
+          "row": 474
+        },
+        {
+          "no": 7,
+          "name": "Derys Fajar Ardyansyah",
+          "row": 475
+        },
+        {
+          "no": 8,
+          "name": "Dimas Radittiya",
+          "row": 476
+        },
+        {
+          "no": 9,
+          "name": "Gendis Andrianny",
+          "row": 477
+        },
+        {
+          "no": 10,
+          "name": "Jihan Fathinah Uzma",
+          "row": 478
+        },
+        {
+          "no": 11,
+          "name": "Keyla Aulia Putri",
+          "row": 479
+        },
+        {
+          "no": 12,
+          "name": "Muhamad Haikal Alzabbar",
+          "row": 480
+        },
+        {
+          "no": 13,
+          "name": "Muhamad Riski",
+          "row": 481
+        },
+        {
+          "no": 14,
+          "name": "Muhammad Fadli Wijaya",
+          "row": 482
+        },
+        {
+          "no": 15,
+          "name": "Nabilla Cahaya Aulia Ramadhan",
+          "row": 483
+        },
+        {
+          "no": 16,
+          "name": "Nurul A'ini Arasyid",
+          "row": 484
+        },
+        {
+          "no": 17,
+          "name": "Puspa Fitri Wulandaris",
+          "row": 485
+        },
+        {
+          "no": 18,
+          "name": "Rianti",
+          "row": 486
+        },
+        {
+          "no": 19,
+          "name": "Rizky Wijaya",
+          "row": 487
+        },
+        {
+          "no": 20,
+          "name": "Risma Agustin Maharani",
+          "row": 488
+        },
+        {
+          "no": 21,
+          "name": "Salmah Hasanah",
+          "row": 489
+        },
+        {
+          "no": 22,
+          "name": "Willy Damara",
+          "row": 490
+        }
+      ],
+      "student_count": 22
+    },
+    "X RPL": {
+      "name": "X RPL",
+      "program": "Rekayasa Perangkat Lunak (RPL)",
+      "walas": "Parlindungan S, S.Kom",
+      "students": [
+        {
+          "no": 1,
+          "name": "ALAN ZAINI AKBAR WAHYUDIN (PB)",
+          "row": 514
+        },
+        {
+          "no": 2,
+          "name": "Arjuna",
+          "row": 515
+        },
+        {
+          "no": 3,
+          "name": "Fadhlan Hidayatullah",
+          "row": 516
+        },
+        {
+          "no": 4,
+          "name": "Faiz Ibrahim Alamsyah",
+          "row": 517
+        },
+        {
+          "no": 5,
+          "name": "FAKHIRA NADHEFA ALTHAFUNNISA (PB)",
+          "row": 518
+        },
+        {
+          "no": 6,
+          "name": "IQBAL MAULANA (PB)",
+          "row": 519
+        },
+        {
+          "no": 7,
+          "name": "Joan Abner Matthewtua Tambunan (PB)",
+          "row": 520
+        },
+        {
+          "no": 8,
+          "name": "Leonel Putra Sitepu",
+          "row": 521
+        },
+        {
+          "no": 9,
+          "name": "KAUTSAR FIRDY LUKMANA (PB)",
+          "row": 522
+        },
+        {
+          "no": 10,
+          "name": "M. CHARLI HIMAMI (PB)",
+          "row": 523
+        },
+        {
+          "no": 11,
+          "name": "Mohamad Prasityo",
+          "row": 524
+        },
+        {
+          "no": 12,
+          "name": "Muhammad Ardi Efriyanto",
+          "row": 525
+        },
+        {
+          "no": 13,
+          "name": "Muhammad Bintang Ramadhan",
+          "row": 526
+        },
+        {
+          "no": 14,
+          "name": "Muhammad Rafi",
+          "row": 527
+        },
+        {
+          "no": 15,
+          "name": "Rafael Afandy Silaban",
+          "row": 528
+        },
+        {
+          "no": 16,
+          "name": "Raka Ibnu Rivai",
+          "row": 529
+        },
+        {
+          "no": 17,
+          "name": "Ridho Wicaksono (PB)",
+          "row": 530
+        },
+        {
+          "no": 18,
+          "name": "Rizki Amanda Putri",
+          "row": 531
+        },
+        {
+          "no": 19,
+          "name": "Rilly Ardian Suhendar",
+          "row": 532
+        },
+        {
+          "no": 20,
+          "name": "Satria Majid",
+          "row": 533
+        },
+        {
+          "no": 21,
+          "name": "Yeruel Jeshurun",
+          "row": 534
+        }
+      ],
+      "student_count": 21
+    }
+  },
+  "sheet2_students": [
+    {
+      "no": 1,
+      "name": "Abdul Hafidh",
+      "row": 6
+    },
+    {
+      "no": 2,
+      "name": "Ananda Nurokhman",
+      "row": 7
+    },
+    {
+      "no": 3,
+      "name": "Angelita Ayuninrum",
+      "row": 8
+    },
+    {
+      "no": 4,
+      "name": "Brian Nugraha Fritz Pakpahan",
+      "row": 9
+    },
+    {
+      "no": 5,
+      "name": "Citra Wulandari",
+      "row": 10
+    },
+    {
+      "no": 6,
+      "name": "Deo Efraim Sianipar",
+      "row": 11
+    },
+    {
+      "no": 7,
+      "name": "David Prawira Samuel Sitanggang",
+      "row": 12
+    },
+    {
+      "no": 8,
+      "name": "Elsa Maryani Veronika Parapat",
+      "row": 13
+    },
+    {
+      "no": 9,
+      "name": "Farel Nugroho",
+      "row": 14
+    },
+    {
+      "no": 10,
+      "name": "Faris Raehan",
+      "row": 15
+    },
+    {
+      "no": 11,
+      "name": "Gabriele Persaulian Sibarani",
+      "row": 16
+    },
+    {
+      "no": 12,
+      "name": "Herraga Hannanta",
+      "row": 17
+    },
+    {
+      "no": 13,
+      "name": "Jhosua Mario",
+      "row": 18
+    },
+    {
+      "no": 14,
+      "name": "Jorgi Saputra",
+      "row": 19
+    },
+    {
+      "no": 15,
+      "name": "Marselo Putra Fadila",
+      "row": 20
+    },
+    {
+      "no": 16,
+      "name": "Marsya Andini",
+      "row": 21
+    },
+    {
+      "no": 17,
+      "name": "Maulana Tajudin Winata",
+      "row": 22
+    },
+    {
+      "no": 18,
+      "name": "Mielky Naasfatih Busur Rayhan",
+      "row": 23
+    },
+    {
+      "no": 19,
+      "name": "Mochammad Rizky Alphasa",
+      "row": 24
+    },
+    {
+      "no": 20,
+      "name": "Mohammad Rivansyah",
+      "row": 25
+    },
+    {
+      "no": 21,
+      "name": "Nabila Sintia Ningrum",
+      "row": 26
+    },
+    {
+      "no": 22,
+      "name": "Nandito",
+      "row": 27
+    },
+    {
+      "no": 23,
+      "name": "Rakha Fadhlur Rohman",
+      "row": 28
+    },
+    {
+      "no": 24,
+      "name": "Rejif Andara Seja",
+      "row": 29
+    },
+    {
+      "no": 25,
+      "name": "Rendy Akbar Firmansyah",
+      "row": 30
+    },
+    {
+      "no": 26,
+      "name": "Salsabillah Maisan",
+      "row": 31
+    },
+    {
+      "no": 27,
+      "name": "Sepa Nasta Solehhudin",
+      "row": 32
+    },
+    {
+      "no": 28,
+      "name": "Stepanius Immanuel Hutajulu",
+      "row": 33
+    },
+    {
+      "no": 29,
+      "name": "Syarief Hidayat",
+      "row": 34
+    },
+    {
+      "no": 30,
+      "name": "Tina Septiana",
+      "row": 35
+    }
+  ],
+  "schedule_entries": [
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 1,
+      "class": "X TO 2",
+      "raw_text": "33"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 1,
+      "class": "X TO 3",
+      "raw_text": "BIND 28"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 1,
+      "class": "X TO 4",
+      "raw_text": "22"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 1,
+      "class": "X TO 5",
+      "raw_text": "21"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 1,
+      "class": "X TJKT 1",
+      "raw_text": "36"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 1,
+      "class": "X TJKT 2",
+      "raw_text": "24"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 1,
+      "class": "X DKV 2",
+      "raw_text": "20"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 1,
+      "class": "X RPL",
+      "raw_text": "35"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 2,
+      "class": "X TO 2",
+      "raw_text": "33"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 2,
+      "class": "X TO 3",
+      "raw_text": "BIND 28"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 2,
+      "class": "X TO 4",
+      "raw_text": "22"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 2,
+      "class": "X TO 5",
+      "raw_text": "21"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 2,
+      "class": "X TJKT 1",
+      "raw_text": "36"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 2,
+      "class": "X TJKT 2",
+      "raw_text": "24"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 2,
+      "class": "X DKV 2",
+      "raw_text": "20"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 2,
+      "class": "X RPL",
+      "raw_text": "35"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 3,
+      "class": "X TO 1",
+      "raw_text": "36"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 3,
+      "class": "X TO 2",
+      "raw_text": "24"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 3,
+      "class": "X TO 3",
+      "raw_text": "IPAS 22"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 3,
+      "class": "X TO 4",
+      "raw_text": "30"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 3,
+      "class": "X TO 5",
+      "raw_text": "17"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 3,
+      "class": "X TJKT 1",
+      "raw_text": "28"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 3,
+      "class": "X TJKT 2",
+      "raw_text": "37"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 3,
+      "class": "X DKV 2",
+      "raw_text": "8"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 3,
+      "class": "X RPL",
+      "raw_text": "35"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 4,
+      "class": "X TO 1",
+      "raw_text": "36"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 4,
+      "class": "X TO 2",
+      "raw_text": "24"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 4,
+      "class": "X TO 3",
+      "raw_text": "IPAS 22"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 4,
+      "class": "X TO 4",
+      "raw_text": "30"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 4,
+      "class": "X TO 5",
+      "raw_text": "17"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 4,
+      "class": "X TJKT 1",
+      "raw_text": "28"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 4,
+      "class": "X TJKT 2",
+      "raw_text": "37"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 4,
+      "class": "X DKV 2",
+      "raw_text": "35"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X TO 1",
+      "raw_text": "22"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X TO 3",
+      "raw_text": "MTK 24"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X TO 4",
+      "raw_text": "27"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X TO 5",
+      "raw_text": "30"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X TJKT 1",
+      "raw_text": "33"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X TJKT 2",
+      "raw_text": "28"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X DKV 1",
+      "raw_text": "20"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X DKV 2",
+      "raw_text": "35"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X TO 1",
+      "raw_text": "22"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X TO 3",
+      "raw_text": "MTK 24"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X TO 4",
+      "raw_text": "27"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X TO 5",
+      "raw_text": "30"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X TJKT 1",
+      "raw_text": "33"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X TJKT 2",
+      "raw_text": "28"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X DKV 1",
+      "raw_text": "20"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X DKV 2",
+      "raw_text": "35"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 7,
+      "class": "X TO 1",
+      "raw_text": "33"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 7,
+      "class": "X TO 2",
+      "raw_text": "26/13"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 7,
+      "class": "X TO 3",
+      "raw_text": "DDTO 7"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 7,
+      "class": "X TO 4",
+      "raw_text": "28"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 7,
+      "class": "X TO 5",
+      "raw_text": "22"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 7,
+      "class": "X TJKT 2",
+      "raw_text": "27"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 7,
+      "class": "X DKV 1",
+      "raw_text": "36"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 7,
+      "class": "X DKV 2",
+      "raw_text": "24"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 7,
+      "class": "X RPL",
+      "raw_text": "32"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 8,
+      "class": "X TO 1",
+      "raw_text": "33"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 8,
+      "class": "X TO 2",
+      "raw_text": "26/13"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 8,
+      "class": "X TO 3",
+      "raw_text": "DDTO 7"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 8,
+      "class": "X TO 4",
+      "raw_text": "28"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 8,
+      "class": "X TO 5",
+      "raw_text": "22"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 8,
+      "class": "X TJKT 2",
+      "raw_text": "27"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 8,
+      "class": "X DKV 1",
+      "raw_text": "36"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 8,
+      "class": "X DKV 2",
+      "raw_text": "24"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 8,
+      "class": "X RPL",
+      "raw_text": "32"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 9,
+      "class": "X TO 1",
+      "raw_text": "24"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 9,
+      "class": "X TO 2",
+      "raw_text": "26/13"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 9,
+      "class": "X TO 3",
+      "raw_text": "SEJARAH 27"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 9,
+      "class": "X TO 4",
+      "raw_text": "7"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 9,
+      "class": "X TO 5",
+      "raw_text": "2"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 9,
+      "class": "X TJKT 1",
+      "raw_text": "22"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 9,
+      "class": "X DKV 1",
+      "raw_text": "33"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 9,
+      "class": "X DKV 2",
+      "raw_text": "3"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 9,
+      "class": "X RPL",
+      "raw_text": "28"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 10,
+      "class": "X TO 1",
+      "raw_text": "24"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 10,
+      "class": "X TO 2",
+      "raw_text": "17"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 10,
+      "class": "X TO 3",
+      "raw_text": "SEJARAH 27"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 10,
+      "class": "X TO 4",
+      "raw_text": "7"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 10,
+      "class": "X TO 5",
+      "raw_text": "2"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 10,
+      "class": "X TJKT 1",
+      "raw_text": "22"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 10,
+      "class": "X DKV 1",
+      "raw_text": "33"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 10,
+      "class": "X DKV 2",
+      "raw_text": "3"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE E",
+      "slot": 10,
+      "class": "X RPL",
+      "raw_text": "28"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XI TO 2",
+      "raw_text": "38"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XI TO 3",
+      "raw_text": "27"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XI TJKT",
+      "raw_text": "17"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XI DKV",
+      "raw_text": "25"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XI RPL",
+      "raw_text": "37"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XII TKRO 2",
+      "raw_text": "30"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XII TKJ 1",
+      "raw_text": "26/13"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XII DKV 1",
+      "raw_text": "31"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XII RPL",
+      "raw_text": "23"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XI TO 2",
+      "raw_text": "38"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XI TO 3",
+      "raw_text": "27"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XI TJKT",
+      "raw_text": "17"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XI DKV",
+      "raw_text": "25"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XI RPL",
+      "raw_text": "37"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XII TKRO 2",
+      "raw_text": "30"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XII TKJ 1",
+      "raw_text": "26/13"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XII DKV 1",
+      "raw_text": "31"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XII RPL",
+      "raw_text": "23"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 3,
+      "class": "XI TO 2",
+      "raw_text": "27"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 3,
+      "class": "XI TO 3",
+      "raw_text": "25"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 3,
+      "class": "XI TJKT",
+      "raw_text": "38"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 3,
+      "class": "XI DKV",
+      "raw_text": "20"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 3,
+      "class": "XII TKRO 2",
+      "raw_text": "9"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 3,
+      "class": "XII TKJ 1",
+      "raw_text": "26/13"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 3,
+      "class": "XII DKV 1",
+      "raw_text": "31"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 4,
+      "class": "XI TO 2",
+      "raw_text": "27"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 4,
+      "class": "XI TO 3",
+      "raw_text": "25"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 4,
+      "class": "XI TJKT",
+      "raw_text": "38"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 4,
+      "class": "XI DKV",
+      "raw_text": "20"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 4,
+      "class": "XI RPL",
+      "raw_text": "31"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 4,
+      "class": "XII TKRO 2",
+      "raw_text": "9"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 4,
+      "class": "XII TKJ 1",
+      "raw_text": "23"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 4,
+      "class": "XII DKV 1",
+      "raw_text": "26/13"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XI TO 1",
+      "raw_text": "SIANG, BENGKEL Syarif"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XI TO 2",
+      "raw_text": "2"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XI TO 3",
+      "raw_text": "37"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XI TJKT",
+      "raw_text": "25"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XI DKV",
+      "raw_text": "6"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XI RPL",
+      "raw_text": "32"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XII TKRO 1",
+      "raw_text": "PRAKTIK PAGI,"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XII TKRO 2",
+      "raw_text": "36"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XII TKJ 1",
+      "raw_text": "17"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XII DKV 1",
+      "raw_text": "26/13"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XII RPL",
+      "raw_text": "PRAKTIK LAB"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XI TO 1",
+      "raw_text": "SIANG, Maulana, Syarif"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XI TO 2",
+      "raw_text": "9"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XI TO 3",
+      "raw_text": "37"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XI TJKT",
+      "raw_text": "25"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XI DKV",
+      "raw_text": "6"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XI RPL",
+      "raw_text": "32"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XII TKRO 1",
+      "raw_text": "Syarif Ahmad"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XII TKRO 2",
+      "raw_text": "36"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XII TKJ 1",
+      "raw_text": "17"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XII DKV 1",
+      "raw_text": "26/13"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XII RPL",
+      "raw_text": "PRAKTIK Eri Chandra, LAB"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XI TO 1",
+      "raw_text": "ST Maulana,"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XI TO 2",
+      "raw_text": "35"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XI TO 3",
+      "raw_text": "38"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XI TJKT",
+      "raw_text": "37"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XI DKV",
+      "raw_text": "25"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XI RPL",
+      "raw_text": "31"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XII TKRO 1",
+      "raw_text": "Maulana, ST"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XII TKRO 2",
+      "raw_text": "9"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XII TKJ 1",
+      "raw_text": "17"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XII DKV 1",
+      "raw_text": "30"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XII RPL",
+      "raw_text": "S.Kom Eri Chandra,"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 8,
+      "class": "XI TO 2",
+      "raw_text": "35"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 8,
+      "class": "XI TO 3",
+      "raw_text": "38"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 8,
+      "class": "XI TJKT",
+      "raw_text": "37"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 8,
+      "class": "XI DKV",
+      "raw_text": "25"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 8,
+      "class": "XI RPL",
+      "raw_text": "31"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 8,
+      "class": "XII TKRO 2",
+      "raw_text": "23"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 8,
+      "class": "XII TKJ 1",
+      "raw_text": "17"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 8,
+      "class": "XII DKV 1",
+      "raw_text": "30"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 9,
+      "class": "XI TO 2",
+      "raw_text": "25"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 9,
+      "class": "XI TO 3",
+      "raw_text": "37"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 9,
+      "class": "XI TJKT",
+      "raw_text": "17"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 9,
+      "class": "XI DKV",
+      "raw_text": "38"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 9,
+      "class": "XI RPL",
+      "raw_text": "35"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 9,
+      "class": "XII TKRO 2",
+      "raw_text": "11"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 9,
+      "class": "XII TKJ 1",
+      "raw_text": "31"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 9,
+      "class": "XII DKV 1",
+      "raw_text": "20"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 10,
+      "class": "XI TO 2",
+      "raw_text": "25"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 10,
+      "class": "XI TJKT",
+      "raw_text": "37"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 10,
+      "class": "XI DKV",
+      "raw_text": "38"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 10,
+      "class": "XI RPL",
+      "raw_text": "35"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 10,
+      "class": "XII TKRO 2",
+      "raw_text": "11"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 10,
+      "class": "XII TKJ 1",
+      "raw_text": "31"
+    },
+    {
+      "day": "SENIN",
+      "fase": "FASE F",
+      "slot": 10,
+      "class": "XII DKV 1",
+      "raw_text": "20"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 1,
+      "class": "X TO 3",
+      "raw_text": "IPAS 22"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 1,
+      "class": "X TO 4",
+      "raw_text": "24"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 1,
+      "class": "X TO 5",
+      "raw_text": "36"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 1,
+      "class": "X TJKT 1",
+      "raw_text": "33"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 1,
+      "class": "X TJKT 2",
+      "raw_text": "29"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 1,
+      "class": "X DKV 1",
+      "raw_text": "35"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 1,
+      "class": "X RPL",
+      "raw_text": "28"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 2,
+      "class": "X TO 3",
+      "raw_text": "IPAS 22"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 2,
+      "class": "X TO 4",
+      "raw_text": "24"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 2,
+      "class": "X TO 5",
+      "raw_text": "36"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 2,
+      "class": "X TJKT 1",
+      "raw_text": "33"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 2,
+      "class": "X TJKT 2",
+      "raw_text": "29"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 2,
+      "class": "X DKV 1",
+      "raw_text": "35"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 2,
+      "class": "X RPL",
+      "raw_text": "28"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 3,
+      "class": "X TO 3",
+      "raw_text": "BING 33"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 3,
+      "class": "X TO 4",
+      "raw_text": "22"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 3,
+      "class": "X TO 5",
+      "raw_text": "24"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 3,
+      "class": "X TJKT 1",
+      "raw_text": "28"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 3,
+      "class": "X TJKT 2",
+      "raw_text": "29"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 3,
+      "class": "X DKV 1",
+      "raw_text": "35"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 4,
+      "class": "X TO 3",
+      "raw_text": "BING 33"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 4,
+      "class": "X TO 4",
+      "raw_text": "22"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 4,
+      "class": "X TO 5",
+      "raw_text": "24"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 4,
+      "class": "X TJKT 1",
+      "raw_text": "28"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 4,
+      "class": "X TJKT 2",
+      "raw_text": "35"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 4,
+      "class": "X DKV 1",
+      "raw_text": "29/13"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 4,
+      "class": "X DKV 2",
+      "raw_text": "PRAKTIK LAB"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X TO 1",
+      "raw_text": "BENGKEL PAGI, Drs."
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X TO 2",
+      "raw_text": "BENGKEL PRAKTIK SIANG,"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X TO 3",
+      "raw_text": "SENI 36"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X TO 4",
+      "raw_text": "33"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X TO 5",
+      "raw_text": "22"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X TJKT 1",
+      "raw_text": "24"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X TJKT 2",
+      "raw_text": "35"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X DKV 1",
+      "raw_text": "29/13"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X DKV 2",
+      "raw_text": "Muhammad"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X RPL",
+      "raw_text": "27"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X TO 1",
+      "raw_text": "PAGI, Rekson Drs."
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X TO 2",
+      "raw_text": "BENGKEL Donatus Soeti SIANG, P, ST"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X TO 3",
+      "raw_text": "SENI 36"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X TO 4",
+      "raw_text": "33"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X TO 5",
+      "raw_text": "22"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X TJKT 1",
+      "raw_text": "24"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X TJKT 2",
+      "raw_text": "35"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X DKV 1",
+      "raw_text": "29/13"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X DKV 2",
+      "raw_text": "Sopyan, S.Kom"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X RPL",
+      "raw_text": "27"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 7,
+      "class": "X TO 1",
+      "raw_text": "Pangaribuan"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 7,
+      "class": "X TO 3",
+      "raw_text": "MTK 24"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 7,
+      "class": "X TO 4",
+      "raw_text": "32"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 7,
+      "class": "X TO 5",
+      "raw_text": "27"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 7,
+      "class": "X TJKT 1",
+      "raw_text": "22"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 7,
+      "class": "X TJKT 2",
+      "raw_text": "28"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 7,
+      "class": "X RPL",
+      "raw_text": "25"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 8,
+      "class": "X TO 3",
+      "raw_text": "MTK 24"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 8,
+      "class": "X TO 4",
+      "raw_text": "32"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 8,
+      "class": "X TO 5",
+      "raw_text": "27"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 8,
+      "class": "X TJKT 1",
+      "raw_text": "22"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 8,
+      "class": "X TJKT 2",
+      "raw_text": "28"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 8,
+      "class": "X RPL",
+      "raw_text": "25"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 9,
+      "class": "X TO 3",
+      "raw_text": "PKN 32"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 9,
+      "class": "X TO 4",
+      "raw_text": "28"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 9,
+      "class": "X TO 5",
+      "raw_text": "33"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 9,
+      "class": "X TJKT 1",
+      "raw_text": "27"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 9,
+      "class": "X TJKT 2",
+      "raw_text": "22"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 9,
+      "class": "X DKV 1",
+      "raw_text": "24"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 9,
+      "class": "X DKV 2",
+      "raw_text": "8"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 9,
+      "class": "X RPL",
+      "raw_text": "38"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 10,
+      "class": "X TO 3",
+      "raw_text": "PKN 32"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 10,
+      "class": "X TO 4",
+      "raw_text": "28"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 10,
+      "class": "X TO 5",
+      "raw_text": "33"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 10,
+      "class": "X TJKT 1",
+      "raw_text": "27"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 10,
+      "class": "X TJKT 2",
+      "raw_text": "22"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 10,
+      "class": "X DKV 1",
+      "raw_text": "24"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 10,
+      "class": "X DKV 2",
+      "raw_text": "8"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE E",
+      "slot": 10,
+      "class": "X RPL",
+      "raw_text": "38"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XI TO 1",
+      "raw_text": "31"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XI TO 2",
+      "raw_text": "25"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XI TJKT",
+      "raw_text": "38"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XI RPL",
+      "raw_text": "27"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XII TKRO 1",
+      "raw_text": "32"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XII TKRO 2",
+      "raw_text": "7"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XII TKJ 1",
+      "raw_text": "10"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XII DKV 1",
+      "raw_text": "23"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XII RPL",
+      "raw_text": "21"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XI TO 1",
+      "raw_text": "31"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XI TO 2",
+      "raw_text": "25"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XI TJKT",
+      "raw_text": "38"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XI RPL",
+      "raw_text": "27"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XII TKRO 1",
+      "raw_text": "32"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XII TKRO 2",
+      "raw_text": "7"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XII TKJ 1",
+      "raw_text": "10"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XII DKV 1",
+      "raw_text": "23"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XII RPL",
+      "raw_text": "21"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 3,
+      "class": "XI TO 1",
+      "raw_text": "31"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 3,
+      "class": "XI TO 2",
+      "raw_text": "27"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 3,
+      "class": "XI TO 3",
+      "raw_text": "23"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 3,
+      "class": "XI RPL",
+      "raw_text": "25"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 3,
+      "class": "XII TKRO 2",
+      "raw_text": "32"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 3,
+      "class": "XII TKJ 1",
+      "raw_text": "34"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 3,
+      "class": "XII DKV 1",
+      "raw_text": "20"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 3,
+      "class": "XII RPL",
+      "raw_text": "10"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 4,
+      "class": "XI TO 1",
+      "raw_text": "12"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 4,
+      "class": "XI TO 2",
+      "raw_text": "27"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 4,
+      "class": "XI TO 3",
+      "raw_text": "23"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 4,
+      "class": "XI TJKT",
+      "raw_text": "31"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 4,
+      "class": "XI RPL",
+      "raw_text": "25"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 4,
+      "class": "XII TKRO 2",
+      "raw_text": "32"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 4,
+      "class": "XII TKJ 1",
+      "raw_text": "34"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 4,
+      "class": "XII DKV 1",
+      "raw_text": "20"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 4,
+      "class": "XII RPL",
+      "raw_text": "10"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XI TO 1",
+      "raw_text": "25"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XI TO 2",
+      "raw_text": "23"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XI TO 3",
+      "raw_text": "31"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XI DKV",
+      "raw_text": "PRAKTIK LAB"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XI RPL",
+      "raw_text": "38"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XII TKRO 2",
+      "raw_text": "15"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XII TKJ 1",
+      "raw_text": "32"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XII DKV 1",
+      "raw_text": "20"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XII RPL",
+      "raw_text": "21"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XI TO 1",
+      "raw_text": "25"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XI TO 2",
+      "raw_text": "23"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XI TO 3",
+      "raw_text": "31"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XI DKV",
+      "raw_text": "Suryani, S.Ds"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XI RPL",
+      "raw_text": "38"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XII TKRO 1",
+      "raw_text": "11"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XII TKRO 2",
+      "raw_text": "9"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XII TKJ 1",
+      "raw_text": "32"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XII DKV 1",
+      "raw_text": "20"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XII RPL",
+      "raw_text": "21"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XI TO 1",
+      "raw_text": "38"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XI TO 2",
+      "raw_text": "9"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XI TO 3",
+      "raw_text": "31"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XI TJKT",
+      "raw_text": "35"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XII TKRO 1",
+      "raw_text": "11"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XII TKRO 2",
+      "raw_text": "10"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XII TKJ 1",
+      "raw_text": "23"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XII DKV 1",
+      "raw_text": "36"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XII RPL",
+      "raw_text": "21"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 8,
+      "class": "XI TO 1",
+      "raw_text": "38"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 8,
+      "class": "XI TO 2",
+      "raw_text": "9"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 8,
+      "class": "XI TO 3",
+      "raw_text": "12"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 8,
+      "class": "XI TJKT",
+      "raw_text": "35"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 8,
+      "class": "XI RPL",
+      "raw_text": "29/13"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 8,
+      "class": "XII TKRO 1",
+      "raw_text": "31"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 8,
+      "class": "XII TKRO 2",
+      "raw_text": "10"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 8,
+      "class": "XII TKJ 1",
+      "raw_text": "23"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 8,
+      "class": "XII DKV 1",
+      "raw_text": "36"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 8,
+      "class": "XII RPL",
+      "raw_text": "21"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 9,
+      "class": "XI TO 1",
+      "raw_text": "35"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 9,
+      "class": "XI TO 2",
+      "raw_text": "2"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 9,
+      "class": "XI TO 3",
+      "raw_text": "12"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 9,
+      "class": "XI TJKT",
+      "raw_text": "25"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 9,
+      "class": "XI RPL",
+      "raw_text": "29/13"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 9,
+      "class": "XII TKRO 1",
+      "raw_text": "31"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 9,
+      "class": "XII TKRO 2",
+      "raw_text": "9"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 9,
+      "class": "XII TKJ 1",
+      "raw_text": "36"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 9,
+      "class": "XII DKV 1",
+      "raw_text": "10"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 9,
+      "class": "XII RPL",
+      "raw_text": "21"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 10,
+      "class": "XI TO 1",
+      "raw_text": "35"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 10,
+      "class": "XI TO 2",
+      "raw_text": "2"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 10,
+      "class": "XI TO 3",
+      "raw_text": "12"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 10,
+      "class": "XI TJKT",
+      "raw_text": "25"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 10,
+      "class": "XI RPL",
+      "raw_text": "29/13"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 10,
+      "class": "XII TKRO 1",
+      "raw_text": "31"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 10,
+      "class": "XII TKRO 2",
+      "raw_text": "9"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 10,
+      "class": "XII TKJ 1",
+      "raw_text": "36"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 10,
+      "class": "XII DKV 1",
+      "raw_text": "10"
+    },
+    {
+      "day": "SELASA",
+      "fase": "FASE F",
+      "slot": 10,
+      "class": "XII RPL",
+      "raw_text": "21"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 1,
+      "class": "X TO 1",
+      "raw_text": "33"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 1,
+      "class": "X TO 2",
+      "raw_text": "30"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 1,
+      "class": "X TO 4",
+      "raw_text": "35"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 1,
+      "class": "X TO 5",
+      "raw_text": "28"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 1,
+      "class": "X TJKT 1",
+      "raw_text": "19"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 1,
+      "class": "X TJKT 2",
+      "raw_text": "22"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 1,
+      "class": "X DKV 2",
+      "raw_text": "38"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 1,
+      "class": "X RPL",
+      "raw_text": "36"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 2,
+      "class": "X TO 1",
+      "raw_text": "33"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 2,
+      "class": "X TO 2",
+      "raw_text": "30"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 2,
+      "class": "X TO 4",
+      "raw_text": "35"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 2,
+      "class": "X TO 5",
+      "raw_text": "28"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 2,
+      "class": "X TJKT 1",
+      "raw_text": "19"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 2,
+      "class": "X TJKT 2",
+      "raw_text": "22"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 2,
+      "class": "X DKV 2",
+      "raw_text": "38"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 2,
+      "class": "X RPL",
+      "raw_text": "36"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 3,
+      "class": "X TO 1",
+      "raw_text": "35"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 3,
+      "class": "X TO 2",
+      "raw_text": "22"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 3,
+      "class": "X TO 4",
+      "raw_text": "17"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 3,
+      "class": "X TO 5",
+      "raw_text": "33"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 3,
+      "class": "X TJKT 1",
+      "raw_text": "21"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 3,
+      "class": "X TJKT 2",
+      "raw_text": "19"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 3,
+      "class": "X DKV 2",
+      "raw_text": "3"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 3,
+      "class": "X RPL",
+      "raw_text": "38"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 4,
+      "class": "X TO 1",
+      "raw_text": "35"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 4,
+      "class": "X TO 2",
+      "raw_text": "22"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 4,
+      "class": "X TO 4",
+      "raw_text": "17"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 4,
+      "class": "X TO 5",
+      "raw_text": "33"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 4,
+      "class": "X TJKT 1",
+      "raw_text": "21"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 4,
+      "class": "X TJKT 2",
+      "raw_text": "19"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 4,
+      "class": "X DKV 1",
+      "raw_text": "PAGI,"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 4,
+      "class": "X DKV 2",
+      "raw_text": "3"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 4,
+      "class": "X RPL",
+      "raw_text": "38"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X TO 1",
+      "raw_text": "35"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X TO 2",
+      "raw_text": "36"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X TO 3",
+      "raw_text": "BENGKEL"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X TO 4",
+      "raw_text": "22"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X TO 5",
+      "raw_text": "26"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X TJKT 1",
+      "raw_text": "19"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X TJKT 2",
+      "raw_text": "33"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X DKV 1",
+      "raw_text": "S.Kom"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X DKV 2",
+      "raw_text": "28"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X RPL",
+      "raw_text": "37"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X TO 1",
+      "raw_text": "17"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X TO 2",
+      "raw_text": "36"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X TO 3",
+      "raw_text": "SIANG,"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X TO 4",
+      "raw_text": "35"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X TO 5",
+      "raw_text": "26"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X TJKT 2",
+      "raw_text": "33"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X DKV 1",
+      "raw_text": "S.Kom"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X DKV 2",
+      "raw_text": "28"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X RPL",
+      "raw_text": "37"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 7,
+      "class": "X TO 1",
+      "raw_text": "22"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 7,
+      "class": "X TO 2",
+      "raw_text": "28"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 7,
+      "class": "X TO 3",
+      "raw_text": "Soeti Donatus P, ST"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 7,
+      "class": "X TO 4",
+      "raw_text": "33"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 7,
+      "class": "X TO 5",
+      "raw_text": "26"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 7,
+      "class": "X TJKT 1",
+      "raw_text": "37"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 7,
+      "class": "X TJKT 2",
+      "raw_text": "36"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 7,
+      "class": "X DKV 2",
+      "raw_text": "29"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 8,
+      "class": "X TO 1",
+      "raw_text": "22"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 8,
+      "class": "X TO 2",
+      "raw_text": "28"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 8,
+      "class": "X TO 3",
+      "raw_text": "Soeti P, ST"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 8,
+      "class": "X TO 4",
+      "raw_text": "33"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 8,
+      "class": "X TO 5",
+      "raw_text": "14"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 8,
+      "class": "X TJKT 1",
+      "raw_text": "37"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 8,
+      "class": "X TJKT 2",
+      "raw_text": "36"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 8,
+      "class": "X DKV 2",
+      "raw_text": "29"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 9,
+      "class": "X TO 1",
+      "raw_text": "28"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 9,
+      "class": "X TO 2",
+      "raw_text": "32"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 9,
+      "class": "X TO 4",
+      "raw_text": "22"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 9,
+      "class": "X TO 5",
+      "raw_text": "24"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 9,
+      "class": "X TJKT 1",
+      "raw_text": "35"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 9,
+      "class": "X TJKT 2",
+      "raw_text": "21"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 9,
+      "class": "X DKV 1",
+      "raw_text": "37"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 9,
+      "class": "X DKV 2",
+      "raw_text": "29"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 10,
+      "class": "X TO 1",
+      "raw_text": "17"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 10,
+      "class": "X TO 2",
+      "raw_text": "32"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 10,
+      "class": "X TO 4",
+      "raw_text": "21"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 10,
+      "class": "X TO 5",
+      "raw_text": "24"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 10,
+      "class": "X TJKT 1",
+      "raw_text": "35"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 10,
+      "class": "X TJKT 2",
+      "raw_text": "22"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 10,
+      "class": "X DKV 1",
+      "raw_text": "37"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 10,
+      "class": "X DKV 2",
+      "raw_text": "38"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 11,
+      "class": "X TO 1",
+      "raw_text": "28"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 11,
+      "class": "X TO 2",
+      "raw_text": "17"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 11,
+      "class": "X TO 4",
+      "raw_text": "21"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 11,
+      "class": "X TO 5",
+      "raw_text": "11"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 11,
+      "class": "X TJKT 1",
+      "raw_text": "35"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 11,
+      "class": "X TJKT 2",
+      "raw_text": "22"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 11,
+      "class": "X DKV 2",
+      "raw_text": "38"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE E",
+      "slot": 11,
+      "class": "X RPL",
+      "raw_text": "14"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XI TO 1",
+      "raw_text": "29"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XI TJKT",
+      "raw_text": "32"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XI DKV",
+      "raw_text": "37"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XII TKRO 1",
+      "raw_text": "26/13"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XII TKRO 2",
+      "raw_text": "7"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XII TKJ 1",
+      "raw_text": "17"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XII DKV 1",
+      "raw_text": "34"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XII RPL",
+      "raw_text": "21"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XI TO 1",
+      "raw_text": "29"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XI TJKT",
+      "raw_text": "32"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XI DKV",
+      "raw_text": "37"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XII TKRO 1",
+      "raw_text": "26/13"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XII TKRO 2",
+      "raw_text": "7"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XII TKJ 1",
+      "raw_text": "17"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XII DKV 1",
+      "raw_text": "34"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XII RPL",
+      "raw_text": "21"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 3,
+      "class": "XI TO 1",
+      "raw_text": "29"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 3,
+      "class": "XI TO 3",
+      "raw_text": "32"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 3,
+      "class": "XI DKV",
+      "raw_text": "37"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 3,
+      "class": "XII TKRO 1",
+      "raw_text": "26/13"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 3,
+      "class": "XII TKRO 2",
+      "raw_text": "34"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 3,
+      "class": "XII TKJ 1",
+      "raw_text": "31"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 3,
+      "class": "XII DKV 1",
+      "raw_text": "10"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 3,
+      "class": "XII RPL",
+      "raw_text": "36"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 4,
+      "class": "XI TO 1",
+      "raw_text": "23"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 4,
+      "class": "XI TO 3",
+      "raw_text": "32"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 4,
+      "class": "XI TJKT",
+      "raw_text": "29/13"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 4,
+      "class": "XI DKV",
+      "raw_text": "31"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 4,
+      "class": "XII TKRO 2",
+      "raw_text": "34"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 4,
+      "class": "XII DKV 1",
+      "raw_text": "10"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 4,
+      "class": "XII RPL",
+      "raw_text": "36"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XI TO 1",
+      "raw_text": "23"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XI TO 2",
+      "raw_text": "BENGKEL PRAKTIK"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XI TO 3",
+      "raw_text": "38"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XI TJKT",
+      "raw_text": "29/13"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XI DKV",
+      "raw_text": "31"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XI RPL",
+      "raw_text": "PRAKTIK LAB"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XII TKRO 1",
+      "raw_text": "30"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XII TKRO 2",
+      "raw_text": "10"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XII DKV 1",
+      "raw_text": "32"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XII RPL",
+      "raw_text": "34"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XI TO 1",
+      "raw_text": "23"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XI TO 2",
+      "raw_text": "PAGI, BENGKEL Rajayani"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XI TO 3",
+      "raw_text": "38"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XI TJKT",
+      "raw_text": "29/13"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XI DKV",
+      "raw_text": "31"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XI RPL",
+      "raw_text": "Nur Azizah"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XII TKRO 1",
+      "raw_text": "30"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XII TKRO 2",
+      "raw_text": "10"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XII TKJ 1",
+      "raw_text": "LAB"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XII DKV 1",
+      "raw_text": "32"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XII RPL",
+      "raw_text": "34"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XI TO 1",
+      "raw_text": "38"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XI TO 2",
+      "raw_text": "PAGI, Sianturi Rajayani"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XI TO 3",
+      "raw_text": "35"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XI TJKT",
+      "raw_text": "17"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XI DKV",
+      "raw_text": "32"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XI RPL",
+      "raw_text": "Ayunda, S.Kom"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XII TKRO 1",
+      "raw_text": "10"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XII TKRO 2",
+      "raw_text": "11"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XII TKJ 1",
+      "raw_text": "Ramses LAB"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XII DKV 1",
+      "raw_text": "34"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XII RPL",
+      "raw_text": "30"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 8,
+      "class": "XI TO 1",
+      "raw_text": "38"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 8,
+      "class": "XI TO 3",
+      "raw_text": "35"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 8,
+      "class": "XI TJKT",
+      "raw_text": "17"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 8,
+      "class": "XI DKV",
+      "raw_text": "32"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 8,
+      "class": "XII TKRO 1",
+      "raw_text": "10"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 8,
+      "class": "XII TKRO 2",
+      "raw_text": "11"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 8,
+      "class": "XII TKJ 1",
+      "raw_text": "Ramses S.Kom"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 8,
+      "class": "XII DKV 1",
+      "raw_text": "34"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 8,
+      "class": "XII RPL",
+      "raw_text": "30"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 9,
+      "class": "XI TO 3",
+      "raw_text": "23"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 9,
+      "class": "XI TJKT",
+      "raw_text": "17"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 9,
+      "class": "XI DKV",
+      "raw_text": "4"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 9,
+      "class": "XII TKRO 1",
+      "raw_text": "34"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 9,
+      "class": "XII TKRO 2",
+      "raw_text": "11"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 9,
+      "class": "XII DKV 1",
+      "raw_text": "15"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 9,
+      "class": "XII RPL",
+      "raw_text": "26/13"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 10,
+      "class": "XI TO 1",
+      "raw_text": "12"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 10,
+      "class": "XI TO 3",
+      "raw_text": "23"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 10,
+      "class": "XI TJKT",
+      "raw_text": "31"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 10,
+      "class": "XI DKV",
+      "raw_text": "6"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 10,
+      "class": "XII TKRO 1",
+      "raw_text": "34"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 10,
+      "class": "XII TKRO 2",
+      "raw_text": "30"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 10,
+      "class": "XII DKV 1",
+      "raw_text": "4"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 10,
+      "class": "XII RPL",
+      "raw_text": "26/13"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 11,
+      "class": "XI TO 1",
+      "raw_text": "12"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 11,
+      "class": "XI TO 3",
+      "raw_text": "23"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 11,
+      "class": "XI TJKT",
+      "raw_text": "31"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 11,
+      "class": "XI DKV",
+      "raw_text": "6"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 11,
+      "class": "XII TKRO 1",
+      "raw_text": "15"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 11,
+      "class": "XII TKRO 2",
+      "raw_text": "30"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 11,
+      "class": "XII DKV 1",
+      "raw_text": "4"
+    },
+    {
+      "day": "RABU",
+      "fase": "FASE F",
+      "slot": 11,
+      "class": "XII RPL",
+      "raw_text": "26/13"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 1,
+      "class": "X TO 1",
+      "raw_text": "22"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 1,
+      "class": "X TO 2",
+      "raw_text": "35"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 1,
+      "class": "X TO 3",
+      "raw_text": "KKA 21"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 1,
+      "class": "X TO 5",
+      "raw_text": "28"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 1,
+      "class": "X TJKT 1",
+      "raw_text": "32"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 1,
+      "class": "X DKV 1",
+      "raw_text": "27"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 1,
+      "class": "X DKV 2",
+      "raw_text": "24"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 1,
+      "class": "X RPL",
+      "raw_text": "26/13"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 2,
+      "class": "X TO 1",
+      "raw_text": "22"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 2,
+      "class": "X TO 2",
+      "raw_text": "35"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 2,
+      "class": "X TO 3",
+      "raw_text": "KKA 21"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 2,
+      "class": "X TO 5",
+      "raw_text": "28"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 2,
+      "class": "X TJKT 1",
+      "raw_text": "32"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 2,
+      "class": "X DKV 1",
+      "raw_text": "27"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 2,
+      "class": "X DKV 2",
+      "raw_text": "24"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 2,
+      "class": "X RPL",
+      "raw_text": "26/13"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 3,
+      "class": "X TO 1",
+      "raw_text": "21"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 3,
+      "class": "X TO 2",
+      "raw_text": "35"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 3,
+      "class": "X TO 3",
+      "raw_text": "IPAS 22"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 3,
+      "class": "X TO 5",
+      "raw_text": "17"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 3,
+      "class": "X TJKT 1",
+      "raw_text": "24"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 3,
+      "class": "X DKV 1",
+      "raw_text": "28"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 3,
+      "class": "X DKV 2",
+      "raw_text": "27"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 3,
+      "class": "X RPL",
+      "raw_text": "26/13"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 4,
+      "class": "X TO 1",
+      "raw_text": "32"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 4,
+      "class": "X TO 2",
+      "raw_text": "21"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 4,
+      "class": "X TO 3",
+      "raw_text": "IPAS 22"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 4,
+      "class": "X TO 5",
+      "raw_text": "35"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 4,
+      "class": "X TJKT 1",
+      "raw_text": "24"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 4,
+      "class": "X DKV 1",
+      "raw_text": "28"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 4,
+      "class": "X DKV 2",
+      "raw_text": "27"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X TO 1",
+      "raw_text": "28"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X TO 2",
+      "raw_text": "27"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X TO 3",
+      "raw_text": "JEPANG 30"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X TO 4",
+      "raw_text": "BENGKEL"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X TO 5",
+      "raw_text": "32"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X TJKT 1",
+      "raw_text": "22"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X TJKT 2",
+      "raw_text": "PRAKTIK PAGI, Ramses LAB"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X DKV 1",
+      "raw_text": "33"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X DKV 2",
+      "raw_text": "3"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X RPL",
+      "raw_text": "21"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X TO 1",
+      "raw_text": "28"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X TO 2",
+      "raw_text": "27"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X TO 3",
+      "raw_text": "JEPANG 30"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X TO 4",
+      "raw_text": "Donatus"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X TO 5",
+      "raw_text": "32"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X TJKT 1",
+      "raw_text": "22"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X TJKT 2",
+      "raw_text": "Sitorus, PAGI, Ramses S.Kom"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X DKV 1",
+      "raw_text": "33"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X DKV 2",
+      "raw_text": "3"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X RPL",
+      "raw_text": "21"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 7,
+      "class": "X TO 1",
+      "raw_text": "26"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 7,
+      "class": "X TO 2",
+      "raw_text": "22"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 7,
+      "class": "X TO 3",
+      "raw_text": "BIND 28"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 7,
+      "class": "X TO 4",
+      "raw_text": "Soeti P, ST"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 7,
+      "class": "X TO 5",
+      "raw_text": "35"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 7,
+      "class": "X TJKT 1",
+      "raw_text": "14"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 7,
+      "class": "X DKV 1",
+      "raw_text": "24"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 7,
+      "class": "X DKV 2",
+      "raw_text": "21"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 7,
+      "class": "X RPL",
+      "raw_text": "25"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 8,
+      "class": "X TO 1",
+      "raw_text": "26"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 8,
+      "class": "X TO 2",
+      "raw_text": "22"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 8,
+      "class": "X TO 3",
+      "raw_text": "BIND 28"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 8,
+      "class": "X TO 5",
+      "raw_text": "35"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 8,
+      "class": "X TJKT 1",
+      "raw_text": "29/13"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 8,
+      "class": "X DKV 1",
+      "raw_text": "24"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 8,
+      "class": "X DKV 2",
+      "raw_text": "21"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 8,
+      "class": "X RPL",
+      "raw_text": "25"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 9,
+      "class": "X TO 1",
+      "raw_text": "26"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 9,
+      "class": "X TO 2",
+      "raw_text": "24"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 9,
+      "class": "X TO 3",
+      "raw_text": "PENJAS 35"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 9,
+      "class": "X TO 5",
+      "raw_text": "22"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 9,
+      "class": "X TJKT 1",
+      "raw_text": "29/13"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 9,
+      "class": "X DKV 1",
+      "raw_text": "32"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 9,
+      "class": "X DKV 2",
+      "raw_text": "37"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 10,
+      "class": "X TO 1",
+      "raw_text": "21"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 10,
+      "class": "X TO 2",
+      "raw_text": "24"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 10,
+      "class": "X TO 3",
+      "raw_text": "PENJAS 35"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 10,
+      "class": "X TO 5",
+      "raw_text": "22"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 10,
+      "class": "X TJKT 1",
+      "raw_text": "29/13"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 10,
+      "class": "X DKV 1",
+      "raw_text": "32"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE E",
+      "slot": 10,
+      "class": "X DKV 2",
+      "raw_text": "37"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XI TO 1",
+      "raw_text": "37"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XI TO 2",
+      "raw_text": "29"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XI DKV",
+      "raw_text": "20"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XI RPL",
+      "raw_text": "19"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XII TKRO 1",
+      "raw_text": "30"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XII TKRO 2",
+      "raw_text": "31"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XII TKJ 1",
+      "raw_text": "34"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XII RPL",
+      "raw_text": "23"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XI TO 1",
+      "raw_text": "37"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XI TO 2",
+      "raw_text": "29"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XI DKV",
+      "raw_text": "20"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XI RPL",
+      "raw_text": "19"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XII TKRO 1",
+      "raw_text": "30"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XII TKRO 2",
+      "raw_text": "31"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XII TKJ 1",
+      "raw_text": "34"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XII RPL",
+      "raw_text": "23"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 3,
+      "class": "XI TO 1",
+      "raw_text": "37"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 3,
+      "class": "XI TO 2",
+      "raw_text": "29"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 3,
+      "class": "XI DKV",
+      "raw_text": "20"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 3,
+      "class": "XI RPL",
+      "raw_text": "19"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 3,
+      "class": "XII TKRO 2",
+      "raw_text": "31"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 3,
+      "class": "XII TKJ 1",
+      "raw_text": "30"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 3,
+      "class": "XII RPL",
+      "raw_text": "34"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 4,
+      "class": "XI TO 2",
+      "raw_text": "23"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 4,
+      "class": "XI DKV",
+      "raw_text": "20"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 4,
+      "class": "XI RPL",
+      "raw_text": "19"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 4,
+      "class": "XII TKRO 2",
+      "raw_text": "26"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 4,
+      "class": "XII TKJ 1",
+      "raw_text": "30"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 4,
+      "class": "XII DKV 1",
+      "raw_text": "PRAKTIK LAB"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 4,
+      "class": "XII RPL",
+      "raw_text": "34"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XI TO 2",
+      "raw_text": "37"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XI TO 3",
+      "raw_text": "PRAKTIK PAGI,"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XI TJKT",
+      "raw_text": "PRAKTIK SIANG, Ramses LAB"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XI DKV",
+      "raw_text": "35"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XI RPL",
+      "raw_text": "19"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XII TKRO 2",
+      "raw_text": "26"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XII TKJ 1",
+      "raw_text": "17"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XII DKV 1",
+      "raw_text": "S.Ds"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XII RPL",
+      "raw_text": "31"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XI TO 2",
+      "raw_text": "37"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XI TO 3",
+      "raw_text": "Rajayani Sianturi PAGI,"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XI TJKT",
+      "raw_text": "SIANG, Sitorus, Ramses S.Kom"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XI DKV",
+      "raw_text": "35"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XI RPL",
+      "raw_text": "19"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XII TKRO 2",
+      "raw_text": "26"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XII TKJ 1",
+      "raw_text": "17"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XII RPL",
+      "raw_text": "31"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XI TO 1",
+      "raw_text": "27"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XI TO 2",
+      "raw_text": "37"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XI DKV",
+      "raw_text": "20"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XI RPL",
+      "raw_text": "19"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XII TKRO 2",
+      "raw_text": "34"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XII TKJ 1",
+      "raw_text": "17"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XII RPL",
+      "raw_text": "31"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 8,
+      "class": "XI TO 1",
+      "raw_text": "27"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 8,
+      "class": "XI TO 2",
+      "raw_text": "31"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 8,
+      "class": "XI DKV",
+      "raw_text": "6"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 8,
+      "class": "XI RPL",
+      "raw_text": "19"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 8,
+      "class": "XII TKRO 2",
+      "raw_text": "34"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 8,
+      "class": "XII TKJ 1",
+      "raw_text": "17"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 8,
+      "class": "XII RPL",
+      "raw_text": "23"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 9,
+      "class": "XI TO 1",
+      "raw_text": "23"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 9,
+      "class": "XI TO 2",
+      "raw_text": "31"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 9,
+      "class": "XI DKV",
+      "raw_text": "27"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 9,
+      "class": "XI RPL",
+      "raw_text": "19"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 9,
+      "class": "XII TKRO 1",
+      "raw_text": "34"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 9,
+      "class": "XII TKRO 2",
+      "raw_text": "9"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 9,
+      "class": "XII TKJ 1",
+      "raw_text": "17"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 9,
+      "class": "XII DKV 1",
+      "raw_text": "20"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 9,
+      "class": "XII RPL",
+      "raw_text": "30"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 10,
+      "class": "XI TO 1",
+      "raw_text": "23"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 10,
+      "class": "XI TO 2",
+      "raw_text": "31"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 10,
+      "class": "XI DKV",
+      "raw_text": "27"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 10,
+      "class": "XI RPL",
+      "raw_text": "19"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 10,
+      "class": "XII TKRO 1",
+      "raw_text": "34"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 10,
+      "class": "XII TKRO 2",
+      "raw_text": "9"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 10,
+      "class": "XII TKJ 1",
+      "raw_text": "17"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 10,
+      "class": "XII DKV 1",
+      "raw_text": "20"
+    },
+    {
+      "day": "KAMIS",
+      "fase": "FASE F",
+      "slot": 10,
+      "class": "XII RPL",
+      "raw_text": "30"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 1,
+      "class": "X TO 1",
+      "raw_text": "27"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 1,
+      "class": "X TO 2",
+      "raw_text": "33"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 1,
+      "class": "X TO 3",
+      "raw_text": "AGAMA 26"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 1,
+      "class": "X TO 4",
+      "raw_text": "24"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 1,
+      "class": "X TJKT 2",
+      "raw_text": "32"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 1,
+      "class": "X DKV 1",
+      "raw_text": "21"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 1,
+      "class": "X DKV 2",
+      "raw_text": "28"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 2,
+      "class": "X TO 1",
+      "raw_text": "27"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 2,
+      "class": "X TO 2",
+      "raw_text": "33"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 2,
+      "class": "X TO 3",
+      "raw_text": "AGAMA 26"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 2,
+      "class": "X TO 4",
+      "raw_text": "24"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 2,
+      "class": "X TJKT 2",
+      "raw_text": "32"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 2,
+      "class": "X DKV 1",
+      "raw_text": "21"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 2,
+      "class": "X DKV 2",
+      "raw_text": "28"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 3,
+      "class": "X TO 1",
+      "raw_text": "24"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 3,
+      "class": "X TO 2",
+      "raw_text": "22"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 3,
+      "class": "X TO 3",
+      "raw_text": "AGAMA 26"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 3,
+      "class": "X TO 4",
+      "raw_text": "36"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 3,
+      "class": "X TO 5",
+      "raw_text": "PRAKTIK"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 3,
+      "class": "X TJKT 2",
+      "raw_text": "33"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 3,
+      "class": "X DKV 1",
+      "raw_text": "28"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 3,
+      "class": "X DKV 2",
+      "raw_text": "32"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 4,
+      "class": "X TO 1",
+      "raw_text": "24"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 4,
+      "class": "X TO 2",
+      "raw_text": "22"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 4,
+      "class": "X TO 3",
+      "raw_text": "INFO 17"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 4,
+      "class": "X TO 4",
+      "raw_text": "36"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 4,
+      "class": "X TO 5",
+      "raw_text": "SIANG, BENGKEL Drs."
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 4,
+      "class": "X TJKT 1",
+      "raw_text": "Ramses LAB"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 4,
+      "class": "X TJKT 2",
+      "raw_text": "33"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 4,
+      "class": "X DKV 1",
+      "raw_text": "28"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 4,
+      "class": "X DKV 2",
+      "raw_text": "32"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 4,
+      "class": "X RPL",
+      "raw_text": "PAGI, PRAKTIK Parlidungan LAB"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X TO 1",
+      "raw_text": "32"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X TO 2",
+      "raw_text": "28"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X TO 3",
+      "raw_text": "BING 33"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X TO 4",
+      "raw_text": "26"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X TO 5",
+      "raw_text": "Pangaribuan"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X TJKT 2",
+      "raw_text": "21"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X DKV 1",
+      "raw_text": "14"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 5,
+      "class": "X DKV 2",
+      "raw_text": "36"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X TO 1",
+      "raw_text": "30"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X TO 2",
+      "raw_text": "28"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X TO 3",
+      "raw_text": "BING 33"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X TO 4",
+      "raw_text": "26"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X TJKT 2",
+      "raw_text": "24"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 6,
+      "class": "X DKV 2",
+      "raw_text": "36"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 7,
+      "class": "X TO 1",
+      "raw_text": "30"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 7,
+      "class": "X TO 2",
+      "raw_text": "21"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 7,
+      "class": "X TO 3",
+      "raw_text": "INFO 17"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 7,
+      "class": "X TO 4",
+      "raw_text": "26"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 7,
+      "class": "X TJKT 2",
+      "raw_text": "24"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE E",
+      "slot": 7,
+      "class": "X DKV 2",
+      "raw_text": "14"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XI TO 2",
+      "raw_text": "12"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XI TO 3",
+      "raw_text": "29/13"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XI TJKT",
+      "raw_text": "17"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XI DKV",
+      "raw_text": "38"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XI RPL",
+      "raw_text": "25"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XII TKRO 1",
+      "raw_text": "36"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XII TKJ 1",
+      "raw_text": "23"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XII DKV 1",
+      "raw_text": "30"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 1,
+      "class": "XII RPL",
+      "raw_text": "10"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XI TO 2",
+      "raw_text": "12"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XI TO 3",
+      "raw_text": "29/13"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XI TJKT",
+      "raw_text": "17"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XI DKV",
+      "raw_text": "38"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XI RPL",
+      "raw_text": "25"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XII TKRO 1",
+      "raw_text": "36"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XII TKJ 1",
+      "raw_text": "23"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XII DKV 1",
+      "raw_text": "30"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 2,
+      "class": "XII RPL",
+      "raw_text": "10"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 3,
+      "class": "XI TO 1",
+      "raw_text": "25"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 3,
+      "class": "XI TO 2",
+      "raw_text": "38"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 3,
+      "class": "XI TO 3",
+      "raw_text": "29/13"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 3,
+      "class": "XI TJKT",
+      "raw_text": "27"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 3,
+      "class": "XI DKV",
+      "raw_text": "4"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 3,
+      "class": "XII TKRO 1",
+      "raw_text": "10"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 3,
+      "class": "XII TKRO 2",
+      "raw_text": "BENGKEL PRAKTIK"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 3,
+      "class": "XII TKJ 1",
+      "raw_text": "30"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 3,
+      "class": "XII DKV 1",
+      "raw_text": "23"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 3,
+      "class": "XII RPL",
+      "raw_text": "21"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 4,
+      "class": "XI TO 1",
+      "raw_text": "25"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 4,
+      "class": "XI TO 2",
+      "raw_text": "38"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 4,
+      "class": "XI TJKT",
+      "raw_text": "27"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 4,
+      "class": "XI DKV",
+      "raw_text": "4"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 4,
+      "class": "XII TKRO 1",
+      "raw_text": "10"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 4,
+      "class": "XII TKRO 2",
+      "raw_text": "PAGI, BENGKEL Syarif"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 4,
+      "class": "XII TKJ 1",
+      "raw_text": "30"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 4,
+      "class": "XII DKV 1",
+      "raw_text": "23"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 4,
+      "class": "XII RPL",
+      "raw_text": "21"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XI TO 1",
+      "raw_text": "27"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XI TO 2",
+      "raw_text": "12"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XI TJKT",
+      "raw_text": "17"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XI DKV",
+      "raw_text": "29/13"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XII TKRO 1",
+      "raw_text": "11"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XII TKRO 2",
+      "raw_text": "ST"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XII TKJ 1",
+      "raw_text": "10"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XII DKV 1",
+      "raw_text": "23"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 5,
+      "class": "XII RPL",
+      "raw_text": "15"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XI TO 1",
+      "raw_text": "27"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XI TO 2",
+      "raw_text": "23"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XI TO 3",
+      "raw_text": "25"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XI DKV",
+      "raw_text": "29/13"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XI RPL",
+      "raw_text": "38"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XII TKRO 1",
+      "raw_text": "11"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XII TKJ 1",
+      "raw_text": "10"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XII DKV 1",
+      "raw_text": "4"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 6,
+      "class": "XII RPL",
+      "raw_text": "32"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XI TO 2",
+      "raw_text": "23"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XI TO 3",
+      "raw_text": "25"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XI DKV",
+      "raw_text": "29/13"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XI RPL",
+      "raw_text": "38"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XII TKRO 1",
+      "raw_text": "11"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XII TKJ 1",
+      "raw_text": "15"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XII DKV 1",
+      "raw_text": "4"
+    },
+    {
+      "day": "JUMAT",
+      "fase": "FASE F",
+      "slot": 7,
+      "class": "XII RPL",
+      "raw_text": "32"
+    }
+  ]
+}

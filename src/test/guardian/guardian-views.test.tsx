@@ -7,6 +7,7 @@ import { GuardianAttendanceView } from "@/modules/guardian/presentation/guardian
 import { GuardianGradesView } from "@/modules/guardian/presentation/guardian-grades-view";
 import { GuardianReportPrintModal } from "@/modules/guardian/presentation/guardian-report-print-modal";
 import { PengajuanIzinModal } from "@/modules/guardian/presentation/pengajuan-izin-modal";
+import { GuardianClaimFlowView } from "@/modules/guardian/presentation/guardian-claim-flow-view";
 import { GuardianDashboardData } from "@/modules/guardian/domain/guardian-types";
 
 // Mock next/navigation
@@ -316,5 +317,34 @@ describe("M15 Guardian & Family — Presentation Views (Academic Glass UI v1.2)"
     expect(screen.getByText("Putra / Putri Terkait")).toBeInTheDocument();
     expect(screen.getByText("Jenis Permohonan")).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/Contoh: Izin Sakit Demam 2 Hari/i)).toBeInTheDocument();
+  });
+
+  it("merender GuardianDashboardClient dengan tombol klaim anak lain dan kartu anak multi-anak (Fitur 08)", () => {
+    render(<GuardianDashboardClient data={mockDashboardData} />);
+
+    expect(screen.getByTestId("header-button-klaim-anak")).toBeInTheDocument();
+    expect(screen.getByText(/Daftar Putra\/Putri Terhubung/i)).toBeInTheDocument();
+    expect(screen.getByText("Nadia Pratama")).toBeInTheDocument();
+    expect(screen.getByText("Beralih ke Anak Ini")).toBeInTheDocument();
+  });
+
+  it("merender GuardianClaimFlowView formulir klaim mandiri siswa dan dapat beralih mode", () => {
+    render(
+      <GuardianClaimFlowView
+        schoolName="SMK OTOMINDO"
+        rombelOptions={[{ id: "ROMBEL_1", nama: "X TO 3", tingkat: "Kelas 10" }]}
+      />
+    );
+
+    expect(screen.getByText("Klaim & Hubungkan Data Putra/Putri")).toBeInTheDocument();
+    expect(screen.getByText("SMK OTOMINDO")).toBeInTheDocument();
+    expect(screen.getByText("Nomor Induk (NIS / NISN)")).toBeInTheDocument();
+    expect(screen.getByText("Nama Siswa & Rombel Kelas")).toBeInTheDocument();
+
+    // Beralih ke mode Rombel
+    const rombelBtn = screen.getByText("Nama Siswa & Rombel Kelas");
+    fireEvent.click(rombelBtn);
+
+    expect(screen.getByText("Rombel / Kelas Siswa")).toBeInTheDocument();
   });
 });

@@ -8,7 +8,7 @@
 export interface StudentProfileContext {
   siswaId: string;
   namaLengkap: string;
-  nis: string;
+  nis: string | null;
   nisn: string | null;
   fotoUrl: string | null;
   statusAkademik: string;

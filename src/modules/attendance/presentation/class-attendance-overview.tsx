@@ -67,6 +67,9 @@ export function ClassAttendanceOverview({
 }: ClassAttendanceOverviewProps) {
   const [activeTab, setActiveTab] = useState<"sessions" | "classes">("sessions");
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedDay, setSelectedDay] = useState("ALL");
+  const [selectedRombel, setSelectedRombel] = useState("ALL");
+  const [selectedMapel, setSelectedMapel] = useState("ALL");
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   const [selectedRecapPenugasanId, setSelectedRecapPenugasanId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
@@ -81,36 +84,58 @@ export function ClassAttendanceOverview({
     [sessions]
   );
   const averageAttendanceOverall = useMemo(() => {
-    if (classes.length === 0) return 0;
-    const sum = classes.reduce((acc, c) => acc + (c.stats.rata_rata_kehadiran || 0), 0);
-    return Math.round(sum / classes.length);
+    const classesWithAttendance = classes.filter((c) => c.stats.total_presensi_diambil > 0);
+    if (classesWithAttendance.length === 0) return null;
+    const sum = classesWithAttendance.reduce(
+      (acc, c) => acc + (c.stats.rata_rata_kehadiran || 0),
+      0
+    );
+    return Math.round(sum / classesWithAttendance.length);
   }, [classes]);
 
   // Filter Sesi KBM
   const filteredSessions = useMemo(() => {
-    if (!searchQuery.trim()) return sessions;
     const q = searchQuery.toLowerCase();
-    return sessions.filter(
-      (s) =>
-        s.rombel_nama.toLowerCase().includes(q) ||
-        s.mata_pelajaran_nama.toLowerCase().includes(q) ||
-        s.guru_nama.toLowerCase().includes(q) ||
-        (s.topik_pembelajaran && s.topik_pembelajaran.toLowerCase().includes(q))
-    );
-  }, [sessions, searchQuery]);
+    return sessions.filter((s) => {
+      const weekday = new Intl.DateTimeFormat("id-ID", { weekday: "long" })
+        .format(new Date(s.tanggal))
+        .toUpperCase();
+      return (
+        (!q ||
+          s.rombel_nama.toLowerCase().includes(q) ||
+          s.mata_pelajaran_nama.toLowerCase().includes(q) ||
+          s.guru_nama.toLowerCase().includes(q) ||
+          (s.topik_pembelajaran && s.topik_pembelajaran.toLowerCase().includes(q))) &&
+        (selectedDay === "ALL" || weekday === selectedDay) &&
+        (selectedRombel === "ALL" || s.rombel_id === selectedRombel) &&
+        (selectedMapel === "ALL" || s.mata_pelajaran_id === selectedMapel)
+      );
+    });
+  }, [sessions, searchQuery, selectedDay, selectedRombel, selectedMapel]);
 
   // Filter Kelas Rombel
   const filteredClasses = useMemo(() => {
-    if (!searchQuery.trim()) return classes;
     const q = searchQuery.toLowerCase();
     return classes.filter(
       (c) =>
-        c.rombelNama.toLowerCase().includes(q) ||
-        c.mapelNama.toLowerCase().includes(q) ||
-        c.mapelKode.toLowerCase().includes(q) ||
-        c.guruNama.toLowerCase().includes(q)
+        (!q ||
+          c.rombelNama.toLowerCase().includes(q) ||
+          c.mapelNama.toLowerCase().includes(q) ||
+          c.mapelKode.toLowerCase().includes(q) ||
+          c.guruNama.toLowerCase().includes(q)) &&
+        (selectedRombel === "ALL" || c.rombelId === selectedRombel) &&
+        (selectedMapel === "ALL" || c.mapelId === selectedMapel)
     );
-  }, [classes, searchQuery]);
+  }, [classes, searchQuery, selectedRombel, selectedMapel]);
+
+  const rombelOptions = useMemo(
+    () => Array.from(new Map(classes.map((item) => [item.rombelId, item.rombelNama])).entries()),
+    [classes]
+  );
+  const mapelOptions = useMemo(
+    () => Array.from(new Map(classes.map((item) => [item.mapelId, item.mapelNama])).entries()),
+    [classes]
+  );
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -149,7 +174,7 @@ export function ClassAttendanceOverview({
                 Dashboard
               </Link>
               <span>/</span>
-              <span className="text-slate-700 font-semibold">Presensi Kehadiran</span>
+              <span className="text-slate-700 font-semibold">Rekap Presensi</span>
             </div>
 
             <div className="space-y-1.5">
@@ -162,8 +187,9 @@ export function ClassAttendanceOverview({
                 </span>
               </div>
               <p className="text-slate-500 text-xs sm:text-sm leading-relaxed max-w-2xl">
-                Pencatatan kehadiran siswa per sesi kelas aktual secara langsung, pemantauan status
-                kehadiran rombongan belajar, dan sinkronisasi riwayat absensi akademik.
+                Monitoring, audit, dan rekapitulasi kehadiran siswa per rombongan belajar dan
+                riwayat sesi KBM. Untuk presensi harian langsung, gunakan Presensi Cepat di
+                Dashboard atau Tab Presensi di Ruang Kelas Saya.
               </p>
             </div>
 
@@ -184,7 +210,10 @@ export function ClassAttendanceOverview({
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50/80 border border-indigo-200/80 text-xs font-semibold text-indigo-700">
                 <TrendingUp className="h-3.5 w-3.5 text-indigo-600" />
                 <span>
-                  Rata-rata Kehadiran: <strong>{averageAttendanceOverall}%</strong>
+                  Rata-rata Kehadiran:{" "}
+                  <strong>
+                    {averageAttendanceOverall !== null ? `${averageAttendanceOverall}%` : "-"}
+                  </strong>
                 </span>
               </div>
             </div>
@@ -193,18 +222,18 @@ export function ClassAttendanceOverview({
           {/* Quick Shortcut Buttons */}
           <div className="flex flex-wrap md:flex-col items-stretch gap-2.5 w-full md:w-auto shrink-0">
             <Link
-              href="/sesi-pembelajaran"
+              href="/kelas-saya"
               className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-500/20 transition-all cursor-pointer"
             >
-              <PlayCircle className="h-4 w-4" />
-              <span>Kelola Sesi KBM</span>
+              <BookOpen className="h-4 w-4" />
+              <span>Ruang Kelas Saya</span>
             </Link>
             <Link
-              href="/kelas-saya"
+              href="/sesi-pembelajaran"
               className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold shadow-2xs transition-all cursor-pointer"
             >
-              <BookOpen className="h-4 w-4 text-slate-500" />
-              <span>Ruang Kelas Saya</span>
+              <PlayCircle className="h-4 w-4 text-slate-500" />
+              <span>Log Sesi KBM</span>
             </Link>
           </div>
         </div>
@@ -215,15 +244,17 @@ export function ClassAttendanceOverview({
         <div className="p-4 sm:p-5 rounded-3xl bg-white border border-slate-200/80 shadow-2xs space-y-2">
           <div className="flex items-center justify-between text-slate-400">
             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-              Kelas Diampu
+              Rombel Diajar
             </span>
             <div className="p-2 rounded-xl bg-blue-50 text-[#2563EB]">
               <BookOpen className="h-4 w-4" />
             </div>
           </div>
           <div>
-            <div className="text-2xl font-bold text-slate-900">{classes.length}</div>
-            <p className="text-[11px] text-slate-400 mt-0.5">Rombel aktif terdaftar</p>
+            <div className="text-2xl font-bold text-slate-900">
+              {new Set(classes.map((c) => c.rombelId)).size} Rombel
+            </div>
+            <p className="text-[11px] text-slate-400 mt-0.5">{classes.length} Penugasan KBM</p>
           </div>
         </div>
 
@@ -267,8 +298,14 @@ export function ClassAttendanceOverview({
             </div>
           </div>
           <div>
-            <div className="text-2xl font-bold text-indigo-700">{averageAttendanceOverall}%</div>
-            <p className="text-[11px] text-slate-400 mt-0.5">Rata-rata persentase hadir</p>
+            <div className="text-2xl font-bold text-indigo-700">
+              {averageAttendanceOverall !== null ? `${averageAttendanceOverall}%` : "-"}
+            </div>
+            <p className="text-[11px] text-slate-400 mt-0.5">
+              {averageAttendanceOverall !== null
+                ? "Rata-rata persentase hadir"
+                : "Belum ada presensi diambil"}
+            </p>
           </div>
         </div>
       </div>
@@ -320,6 +357,59 @@ export function ClassAttendanceOverview({
             className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-[#2563EB]"
           />
         </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200/80 bg-white/80 p-3">
+        <label className="text-xs font-semibold text-slate-500" htmlFor="attendance-day-filter">
+          Filter
+        </label>
+        <select
+          id="attendance-day-filter"
+          value={selectedDay}
+          onChange={(event) => setSelectedDay(event.target.value)}
+          className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700"
+        >
+          <option value="ALL">Semua hari</option>
+          {[
+            ["SENIN", "Senin"],
+            ["SELASA", "Selasa"],
+            ["RABU", "Rabu"],
+            ["KAMIS", "Kamis"],
+            ["JUMAT", "Jumat"],
+            ["SABTU", "Sabtu"],
+            ["MINGGU", "Minggu"],
+          ].map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
+        <select
+          aria-label="Filter kelas"
+          value={selectedRombel}
+          onChange={(event) => setSelectedRombel(event.target.value)}
+          className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700"
+        >
+          <option value="ALL">Semua kelas</option>
+          {rombelOptions.map(([value, label]) => (
+            <option key={value} value={value}>
+              Kelas: {label}
+            </option>
+          ))}
+        </select>
+        <select
+          aria-label="Filter mata pelajaran"
+          value={selectedMapel}
+          onChange={(event) => setSelectedMapel(event.target.value)}
+          className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700"
+        >
+          <option value="ALL">Semua mata pelajaran</option>
+          {mapelOptions.map(([value, label]) => (
+            <option key={value} value={value}>
+              Mapel: {label}
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* TAB CONTENT 1: Sesi KBM & Presensi Cepat */}

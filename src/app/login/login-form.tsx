@@ -123,6 +123,16 @@ export function LoginForm({ status }: { status?: string }) {
           Masuk
         </Button>
 
+        <a
+          href="/api/auth/google?mode=login"
+          className="flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white text-[15px] font-semibold text-slate-700 shadow-xs transition-colors hover:bg-slate-50"
+        >
+          <span aria-hidden="true" className="text-base font-bold text-[#4285F4]">
+            G
+          </span>
+          Masuk dengan Google
+        </a>
+
         {/* Supporting Footer Text */}
         <p className="text-center text-[11px] sm:text-xs text-[#64748B]">
           Akun sekolah resmi dikelola oleh administrator sekolah.

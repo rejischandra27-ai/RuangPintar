@@ -11,6 +11,9 @@ export const NotificationTypeEnum = z.enum([
   "PENGAJUAN_IZIN",
   "JADWAL_BERUBAH",
   "SISTEM",
+  "JOIN_REQUEST_RECEIVED",
+  "JOIN_REQUEST_APPROVED",
+  "JOIN_REQUEST_REJECTED",
 ]);
 
 export const MarkNotificationReadSchema = z.object({

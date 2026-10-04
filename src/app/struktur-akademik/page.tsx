@@ -2,13 +2,14 @@
  * Ruang Pintar — Academic Period & Structure Management Page (/struktur-akademik)
  *
  * Server Component yang dilindungi requireAuth() dan otorisasi M02/M06.
+ * Mendukung akses langsung Super Admin untuk multi-tenant SaaS.
  */
 
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Layers, Sparkles, Calendar, BookOpen, Users } from "lucide-react";
+import { Layers, Sparkles, Calendar, BookOpen, Users, School } from "lucide-react";
 import { requireAuth } from "@/shared/infrastructure/auth/auth-guard";
 import { checkPermission } from "@/shared/infrastructure/authorization/authz-guard";
 import { staffCapabilityService } from "@/shared/infrastructure/authorization/staff-capability-service";
@@ -16,11 +17,33 @@ import { AcademicShell } from "@/shared/components/shell/academic-shell";
 import { academicFacade } from "@/modules/academic/application/academic-facade";
 import { AcademicManagementTabs } from "@/modules/academic/presentation/academic-management-tabs";
 import { schoolProfileService } from "@/modules/school/application/school-profile-service";
+import { prisma } from "@/shared/infrastructure/database/prisma";
 
-export default async function AcademicStructurePage() {
+export const dynamic = "force-dynamic";
+
+interface AcademicStructurePageProps {
+  searchParams?: Promise<{ sekolahId?: string; tab?: string }>;
+}
+
+export default async function AcademicStructurePage(props: AcademicStructurePageProps) {
   const user = await requireAuth();
+  const searchParams = props.searchParams ? await props.searchParams : undefined;
+  const isSuperAdmin = user.peran_dasar === "SUPER_ADMIN";
 
-  if (!user.sekolah_id) {
+  // Ambil daftar sekolah jika Super Admin
+  let allSchools: Array<{ id: string; nama: string }> = [];
+  if (isSuperAdmin) {
+    allSchools = await prisma.sekolah.findMany({
+      select: { id: true, nama: true },
+      orderBy: { nama: "asc" },
+    });
+  }
+
+  const effectiveSekolahId = isSuperAdmin
+    ? searchParams?.sekolahId || user.sekolah_id || allSchools[0]?.id
+    : user.sekolah_id;
+
+  if (!effectiveSekolahId) {
     redirect("/dashboard");
   }
 
@@ -31,13 +54,17 @@ export default async function AcademicStructurePage() {
       : [];
 
   // Evaluasi Hak Akses Server-Side
-  const canViewStructure = await checkPermission("academic.structure.view", {
-    sekolah_id: user.sekolah_id,
-  });
+  const canViewStructure =
+    isSuperAdmin ||
+    (await checkPermission("academic.structure.view", {
+      sekolah_id: effectiveSekolahId,
+    }));
 
-  const canManageStructure = await checkPermission("academic.structure.manage", {
-    sekolah_id: user.sekolah_id,
-  });
+  const canManageStructure =
+    isSuperAdmin ||
+    (await checkPermission("academic.structure.manage", {
+      sekolah_id: effectiveSekolahId,
+    }));
 
   // Jika tidak memiliki izin lihat struktur -> redirect ke dashboard
   if (!canViewStructure && !canManageStructure) {
@@ -46,13 +73,51 @@ export default async function AcademicStructurePage() {
 
   // Pengambilan Data Struktur Akademik & Profil Sekolah
   const [academicData, schoolProfile] = await Promise.all([
-    academicFacade.getFullAcademicStructure(user.sekolah_id),
-    schoolProfileService.getProfile(user.sekolah_id),
+    academicFacade.getFullAcademicStructure(effectiveSekolahId),
+    schoolProfileService.getProfile(effectiveSekolahId),
   ]);
 
   return (
     <AcademicShell user={user} userCapabilities={staffCapabilities}>
       <div className="space-y-6">
+        {/* Super Admin Tenant Context Switcher */}
+        {isSuperAdmin && allSchools.length > 1 && (
+          <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-2xs flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-xl bg-blue-50 text-blue-600">
+                <School className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="text-xs font-semibold text-slate-500 block">
+                  Supervisi Platform Multi-Tenant
+                </span>
+                <span className="text-xs font-bold text-slate-800">
+                  Pilih Institusi Sekolah untuk Struktur Kurikulum & Rombel:
+                </span>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              {allSchools.map((sch) => {
+                const isSelected = sch.id === effectiveSekolahId;
+                return (
+                  <Link
+                    key={sch.id}
+                    href={`/struktur-akademik?sekolahId=${sch.id}`}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                      isSelected
+                        ? "bg-blue-600 text-white shadow-xs"
+                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    }`}
+                  >
+                    {sch.nama}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Modern 3D Pop-Out Hero Card */}
         <div className="relative rounded-3xl bg-white border border-slate-100/90 p-6 sm:p-8 shadow-[0_4px_24px_rgba(0,0,0,0.03)] overflow-visible">
           {/* Subtle Background Accent Gradient */}
@@ -99,7 +164,7 @@ export default async function AcademicStructurePage() {
                 </div>
 
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-50 border border-slate-200/80 text-xs font-semibold text-slate-700">
-                  <BookOpen className="h-3.5 w-3.5 text-indigo-600" />
+                  <BookOpen className="h-3.5 w-3.5 text-emerald-600" />
                   <span>
                     Semester:{" "}
                     <strong>
@@ -109,7 +174,7 @@ export default async function AcademicStructurePage() {
                 </div>
 
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-50 border border-slate-200/80 text-xs font-semibold text-slate-700">
-                  <Users className="h-3.5 w-3.5 text-emerald-600" />
+                  <Users className="h-3.5 w-3.5 text-indigo-600" />
                   <span>
                     Total Rombel: <strong>{academicData.rombels.length}</strong>
                   </span>
@@ -117,23 +182,31 @@ export default async function AcademicStructurePage() {
               </div>
             </div>
 
-            {/* Right Side: 3D Pop-Out Academic Structure Illustration */}
-            <div className="hidden md:block absolute -top-8 -right-2 lg:-right-4 w-72 lg:w-80 h-52 lg:h-60 pointer-events-none z-20">
-              <Image
-                src="/images/illustrations/academic-structure-3d.png"
-                alt="Ilustrasi Struktur Akademik 3D"
-                width={360}
-                height={270}
-                priority
-                unoptimized
-                className="w-full h-full object-contain drop-shadow-[0_12px_24px_rgba(0,0,0,0.12)] hover:scale-105 transition-transform duration-300 pointer-events-auto cursor-pointer"
-              />
+            {/* Right Graphic: 3D Pop-Out Visual */}
+            <div className="w-full md:w-auto flex justify-center md:justify-end shrink-0">
+              <div className="relative group">
+                <div className="absolute -inset-1 bg-gradient-to-r from-blue-600/20 to-indigo-600/20 rounded-3xl blur-md opacity-40 group-hover:opacity-75 transition duration-500" />
+                <div className="relative w-36 h-36 sm:w-44 sm:h-44 flex items-center justify-center p-2">
+                  <Image
+                    src="/images/academic-structure-3d.png"
+                    alt="Struktur Akademik"
+                    width={180}
+                    height={180}
+                    priority
+                    className="object-contain filter drop-shadow-[0_12px_24px_rgba(37,99,235,0.18)] transform group-hover:scale-105 group-hover:-translate-y-1 transition-all duration-300"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Tab Interface */}
-        <AcademicManagementTabs initialData={academicData} canManage={canManageStructure} />
+        {/* Content Tabs (Tahun Ajaran, Semester, Tingkat & Fase, Program Keahlian, Rombel) */}
+        <AcademicManagementTabs
+          initialData={academicData}
+          canManage={canManageStructure}
+          isTenantOwner={user.is_owner_tenant ?? false}
+        />
       </div>
     </AcademicShell>
   );

@@ -43,3 +43,44 @@ export class PengajuanWaliValidationError extends Error {
     this.name = "PengajuanWaliValidationError";
   }
 }
+
+export class StudentNotFoundError extends Error {
+  constructor(queryDetail: string) {
+    super(`Siswa tidak ditemukan berdasarkan kriteria pencarian: ${queryDetail}`);
+    this.name = "StudentNotFoundError";
+  }
+}
+
+export class StudentVerificationMismatchError extends Error {
+  constructor(
+    message: string = "Data verifikasi siswa (nama lengkap atau nomor identitas) tidak cocok."
+  ) {
+    super(message);
+    this.name = "StudentVerificationMismatchError";
+  }
+}
+
+export class DuplicateGuardianClaimError extends Error {
+  constructor(message: string = "Anda sudah memiliki hubungan yang terdaftar dengan siswa ini.") {
+    super(message);
+    this.name = "DuplicateGuardianClaimError";
+  }
+}
+
+export class CrossTenantClaimError extends Error {
+  constructor(
+    message: string = "Akses ditolak. Siswa berada di institusi sekolah yang berbeda dengan akun Anda."
+  ) {
+    super(message);
+    this.name = "CrossTenantClaimError";
+  }
+}
+
+export class InvalidRelationshipError extends Error {
+  constructor(
+    message: string = "Jenis hubungan wali murid tidak valid. Pilih Ayah, Ibu, atau Wali."
+  ) {
+    super(message);
+    this.name = "InvalidRelationshipError";
+  }
+}

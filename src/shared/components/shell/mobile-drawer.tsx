@@ -61,6 +61,7 @@ export interface MobileDrawerProps {
   onClose: () => void;
   userRole: BaseRole;
   userCapabilities?: CapabilityBundle[];
+  isOwner?: boolean;
 }
 
 export function MobileDrawer({
@@ -68,9 +69,10 @@ export function MobileDrawer({
   onClose,
   userRole,
   userCapabilities = [],
+  isOwner = false,
 }: MobileDrawerProps) {
   const pathname = usePathname();
-  const navigationGroups = getFilteredNavigation(userRole, userCapabilities);
+  const navigationGroups = getFilteredNavigation(userRole, userCapabilities, isOwner);
 
   // Close drawer when route changes
   React.useEffect(() => {

@@ -7,6 +7,7 @@
 
 import { AuthenticatedUser } from "@/shared/infrastructure/auth/auth-service";
 import { recordAuditEvent } from "@/shared/infrastructure/audit/audit-logger";
+import { prisma } from "@/shared/infrastructure/database/prisma";
 import { reportingRepository } from "../infrastructure/reporting-repository";
 import {
   UnauthorizedLeadershipAccessError,
@@ -26,22 +27,43 @@ import {
 } from "../domain/reporting-types";
 
 export class LeadershipAnalyticsService {
+  constructor(private readonly repo: any = reportingRepository) {}
+
   /**
    * Menyelesaikan konteks kepemimpinan pengguna berdasarkan hak dan penugasan jabatan aktif
    */
   async resolveLeadershipContext(
     user: AuthenticatedUser,
-    requestedRole?: LeadershipPositionType
+    requestedRole?: LeadershipPositionType,
+    sekolahIdOverride?: string
   ): Promise<UserLeadershipContext> {
-    if (!user.sekolah_id) {
-      throw new UnauthorizedLeadershipAccessError("Pengguna tidak terasosiasi dengan sekolah.");
-    }
-
-    const schoolInfo = await reportingRepository.getSchoolInfo(user.sekolah_id);
-    const schoolName = schoolInfo.school?.nama ?? "Ruang Pintar";
-
     // 1. SUPER_ADMIN: Memiliki akses supervisi penuh ke semua portal kepemimpinan
     if (user.peran_dasar === "SUPER_ADMIN") {
+      let targetSekolahId = sekolahIdOverride || user.sekolah_id;
+      if (!targetSekolahId) {
+        const firstSchool = await prisma.sekolah.findFirst({
+          orderBy: { created_at: "asc" },
+          select: { id: true, nama: true },
+        });
+        targetSekolahId = firstSchool?.id ?? null;
+      }
+
+      if (!targetSekolahId) {
+        return {
+          user_id: user.id,
+          nama_lengkap: user.nama_lengkap,
+          peran_dasar: user.peran_dasar,
+          sekolah_id: "",
+          sekolah_nama: "Belum Ada Sekolah Terdaftar",
+          roles: [],
+          active_role: "HEADMASTER",
+          can_switch_roles: false,
+        };
+      }
+
+      const schoolInfo = await this.repo.getSchoolInfo(targetSekolahId);
+      const schoolName = schoolInfo.school?.nama ?? "Ruang Pintar";
+
       const allRoles: LeadershipRoleInfo[] = [
         { code: "HEADMASTER", label: "Kepala Sekolah", is_active: true },
         { code: "VICE_PRINCIPAL_CURRICULUM", label: "Wakasek Kurikulum", is_active: true },
@@ -55,7 +77,7 @@ export class LeadershipAnalyticsService {
         user_id: user.id,
         nama_lengkap: user.nama_lengkap,
         peran_dasar: user.peran_dasar,
-        sekolah_id: user.sekolah_id,
+        sekolah_id: targetSekolahId,
         sekolah_nama: schoolName,
         roles: allRoles,
         active_role: activeRole,
@@ -63,8 +85,15 @@ export class LeadershipAnalyticsService {
       };
     }
 
+    if (!user.sekolah_id) {
+      throw new UnauthorizedLeadershipAccessError("Pengguna tidak terasosiasi dengan sekolah.");
+    }
+
+    const schoolInfo = await this.repo.getSchoolInfo(user.sekolah_id);
+    const schoolName = schoolInfo.school?.nama ?? "Ruang Pintar";
+
     // 2. Guru / Staf dengan Penugasan Jabatan Struktural Aktif
-    const positions = await reportingRepository.getUserActivePositions(user.id, user.sekolah_id);
+    const positions = await this.repo.getUserActivePositions(user.id, user.sekolah_id);
 
     const userRoles: LeadershipRoleInfo[] = [];
 
@@ -126,10 +155,11 @@ export class LeadershipAnalyticsService {
    * Ringkasan Eksekutif Kepala Sekolah
    */
   async getHeadmasterOverview(
-    user: AuthenticatedUser
+    user: AuthenticatedUser,
+    sekolahIdOverride?: string
   ): Promise<{ context: UserLeadershipContext; data: HeadmasterOverviewDTO }> {
-    const context = await this.resolveLeadershipContext(user, "HEADMASTER");
-    const data = await reportingRepository.getHeadmasterOverview(context.sekolah_id);
+    const context = await this.resolveLeadershipContext(user, "HEADMASTER", sekolahIdOverride);
+    const data = await this.repo.getHeadmasterOverview(context.sekolah_id);
     return { context, data };
   }
 
@@ -137,10 +167,15 @@ export class LeadershipAnalyticsService {
    * Ringkasan Kurikulum & Pembelajaran
    */
   async getCurriculumOverview(
-    user: AuthenticatedUser
+    user: AuthenticatedUser,
+    sekolahIdOverride?: string
   ): Promise<{ context: UserLeadershipContext; data: CurriculumOverviewDTO }> {
-    const context = await this.resolveLeadershipContext(user, "VICE_PRINCIPAL_CURRICULUM");
-    const data = await reportingRepository.getCurriculumOverview(context.sekolah_id);
+    const context = await this.resolveLeadershipContext(
+      user,
+      "VICE_PRINCIPAL_CURRICULUM",
+      sekolahIdOverride
+    );
+    const data = await this.repo.getCurriculumOverview(context.sekolah_id);
     return { context, data };
   }
 
@@ -148,10 +183,15 @@ export class LeadershipAnalyticsService {
    * Ringkasan Kesiswaan & Presensi
    */
   async getStudentAffairsOverview(
-    user: AuthenticatedUser
+    user: AuthenticatedUser,
+    sekolahIdOverride?: string
   ): Promise<{ context: UserLeadershipContext; data: StudentAffairsOverviewDTO }> {
-    const context = await this.resolveLeadershipContext(user, "VICE_PRINCIPAL_STUDENT_AFFAIRS");
-    const data = await reportingRepository.getStudentAffairsOverview(context.sekolah_id);
+    const context = await this.resolveLeadershipContext(
+      user,
+      "VICE_PRINCIPAL_STUDENT_AFFAIRS",
+      sekolahIdOverride
+    );
+    const data = await this.repo.getStudentAffairsOverview(context.sekolah_id);
     return { context, data };
   }
 
@@ -160,19 +200,23 @@ export class LeadershipAnalyticsService {
    */
   async getProgramHeadOverview(
     user: AuthenticatedUser,
-    programId?: string
+    programId?: string,
+    sekolahIdOverride?: string
   ): Promise<{ context: UserLeadershipContext; data: ProgramHeadOverviewDTO }> {
-    const context = await this.resolveLeadershipContext(user, "PROGRAM_HEAD");
-    const data = await reportingRepository.getProgramHeadOverview(context.sekolah_id, programId);
+    const context = await this.resolveLeadershipContext(user, "PROGRAM_HEAD", sekolahIdOverride);
+    const data = await this.repo.getProgramHeadOverview(context.sekolah_id, programId);
     return { context, data };
   }
 
   /**
    * Riwayat Ekspor
    */
-  async getExportHistory(user: AuthenticatedUser): Promise<RiwayatEksporItemDTO[]> {
-    const context = await this.resolveLeadershipContext(user);
-    return reportingRepository.getExportHistory(context.sekolah_id);
+  async getExportHistory(
+    user: AuthenticatedUser,
+    sekolahIdOverride?: string
+  ): Promise<RiwayatEksporItemDTO[]> {
+    const context = await this.resolveLeadershipContext(user, undefined, sekolahIdOverride);
+    return this.repo.getExportHistory(context.sekolah_id);
   }
 
   /**
@@ -183,7 +227,7 @@ export class LeadershipAnalyticsService {
     filters?: ReportFilterInput
   ): Promise<{ filename: string; csvContent: string; totalRows: number }> {
     const context = await this.resolveLeadershipContext(user);
-    const rows = await reportingRepository.getAttendanceReportRows(context.sekolah_id, filters);
+    const rows = await this.repo.getAttendanceReportRows(context.sekolah_id, filters);
 
     // Format CSV
     const headers = [
@@ -220,7 +264,7 @@ export class LeadershipAnalyticsService {
     const filename = `Rekap_Presensi_Sekolah_${Date.now()}.csv`;
 
     // Simpan ke riwayat ekspor
-    await reportingRepository.saveExportLog({
+    await this.repo.saveExportLog({
       sekolah_id: context.sekolah_id,
       tipe_laporan: "PRESENSI",
       judul: "Rekapitulasi Kehadiran Siswa Sekolah",
@@ -252,7 +296,7 @@ export class LeadershipAnalyticsService {
     filters?: ReportFilterInput
   ): Promise<{ filename: string; csvContent: string; totalRows: number }> {
     const context = await this.resolveLeadershipContext(user);
-    const rows = await reportingRepository.getAcademicReportRows(context.sekolah_id, filters);
+    const rows = await this.repo.getAcademicReportRows(context.sekolah_id, filters);
 
     const headers = [
       "No",
@@ -288,7 +332,7 @@ export class LeadershipAnalyticsService {
     const filename = `Rekap_Nilai_Akademik_${Date.now()}.csv`;
 
     // Simpan ke riwayat ekspor
-    await reportingRepository.saveExportLog({
+    await this.repo.saveExportLog({
       sekolah_id: context.sekolah_id,
       tipe_laporan: "NILAI_AKADEMIK",
       judul: "Rekapitulasi Capaian Nilai & KKTP Sekolah",
@@ -317,10 +361,10 @@ export class LeadershipAnalyticsService {
    */
   async getExecutiveReportData(user: AuthenticatedUser): Promise<ExecutiveReportData> {
     const context = await this.resolveLeadershipContext(user);
-    const reportData = await reportingRepository.getExecutiveReportData(context.sekolah_id);
+    const reportData = await this.repo.getExecutiveReportData(context.sekolah_id);
 
     // Simpan log ekspor
-    await reportingRepository.saveExportLog({
+    await this.repo.saveExportLog({
       sekolah_id: context.sekolah_id,
       tipe_laporan: "EKSEKUTIF",
       judul: "Lembar Ringkasan Eksekutif Pimpinan",

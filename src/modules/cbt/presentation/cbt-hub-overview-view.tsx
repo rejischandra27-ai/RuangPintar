@@ -15,6 +15,7 @@ import {
   BookOpen,
   Clock,
   Layers,
+  Plus,
   Search,
   CheckCircle2,
   AlertTriangle,
@@ -127,6 +128,7 @@ export function CbtHubOverviewView({
   });
 
   // Statistics for teacher
+  const uniqueRombelCount = new Set(teacherClasses.map((c) => c.rombel_id)).size;
   const totalClasses = teacherClasses.length;
   const totalExamsAll = teacherClasses.reduce((acc, c) => acc + c.total_ujian, 0);
   const totalPublishedExams = teacherClasses.reduce((acc, c) => acc + c.total_published, 0);
@@ -157,10 +159,17 @@ export function CbtHubOverviewView({
 
           {isTeacherOrAdmin && (
             <div className="flex flex-wrap items-center gap-2">
+              <Link
+                href="/cbt-ujian/bank-soal/buat"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition-all"
+              >
+                <Plus className="h-4 w-4" />
+                Buat Soal Baru
+              </Link>
               <button
                 type="button"
                 onClick={() => setIsBankModalOpen(true)}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition-all"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold shadow-2xs transition-all"
               >
                 <Layers className="h-4 w-4" />
                 Buka Bank Soal
@@ -175,11 +184,11 @@ export function CbtHubOverviewView({
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div className="rounded-2xl bg-white border border-slate-200/80 p-4 shadow-xs">
             <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-              Total Kelas Diampu
+              Rombel Diajar
             </span>
             <div className="mt-1 flex items-baseline gap-2">
-              <span className="text-2xl font-black text-slate-800">{totalClasses}</span>
-              <span className="text-xs text-slate-400">Rombel</span>
+              <span className="text-2xl font-black text-slate-800">{uniqueRombelCount}</span>
+              <span className="text-xs text-slate-400">Rombel ({totalClasses} Penugasan)</span>
             </div>
           </div>
           <div className="rounded-2xl bg-white border border-slate-200/80 p-4 shadow-xs">
@@ -271,7 +280,7 @@ export function CbtHubOverviewView({
                       href={`/kelas-saya/${item.penugasan_id}`}
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all"
                     >
-                      Buka Workspace Kelas
+                      Kelola Kelas
                       <ExternalLink className="h-3 w-3" />
                     </Link>
                   </div>
@@ -342,17 +351,26 @@ export function CbtHubOverviewView({
                             <strong className="text-slate-700">{exam.total_selesai}</strong> /{" "}
                             {exam.total_peserta}
                           </span>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedResultsExamId(exam.id);
-                              setSelectedResultsPenugasanId(item.penugasan_id);
-                            }}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:border-blue-400 text-slate-700 text-[11px] font-bold shadow-2xs transition-all"
-                          >
-                            <Eye className="h-3 w-3 text-blue-600" />
-                            Monitoring & Hasil
-                          </button>
+                          <div className="flex items-center gap-1.5">
+                            <Link
+                              href={`/cbt-ujian/proctor/${exam.id}`}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 text-[11px] font-bold shadow-2xs transition-all"
+                            >
+                              <ShieldCheck className="h-3 w-3 text-blue-600" />
+                              Live Proctor
+                            </Link>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedResultsExamId(exam.id);
+                                setSelectedResultsPenugasanId(item.penugasan_id);
+                              }}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:border-blue-400 text-slate-700 text-[11px] font-bold shadow-2xs transition-all"
+                            >
+                              <Eye className="h-3 w-3 text-slate-600" />
+                              Hasil
+                            </button>
+                          </div>
                         </div>
                       </div>
                     ))}

@@ -201,6 +201,25 @@ describe("Academic Views — UI Components", () => {
     expect(screen.getByText("36 Siswa")).toBeInTheDocument();
   });
 
+  it("hides non-atomic rombel creation for owners while retaining class management", () => {
+    render(
+      <RombelsView
+        initialRombels={mockRombels}
+        academicYears={mockYears}
+        semesters={mockSemesters}
+        gradeLevels={mockGradeLevels}
+        phases={mockPhases}
+        programs={mockPrograms}
+        canManage={true}
+        isTenantOwner={true}
+      />
+    );
+
+    expect(screen.queryByRole("button", { name: "Bentuk Rombel" })).not.toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "Edit" }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("button", { name: "Hapus" }).length).toBeGreaterThan(0);
+  });
+
   it("renders AcademicManagementTabs and allows switching main tabs", () => {
     render(
       <AcademicManagementTabs

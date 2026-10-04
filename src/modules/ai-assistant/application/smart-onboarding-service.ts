@@ -25,6 +25,7 @@ import {
   RombelQuotaExceededError,
 } from "../domain/ai-errors";
 import { extractStudentsFromClassPhoto } from "../infrastructure/gemini-vision-service";
+import { provisionDefaultSubjects } from "@/modules/teacher/application/subject-provisioning-service";
 
 const MAX_FREE_ROMBEL_QUOTA = 5;
 const TRIAL_DURATION_DAYS = 30;
@@ -61,6 +62,7 @@ export class SmartOnboardingService {
     user: { id: string; username: string; email: string; nama_lengkap: string };
     sekolah: { id: string; nama: string };
     rawSessionToken: string;
+    membershipStatus: "ACTIVE" | "PENDING";
   }> {
     const normalizedEmail = dto.email.trim().toLowerCase();
     if (await prisma.pengguna.findFirst({ where: { email: normalizedEmail } })) {
@@ -119,6 +121,8 @@ export class SmartOnboardingService {
           },
         });
 
+        await provisionDefaultSubjects(tx, schoolId, dto.jenjang!);
+
         await tx.tahunAjaran.create({
           data: {
             id: tahunAjaranId!,
@@ -145,11 +149,39 @@ export class SmartOnboardingService {
           },
         });
 
-        for (const [kode, nama, urutan] of [
-          ["X", "Kelas X", 10],
-          ["XI", "Kelas XI", 11],
-          ["XII", "Kelas XII", 12],
-        ] as const) {
+        const gradeLevelsByJenjang: Record<string, readonly [string, string, number][]> = {
+          SD: [
+            ["I", "Kelas I", 1],
+            ["II", "Kelas II", 2],
+            ["III", "Kelas III", 3],
+            ["IV", "Kelas IV", 4],
+            ["V", "Kelas V", 5],
+            ["VI", "Kelas VI", 6],
+          ],
+          SMP: [
+            ["VII", "Kelas VII", 7],
+            ["VIII", "Kelas VIII", 8],
+            ["IX", "Kelas IX", 9],
+          ],
+          SMA: [
+            ["X", "Kelas X", 10],
+            ["XI", "Kelas XI", 11],
+            ["XII", "Kelas XII", 12],
+          ],
+          SMK: [
+            ["X", "Kelas X", 10],
+            ["XI", "Kelas XI", 11],
+            ["XII", "Kelas XII", 12],
+          ],
+          UMUM: [
+            ["X", "Kelas X", 10],
+            ["XI", "Kelas XI", 11],
+            ["XII", "Kelas XII", 12],
+          ],
+        };
+        const selectedGrades =
+          gradeLevelsByJenjang[dto.jenjang?.toUpperCase() || ""] ?? gradeLevelsByJenjang.UMUM;
+        for (const [kode, nama, urutan] of selectedGrades) {
           await tx.tingkatKelas.create({
             data: { id: generateUlid(), sekolah_id: schoolId, kode, nama, urutan },
           });
@@ -204,20 +236,37 @@ export class SmartOnboardingService {
         },
       });
 
-      await tx.keanggotaanSekolah.create({
-        data: {
-          id: generateUlid(),
-          pengguna_id: userId,
-          sekolah_id: schoolId,
-          peran_dasar_di_tenant: "TEACHER",
-          status_keanggotaan: "ACTIVE",
-          is_owner: createsSchool,
-          berlaku_mulai: new Date(),
-          sumber_pendaftaran: createsSchool ? "OWNER_CREATE" : "JOIN_REQUEST",
-          disetujui_oleh_id: userId,
-          disetujui_pada: new Date(),
-        },
-      });
+      if (createsSchool) {
+        await tx.keanggotaanSekolah.create({
+          data: {
+            id: generateUlid(),
+            pengguna_id: userId,
+            sekolah_id: schoolId,
+            peran_dasar_di_tenant: "TEACHER",
+            status_keanggotaan: "ACTIVE",
+            is_owner: true,
+            berlaku_mulai: new Date(),
+            sumber_pendaftaran: "OWNER_CREATE",
+            disetujui_oleh_id: userId,
+            disetujui_pada: new Date(),
+          },
+        });
+      } else {
+        await tx.keanggotaanSekolah.create({
+          data: {
+            id: generateUlid(),
+            pengguna_id: userId,
+            sekolah_id: schoolId,
+            peran_dasar_di_tenant: "TEACHER",
+            status_keanggotaan: "ACTIVE",
+            is_owner: false,
+            berlaku_mulai: new Date(),
+            sumber_pendaftaran: "JOIN_REQUEST",
+            disetujui_oleh_id: userId,
+            disetujui_pada: new Date(),
+          },
+        });
+      }
 
       if (dto.provider_identity) {
         await tx.identitasProvider.create({
@@ -257,7 +306,7 @@ export class SmartOnboardingService {
       }
     });
 
-    // Buat token sesi login instan dengan konteks tenant aktif terikat
+    // Buat token sesi login instan dengan konteks tenant aktif hanya bila membuat sekolah sendiri
     const rawSessionToken = generateSessionToken();
     const hashedSessionToken = hashSessionToken(rawSessionToken);
 
@@ -265,7 +314,7 @@ export class SmartOnboardingService {
       data: {
         id: generateUlid(),
         pengguna_id: userId,
-        sekolah_aktif_id: schoolId,
+        sekolah_aktif_id: createsSchool ? schoolId : null,
         token_hash: hashedSessionToken,
         ip_address: sessionContext?.ipAddress ?? "127.0.0.1",
         user_agent: sessionContext?.userAgent ?? "Ruang Pintar Self-Service Onboarding",
@@ -285,6 +334,7 @@ export class SmartOnboardingService {
         nama: schoolName,
       },
       rawSessionToken,
+      membershipStatus: createsSchool ? "ACTIVE" : "PENDING",
     };
   }
 

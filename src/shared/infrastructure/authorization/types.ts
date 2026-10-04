@@ -190,6 +190,8 @@ export interface ActorContext {
   status_akun: string;
   sekolah_id?: string | null;
   capabilities?: CapabilityBundle[];
+  is_owner?: boolean;
+  tipe_sekolah?: string;
 }
 
 export interface AccessRequest {

@@ -26,7 +26,7 @@ import { positionAssignmentService } from "@/modules/school/application/position
 import { prisma } from "@/shared/infrastructure/database/prisma";
 
 interface SchoolManagementPageProps {
-  searchParams?: Promise<{ sekolahId?: string }>;
+  searchParams?: Promise<{ sekolahId?: string; tab?: string }>;
 }
 
 export default async function SchoolManagementPage(props: SchoolManagementPageProps) {
@@ -38,11 +38,31 @@ export default async function SchoolManagementPage(props: SchoolManagementPagePr
   if (isSuperAdmin && !searchParams?.sekolahId) {
     const rawSchools = await prisma.sekolah.findMany({
       orderBy: { created_at: "desc" },
+      include: {
+        _count: {
+          select: {
+            siswa: true,
+            guru: true,
+            rombel: true,
+            ujian_cbt: true,
+            pengguna: true,
+          },
+        },
+        langganan_tenant: {
+          orderBy: { created_at: "desc" },
+          take: 1,
+        },
+        transaksi_langganan: {
+          where: { status: "PAID" },
+          orderBy: { dibayar_pada: "desc" },
+          take: 1,
+        },
+      },
     });
 
     return (
       <AcademicShell user={user} userCapabilities={[]}>
-        <SuperAdminSchoolDirectoryView schools={rawSchools} />
+        <SuperAdminSchoolDirectoryView schools={rawSchools} currentUser={user} />
       </AcademicShell>
     );
   }
@@ -204,6 +224,7 @@ export default async function SchoolManagementPage(props: SchoolManagementPagePr
           canManageSchool={canManageSchool}
           canViewStructure={canViewStructure}
           canManageStructure={canManageStructure}
+          initialTab={searchParams?.tab || "profil"}
         />
       </div>
     </AcademicShell>

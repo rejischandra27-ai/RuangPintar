@@ -15,7 +15,7 @@ export interface StudentIdentityDTO {
   id: string;
   sekolah_id: string;
   pengguna_id: string | null;
-  nis: string;
+  nis: string | null;
   nisn: string | null;
   nama_lengkap: string;
   jenis_kelamin: JenisKelamin;
@@ -51,7 +51,7 @@ export interface StudentEnrollmentDTO {
   sekolah_id: string;
   siswa_id: string;
   siswa_nama?: string;
-  siswa_nis?: string;
+  siswa_nis?: string | null;
   siswa_nisn?: string | null;
   siswa_jenis_kelamin?: JenisKelamin;
   tahun_ajaran_id: string;
@@ -78,7 +78,7 @@ export interface RombelPlacementDTO {
   keikutsertaan_id: string;
   siswa_id?: string;
   siswa_nama?: string;
-  siswa_nis?: string;
+  siswa_nis?: string | null;
   siswa_jenis_kelamin?: JenisKelamin;
   tahun_ajaran_id?: string;
   tahun_ajaran_nama?: string;
@@ -107,7 +107,7 @@ export interface StudentAcademicHistoryDTO {
 
 // Input Types
 export interface CreateStudentIdentityInput {
-  nis: string;
+  nis?: string | null;
   nisn?: string | null;
   nama_lengkap: string;
   jenis_kelamin: JenisKelamin;
@@ -130,7 +130,7 @@ export interface CreateStudentIdentityInput {
 }
 
 export interface UpdateStudentIdentityInput {
-  nis?: string;
+  nis?: string | null;
   nisn?: string | null;
   nama_lengkap?: string;
   jenis_kelamin?: JenisKelamin;

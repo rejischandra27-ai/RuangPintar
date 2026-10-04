@@ -241,7 +241,7 @@ describe("M18 Student Monitoring & Homeroom — MonitoringService Domain & Appli
     });
 
     it("mengupdate status catatan monitoring dan mencatat audit trail", async () => {
-      vi.spyOn(prisma.catatanMonitoring, "findUnique").mockResolvedValue({
+      vi.spyOn(prisma.catatanMonitoring, "findFirst").mockResolvedValue({
         id: "NOTE_01",
         rombel_id: mockRombelId,
       } as any);
@@ -347,7 +347,7 @@ describe("M18 Student Monitoring & Homeroom — MonitoringService Domain & Appli
     });
 
     it("mengupdate status tindak lanjut menjadi SELESAI dan mencatat tanggal penyelesaian", async () => {
-      vi.spyOn(prisma.tindakLanjutMonitoring, "findUnique").mockResolvedValue({
+      vi.spyOn(prisma.tindakLanjutMonitoring, "findFirst").mockResolvedValue({
         id: "TL_99",
         catatan: {
           rombel_id: mockRombelId,

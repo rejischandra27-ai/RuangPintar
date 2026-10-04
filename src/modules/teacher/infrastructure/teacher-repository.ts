@@ -481,6 +481,16 @@ export class TeacherRepository {
     if (input.foto_url !== undefined) data.foto_url = input.foto_url || null;
     if (input.catatan !== undefined) data.catatan = input.catatan || null;
 
+    const existing = await prisma.guru.findFirst({
+      where: { id: input.id, ...(input.sekolah_id ? { sekolah_id: input.sekolah_id } : {}) },
+      select: { id: true },
+    });
+    if (!existing) {
+      throw new Error(
+        `Guru dengan ID '${input.id}' tidak ditemukan atau bukan milik sekolah aktif.`
+      );
+    }
+
     const r = await prisma.guru.update({
       where: { id: input.id },
       data,
@@ -799,6 +809,16 @@ export class TeacherRepository {
     }
     if (input.deskripsi !== undefined) data.deskripsi = input.deskripsi || null;
 
+    const existing = await prisma.mataPelajaran.findFirst({
+      where: { id: input.id, ...(input.sekolah_id ? { sekolah_id: input.sekolah_id } : {}) },
+      select: { id: true },
+    });
+    if (!existing) {
+      throw new Error(
+        `Mata pelajaran dengan ID '${input.id}' tidak ditemukan atau bukan milik sekolah aktif.`
+      );
+    }
+
     const r = await prisma.mataPelajaran.update({
       where: { id: input.id },
       data,
@@ -861,9 +881,14 @@ export class TeacherRepository {
   }
 
   static async deleteSubject(id: string, sekolah_id: string): Promise<boolean> {
-    await prisma.mataPelajaran.delete({
-      where: { id },
+    const deleted = await prisma.mataPelajaran.deleteMany({
+      where: { id, sekolah_id },
     });
+    if (deleted.count === 0) {
+      throw new Error(
+        `Mata pelajaran dengan ID '${id}' tidak ditemukan atau bukan milik sekolah aktif.`
+      );
+    }
     return true;
   }
 
@@ -1173,6 +1198,16 @@ export class TeacherRepository {
     if (input.status !== undefined) data.status = input.status;
     if (input.berlaku_sampai !== undefined) data.berlaku_sampai = input.berlaku_sampai || null;
     if (input.catatan !== undefined) data.catatan = input.catatan || null;
+
+    const existing = await prisma.penugasanMengajar.findFirst({
+      where: { id: input.id, ...(input.sekolah_id ? { sekolah_id: input.sekolah_id } : {}) },
+      select: { id: true },
+    });
+    if (!existing) {
+      throw new Error(
+        `Penugasan mengajar dengan ID '${input.id}' tidak ditemukan atau bukan milik sekolah aktif.`
+      );
+    }
 
     const r = await prisma.penugasanMengajar.update({
       where: { id: input.id },

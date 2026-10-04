@@ -5,7 +5,7 @@
  */
 
 import React, { useState } from "react";
-import { Building2, Network, Award, UserCheck } from "lucide-react";
+import { Building2, Network, Award, UserCheck, Zap } from "lucide-react";
 import {
   OrganizationUnitDTO,
   PersonilOptionDTO,
@@ -17,6 +17,7 @@ import { SchoolProfileForm } from "./school-profile-form";
 import { OrganizationUnitsView } from "./organization-units-view";
 import { PositionsView } from "./positions-view";
 import { PositionAssignmentsView } from "./position-assignments-view";
+import { TenantBillingDashboardView } from "@/modules/billing/presentation/tenant-billing-dashboard-view";
 
 interface SchoolManagementTabsProps {
   profile: SchoolProfileDTO;
@@ -127,6 +128,20 @@ export function SchoolManagementTabs({
             </button>
           </>
         )}
+
+        {/* Tab Langganan & Billing (ADR-003 Tenant Owner Visibility) */}
+        <button
+          type="button"
+          onClick={() => setActiveTab("billing")}
+          className={`flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-2.5 rounded-xl text-[11.5px] sm:text-[13px] font-bold transition-all cursor-pointer ${
+            activeTab === "billing"
+              ? "bg-[#2563EB] text-white shadow-md shadow-blue-500/20"
+              : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+          }`}
+        >
+          <Zap className="h-4 w-4 flex-shrink-0" />
+          <span className="truncate">Langganan & Billing</span>
+        </button>
       </div>
 
       {/* TAB CONTENT PANELS */}
@@ -155,6 +170,8 @@ export function SchoolManagementTabs({
             canManage={canManageStructure}
           />
         )}
+
+        {activeTab === "billing" && <TenantBillingDashboardView />}
       </div>
     </div>
   );

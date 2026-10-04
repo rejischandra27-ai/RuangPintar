@@ -7,6 +7,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Users,
   CheckCircle2,
@@ -21,18 +22,29 @@ import {
   MonitorPlay,
   FileText,
   Clock,
+  PlusCircle,
 } from "lucide-react";
 import { StatCard } from "@/shared/components/dashboard/stat-card";
 import { GuardianDashboardData } from "../domain/guardian-types";
 import { ChildSwitcherDropdown } from "./child-switcher-dropdown";
 import { PengajuanIzinModal } from "./pengajuan-izin-modal";
+import { switchActiveChildAction } from "@/app/actions/guardian-actions";
 
 export interface GuardianDashboardClientProps {
   data: GuardianDashboardData;
 }
 
 export function GuardianDashboardClient({ data }: GuardianDashboardClientProps) {
+  const router = useRouter();
   const [isIzinModalOpen, setIsIzinModalOpen] = React.useState(false);
+  const [isSwitching, startSwitchTransition] = React.useTransition();
+
+  const handleSwitchChild = (childId: string) => {
+    startSwitchTransition(async () => {
+      await switchActiveChildAction(childId);
+      router.refresh();
+    });
+  };
 
   const {
     guardian,
@@ -76,6 +88,15 @@ export function GuardianDashboardClient({ data }: GuardianDashboardClientProps) 
           </div>
 
           <ChildSwitcherDropdown linkedChildren={linkedChildren} activeChildId={child.siswa_id} />
+
+          <Link
+            href="/guardian/klaim-anak"
+            data-testid="header-button-klaim-anak"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#2563EB] border border-blue-200/80 shadow-2xs text-xs font-bold transition-all cursor-pointer"
+          >
+            <PlusCircle className="h-3.5 w-3.5" />
+            <span>Klaim Anak Lain</span>
+          </Link>
         </div>
       </div>
 
@@ -129,6 +150,89 @@ export function GuardianDashboardClient({ data }: GuardianDashboardClientProps) 
           }}
           watermarkIcon={<MonitorPlay className="h-28 w-28" />}
         />
+      </div>
+
+      {/* Multi-Child Cards Section (Fitur 04 & Fitur 08: Academic Glass UI) */}
+      <div className="rounded-2xl bg-white/90 backdrop-blur-md border border-slate-200/90 p-5 shadow-xs space-y-3">
+        <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+          <div className="flex items-center gap-2">
+            <Users className="h-4 w-4 text-[#2563EB]" />
+            <h3 className="text-sm font-bold text-[#0F172A]">
+              Daftar Putra/Putri Terhubung ({linkedChildren.length} Siswa)
+            </h3>
+          </div>
+          <Link
+            href="/guardian/klaim-anak"
+            className="text-xs font-bold text-[#2563EB] hover:underline flex items-center gap-1"
+          >
+            <PlusCircle className="h-3.5 w-3.5" />
+            <span>Klaim Siswa Lain</span>
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {linkedChildren.map((c) => {
+            const isActive = c.siswa_id === child.siswa_id;
+            return (
+              <div
+                key={c.siswa_id}
+                className={`p-3.5 rounded-xl border transition-all ${
+                  isActive
+                    ? "bg-blue-50/70 border-[#2563EB] ring-2 ring-[#2563EB]/20 shadow-xs"
+                    : "bg-slate-50/80 border-slate-200/80 hover:bg-white"
+                }`}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2.5">
+                    <div
+                      className={`h-9 w-9 rounded-xl flex items-center justify-center text-xs font-extrabold shadow-2xs ${
+                        isActive ? "bg-[#2563EB] text-white" : "bg-slate-200 text-slate-700"
+                      }`}
+                    >
+                      {c.nama_lengkap
+                        .split(" ")
+                        .slice(0, 2)
+                        .map((w) => w[0])
+                        .join("")}
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-900 leading-tight">
+                        {c.nama_lengkap}
+                      </h4>
+                      <p className="text-[10px] text-slate-500 font-mono mt-0.5">
+                        NIS: {c.nis || "-"} • Kelas:{" "}
+                        <strong className="text-slate-700">{c.rombel_nama}</strong>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-2.5 pt-2 border-t border-slate-200/60 flex items-center justify-between">
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+                    {c.jenis_hubungan} {c.apakah_wali_utama ? "(Utama)" : ""}
+                  </span>
+
+                  {isActive ? (
+                    <span className="text-[10px] font-bold text-[#2563EB] flex items-center gap-1">
+                      <CheckCircle2 className="h-3 w-3" />
+                      <span>Sedang Aktif</span>
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleSwitchChild(c.siswa_id)}
+                      disabled={isSwitching}
+                      className="text-[10px] font-bold text-slate-700 hover:text-[#2563EB] flex items-center gap-1 cursor-pointer"
+                    >
+                      <span>Beralih ke Anak Ini</span>
+                      <ArrowRight className="h-3 w-3" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* Main Grid: Left 2 Cols (Child Details & Academics), Right 1 Col (Services & Requests) */}

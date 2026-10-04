@@ -25,7 +25,9 @@ async function main() {
     throw new Error("PRE-FLIGHT FAILED: Data riil SMK OTOMINDO atau akun inti tidak ditemukan!");
   }
 
-  console.log(`[PASS] Data riil terverifikasi: ${verifySchool.nama}, ${verifyUserChandra.nama_lengkap}`);
+  console.log(
+    `[PASS] Data riil terverifikasi: ${verifySchool.nama}, ${verifyUserChandra.nama_lengkap}`
+  );
 
   // Disable Foreign Keys temporarily during cascade cleanup
   await prisma.$queryRawUnsafe("PRAGMA foreign_keys = OFF;");
@@ -48,15 +50,9 @@ async function main() {
   await prisma.$executeRawUnsafe(
     `DELETE FROM snapshot_ujian WHERE sekolah_id != '${REAL_SCHOOL_ID}';`
   );
-  await prisma.$executeRawUnsafe(
-    `DELETE FROM ujian_cbt WHERE sekolah_id != '${REAL_SCHOOL_ID}';`
-  );
-  await prisma.$executeRawUnsafe(
-    `DELETE FROM versi_soal WHERE sekolah_id != '${REAL_SCHOOL_ID}';`
-  );
-  await prisma.$executeRawUnsafe(
-    `DELETE FROM bank_soal WHERE sekolah_id != '${REAL_SCHOOL_ID}';`
-  );
+  await prisma.$executeRawUnsafe(`DELETE FROM ujian_cbt WHERE sekolah_id != '${REAL_SCHOOL_ID}';`);
+  await prisma.$executeRawUnsafe(`DELETE FROM versi_soal WHERE sekolah_id != '${REAL_SCHOOL_ID}';`);
+  await prisma.$executeRawUnsafe(`DELETE FROM bank_soal WHERE sekolah_id != '${REAL_SCHOOL_ID}';`);
   console.log(`[CBT] Terhapus: Ujian, Soal, Jawaban dummy.`);
 
   // Step 2: Presensi & Sesi Kelas dummy
@@ -117,9 +113,7 @@ async function main() {
   await prisma.$executeRawUnsafe(
     `DELETE FROM versi_jadwal WHERE sekolah_id != '${REAL_SCHOOL_ID}';`
   );
-  await prisma.$executeRawUnsafe(
-    `DELETE FROM slot_waktu WHERE sekolah_id != '${REAL_SCHOOL_ID}';`
-  );
+  await prisma.$executeRawUnsafe(`DELETE FROM slot_waktu WHERE sekolah_id != '${REAL_SCHOOL_ID}';`);
   await prisma.$executeRawUnsafe(
     `DELETE FROM kalender_akademik WHERE sekolah_id != '${REAL_SCHOOL_ID}';`
   );
@@ -141,9 +135,7 @@ async function main() {
   await prisma.$executeRawUnsafe(
     `DELETE FROM keikutsertaan_siswa WHERE sekolah_id != '${REAL_SCHOOL_ID}';`
   );
-  await prisma.$executeRawUnsafe(
-    `DELETE FROM rombel WHERE sekolah_id != '${REAL_SCHOOL_ID}';`
-  );
+  await prisma.$executeRawUnsafe(`DELETE FROM rombel WHERE sekolah_id != '${REAL_SCHOOL_ID}';`);
   console.log(`[Rombel] Terhapus: Rombel & Penempatan dummy.`);
 
   // Step 8: Mata Pelajaran dummy
@@ -159,12 +151,8 @@ async function main() {
   await prisma.$executeRawUnsafe(
     `DELETE FROM pengajuan_wali WHERE sekolah_id != '${REAL_SCHOOL_ID}';`
   );
-  await prisma.$executeRawUnsafe(
-    `DELETE FROM wali_murid WHERE sekolah_id != '${REAL_SCHOOL_ID}';`
-  );
-  await prisma.$executeRawUnsafe(
-    `DELETE FROM siswa WHERE sekolah_id != '${REAL_SCHOOL_ID}';`
-  );
+  await prisma.$executeRawUnsafe(`DELETE FROM wali_murid WHERE sekolah_id != '${REAL_SCHOOL_ID}';`);
+  await prisma.$executeRawUnsafe(`DELETE FROM siswa WHERE sekolah_id != '${REAL_SCHOOL_ID}';`);
   console.log(`[Siswa] Terhapus: Siswa & Wali Murid dummy.`);
 
   // Step 10: Guru dummy (Kecuali profil guru Pak Eri Chandra)
@@ -172,24 +160,18 @@ async function main() {
   await prisma.$executeRawUnsafe(
     `UPDATE guru SET sekolah_id = '${REAL_SCHOOL_ID}' WHERE pengguna_id = '${REAL_USER_CHANDRA}';`
   );
-  await prisma.$executeRawUnsafe(
-    `DELETE FROM guru WHERE id != '01M2XXYD299G35BZDH2NKFCM3P';`
-  );
+  await prisma.$executeRawUnsafe(`DELETE FROM guru WHERE id != '01M2XXYD299G35BZDH2NKFCM3P';`);
   console.log(`[Guru] Terhapus: Profil Guru dummy.`);
 
   // Step 11: Struktur Akademik dummy (Tingkat, Fase, Program, Semester, Tahun Ajaran)
   await prisma.$executeRawUnsafe(
     `DELETE FROM tingkat_kelas WHERE sekolah_id != '${REAL_SCHOOL_ID}';`
   );
-  await prisma.$executeRawUnsafe(
-    `DELETE FROM fase WHERE sekolah_id != '${REAL_SCHOOL_ID}';`
-  );
+  await prisma.$executeRawUnsafe(`DELETE FROM fase WHERE sekolah_id != '${REAL_SCHOOL_ID}';`);
   await prisma.$executeRawUnsafe(
     `DELETE FROM program_keahlian WHERE sekolah_id != '${REAL_SCHOOL_ID}';`
   );
-  await prisma.$executeRawUnsafe(
-    `DELETE FROM semester WHERE sekolah_id != '${REAL_SCHOOL_ID}';`
-  );
+  await prisma.$executeRawUnsafe(`DELETE FROM semester WHERE sekolah_id != '${REAL_SCHOOL_ID}';`);
   await prisma.$executeRawUnsafe(
     `DELETE FROM tahun_ajaran WHERE sekolah_id != '${REAL_SCHOOL_ID}';`
   );
@@ -199,9 +181,7 @@ async function main() {
   await prisma.$executeRawUnsafe(
     `DELETE FROM penugasan_jabatan WHERE sekolah_id != '${REAL_SCHOOL_ID}';`
   );
-  await prisma.$executeRawUnsafe(
-    `DELETE FROM jabatan WHERE sekolah_id != '${REAL_SCHOOL_ID}';`
-  );
+  await prisma.$executeRawUnsafe(`DELETE FROM jabatan WHERE sekolah_id != '${REAL_SCHOOL_ID}';`);
   await prisma.$executeRawUnsafe(
     `DELETE FROM unit_organisasi WHERE sekolah_id != '${REAL_SCHOOL_ID}';`
   );
@@ -216,9 +196,7 @@ async function main() {
   await prisma.$executeRawUnsafe(
     `DELETE FROM sasaran_pengumuman WHERE pengumuman_id NOT IN (SELECT id FROM pengumuman WHERE sekolah_id = '${REAL_SCHOOL_ID}');`
   );
-  await prisma.$executeRawUnsafe(
-    `DELETE FROM pengumuman WHERE sekolah_id != '${REAL_SCHOOL_ID}';`
-  );
+  await prisma.$executeRawUnsafe(`DELETE FROM pengumuman WHERE sekolah_id != '${REAL_SCHOOL_ID}';`);
   await prisma.$executeRawUnsafe(
     `DELETE FROM notifikasi_pengguna WHERE sekolah_id != '${REAL_SCHOOL_ID}';`
   );
@@ -249,9 +227,7 @@ async function main() {
   await prisma.$executeRawUnsafe(
     `DELETE FROM log_percobaan_login WHERE identifier NOT IN ('guru_chandra', 'superadmin') AND identifier NOT LIKE '%chandra%';`
   );
-  await prisma.$executeRawUnsafe(
-    `DELETE FROM outbox_pesan;`
-  );
+  await prisma.$executeRawUnsafe(`DELETE FROM outbox_pesan;`);
   await prisma.$executeRawUnsafe(
     `DELETE FROM log_audit WHERE (sekolah_id != '${REAL_SCHOOL_ID}' AND sekolah_id IS NOT NULL) OR (aktor_id NOT IN ('${REAL_USER_CHANDRA}', '${REAL_USER_ADMIN}'));`
   );
@@ -282,9 +258,7 @@ async function main() {
   console.log(`[Pengguna] Terhapus pengguna dummy.`);
 
   // Step 16: Hapus Sekolah Dummy (Semua KECUALI SMK OTOMINDO)
-  await prisma.$executeRawUnsafe(
-    `DELETE FROM sekolah WHERE id != '${REAL_SCHOOL_ID}';`
-  );
+  await prisma.$executeRawUnsafe(`DELETE FROM sekolah WHERE id != '${REAL_SCHOOL_ID}';`);
   console.log(`[Sekolah] Terhapus sekolah dummy.`);
 
   // Re-enable Foreign Keys

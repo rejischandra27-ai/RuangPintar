@@ -59,15 +59,36 @@ export default async function CbtUjianPage() {
 
     const penugasanList = await prisma.penugasanMengajar.findMany({
       where: whereClause,
-      include: {
-        guru: true,
-        rombel: true,
-        mata_pelajaran: true,
+      select: {
+        id: true,
+        rombel_id: true,
+        mata_pelajaran_id: true,
+        guru: {
+          select: { nama_lengkap: true },
+        },
+        rombel: {
+          select: { id: true, nama: true },
+        },
+        mata_pelajaran: {
+          select: { id: true, nama: true },
+        },
         ujian_cbt: {
-          include: {
+          select: {
+            id: true,
+            judul: true,
+            deskripsi: true,
+            durasi_menit: true,
+            status: true,
+            gunakan_token: true,
+            token_masuk: true,
             sesi_ujian_siswa: {
-              include: {
-                hasil: true,
+              select: {
+                status: true,
+                hasil: {
+                  select: {
+                    skor_mentah: true,
+                  },
+                },
               },
             },
           },
@@ -169,59 +190,96 @@ export default async function CbtUjianPage() {
 
     if (siswa) {
       const activePlacements = siswa.keikutsertaan.flatMap((k) => k.penempatan);
+      const allExamsWithContext: Array<{
+        u: any;
+        mapelNama: string;
+        guruNama: string;
+        rombelNama: string;
+      }> = [];
+
       for (const placement of activePlacements) {
         for (const penugasan of placement.rombel.penugasan_mengajar) {
           for (const u of penugasan.ujian_cbt) {
-            const attempt = await prisma.sesiUjianSiswa.findFirst({
-              where: {
-                ujian_cbt_id: u.id,
-                siswa_id: siswa.id,
-              },
-              include: {
-                hasil: true,
-              },
-            });
-
-            let attemptStatus: "BELUM_DIKERJAKAN" | "SEDANG_DIKERJAKAN" | "SELESAI" | "TERKUNCI" =
-              "BELUM_DIKERJAKAN";
-            if (attempt) {
-              if (attempt.status === "DIKUMPULKAN" || attempt.status === "WAKTU_HABIS") {
-                attemptStatus = "SELESAI";
-              } else if (attempt.status === "TERKUNCI_PELANGGARAN") {
-                attemptStatus = "TERKUNCI";
-              } else {
-                attemptStatus = "SEDANG_DIKERJAKAN";
-              }
-            }
-
-            studentExams.push({
-              id: u.id,
-              judul: u.judul,
-              deskripsi: u.deskripsi,
-              durasi_menit: u.durasi_menit,
-              tanggal_mulai: u.waktu_mulai
-                ? u.waktu_mulai.toISOString()
-                : u.created_at.toISOString(),
-              tanggal_selesai: u.waktu_selesai ? u.waktu_selesai.toISOString() : "",
-              status_ujian: u.status,
-              mata_pelajaran_nama: penugasan.mata_pelajaran.nama,
-              guru_nama: penugasan.guru.nama_lengkap,
-              rombel_nama: placement.rombel.nama,
-              gunakan_token: u.gunakan_token,
-              attempt_status: attemptStatus,
-              attempt_id: attempt?.id,
-              nilai_akhir: attempt?.hasil?.skor_mentah ?? null,
+            allExamsWithContext.push({
+              u,
+              mapelNama: penugasan.mata_pelajaran.nama,
+              guruNama: penugasan.guru.nama_lengkap,
+              rombelNama: placement.rombel.nama,
             });
           }
         }
       }
+
+      const examIds = allExamsWithContext.map((item) => item.u.id);
+      const attempts =
+        examIds.length > 0
+          ? await prisma.sesiUjianSiswa.findMany({
+              where: {
+                ujian_cbt_id: { in: examIds },
+                siswa_id: siswa.id,
+              },
+              select: {
+                id: true,
+                ujian_cbt_id: true,
+                status: true,
+                hasil: {
+                  select: {
+                    skor_mentah: true,
+                  },
+                },
+              },
+            })
+          : [];
+
+      const attemptMap = new Map(attempts.map((a) => [a.ujian_cbt_id, a]));
+
+      for (const item of allExamsWithContext) {
+        const u = item.u;
+        const attempt = attemptMap.get(u.id);
+
+        let attemptStatus: "BELUM_DIKERJAKAN" | "SEDANG_DIKERJAKAN" | "SELESAI" | "TERKUNCI" =
+          "BELUM_DIKERJAKAN";
+        if (attempt) {
+          if (attempt.status === "DIKUMPULKAN" || attempt.status === "WAKTU_HABIS") {
+            attemptStatus = "SELESAI";
+          } else if (attempt.status === "TERKUNCI_PELANGGARAN") {
+            attemptStatus = "TERKUNCI";
+          } else {
+            attemptStatus = "SEDANG_DIKERJAKAN";
+          }
+        }
+
+        studentExams.push({
+          id: u.id,
+          judul: u.judul,
+          deskripsi: u.deskripsi,
+          durasi_menit: u.durasi_menit,
+          tanggal_mulai: u.waktu_mulai ? u.waktu_mulai.toISOString() : u.created_at.toISOString(),
+          tanggal_selesai: u.waktu_selesai ? u.waktu_selesai.toISOString() : "",
+          status_ujian: u.status,
+          mata_pelajaran_nama: item.mapelNama,
+          guru_nama: item.guruNama,
+          rombel_nama: item.rombelNama,
+          gunakan_token: u.gunakan_token,
+          attempt_status: attemptStatus,
+          attempt_id: attempt?.id,
+          nilai_akhir: attempt?.hasil?.skor_mentah ?? null,
+        });
+      }
     }
   }
+
+  const sekolah = await prisma.sekolah.findUnique({
+    where: { id: user.sekolah_id },
+    select: { tipe_lisensi: true },
+  });
+  const isSubscribed = sekolah?.tipe_lisensi === "SEKOLAH";
 
   return (
     <AcademicShell
       user={user}
       userCapabilities={staffCapabilities}
+      isSubscribed={isSubscribed}
       breadcrumbItems={[
         { label: "Dashboard", href: "/dashboard" },
         { label: "CBT Ujian Online", href: "/cbt-ujian", isCurrent: true },

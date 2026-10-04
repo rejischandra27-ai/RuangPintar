@@ -102,11 +102,16 @@ export class NotificationRepository {
   /**
    * Menandai notifikasi tertentu sebagai terbaca.
    */
-  async markAsRead(notificationId: string, userId: string): Promise<InAppNotificationItem | null> {
+  async markAsRead(
+    notificationId: string,
+    userId: string,
+    sekolahId?: string
+  ): Promise<InAppNotificationItem | null> {
     const existing = await prisma.notifikasiPengguna.findFirst({
       where: {
         id: notificationId,
         pengguna_id: userId,
+        ...(sekolahId ? { sekolah_id: sekolahId } : {}),
       },
     });
 
@@ -132,11 +137,12 @@ export class NotificationRepository {
   /**
    * Menandai seluruh notifikasi pengguna sebagai terbaca.
    */
-  async markAllAsRead(userId: string): Promise<number> {
+  async markAllAsRead(userId: string, sekolahId?: string): Promise<number> {
     const result = await prisma.notifikasiPengguna.updateMany({
       where: {
         pengguna_id: userId,
         apakah_dibaca: false,
+        ...(sekolahId ? { sekolah_id: sekolahId } : {}),
       },
       data: {
         apakah_dibaca: true,

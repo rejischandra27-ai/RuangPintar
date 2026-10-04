@@ -22,7 +22,7 @@ export interface GuardianProfile {
 export interface LinkedChildSummary {
   siswa_id: string;
   nama_lengkap: string;
-  nis: string;
+  nis: string | null;
   nisn: string | null;
   rombel_nama: string;
   tingkat_kelas: string;
@@ -119,7 +119,7 @@ export interface ChildReportSubjectItem {
 export interface ChildReportCardSummary {
   siswa_id: string;
   nama_siswa: string;
-  nis: string;
+  nis: string | null;
   nisn: string | null;
   rombel_nama: string;
   fase: string;
@@ -162,4 +162,53 @@ export interface GuardianDashboardData {
   upcomingCbt: ChildCbtSummaryItem[];
   recentPublishedGrades: ChildPublishedGradeItem[];
   recentPengajuan: PengajuanWaliItem[];
+}
+
+export interface StudentClaimVerificationInput {
+  nis?: string | null;
+  nisn?: string | null;
+  nama_lengkap: string;
+  rombel_id?: string | null;
+  rombel_nama?: string | null;
+  tanggal_lahir?: string | null;
+}
+
+export interface StudentClaimPreviewDTO {
+  siswa_id: string;
+  nama_lengkap: string;
+  nis: string | null;
+  nisn: string | null;
+  rombel_nama: string;
+  tingkat_kelas: string;
+  sekolah_id: string;
+  sekolah_nama: string;
+  foto_url: string | null;
+  jenis_kelamin: string;
+}
+
+export interface ConfirmStudentClaimInput {
+  siswa_id: string;
+  jenis_hubungan: RelationshipType;
+  apakah_wali_utama?: boolean;
+  catatan?: string | null;
+}
+
+export interface StudentClaimResultDTO {
+  hubungan_id: string;
+  wali_id: string;
+  siswa_id: string;
+  nama_siswa: string;
+  jenis_hubungan: RelationshipType;
+  status_verifikasi: VerificationStatus;
+  apakah_wali_utama: boolean;
+  pesan: string;
+}
+
+export interface GuardianRegistrationInput {
+  nama_lengkap: string;
+  username: string;
+  email?: string | null;
+  no_telepon?: string | null;
+  password: string;
+  sekolah_id: string;
 }

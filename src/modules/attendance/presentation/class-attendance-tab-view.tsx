@@ -90,72 +90,72 @@ export function ClassAttendanceTabView({
       {/* KPI Ringkasan Kehadiran Kelas */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Total Sesi */}
-        <div className="p-4 sm:p-5 rounded-3xl bg-white border border-slate-200/80 shadow-2xs space-y-2">
+        <div className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-slate-900/75 dark:backdrop-blur-xl border border-slate-200/80 dark:border-blue-500/20 shadow-2xs space-y-2">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
               Total Sesi
             </span>
-            <div className="p-2 rounded-xl bg-blue-50 text-[#2563EB]">
+            <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-[#2563EB] dark:text-blue-400">
               <Calendar className="h-4 w-4" />
             </div>
           </div>
           <div>
-            <div className="text-2xl font-bold text-slate-900">{total_sesi_terjadwal}</div>
-            <p className="text-[11px] text-slate-400 mt-0.5">Sesi KBM pada penugasan ini</p>
+            <div className="text-2xl font-bold text-slate-900 dark:text-white">{total_sesi_terjadwal}</div>
+            <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">Sesi KBM pada penugasan ini</p>
           </div>
         </div>
 
         {/* Sesi Diabsen */}
-        <div className="p-4 sm:p-5 rounded-3xl bg-white border border-slate-200/80 shadow-2xs space-y-2">
+        <div className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-slate-900/75 dark:backdrop-blur-xl border border-slate-200/80 dark:border-blue-500/20 shadow-2xs space-y-2">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
               Presensi Terekam
             </span>
-            <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600">
+            <div className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400">
               <UserCheck className="h-4 w-4" />
             </div>
           </div>
           <div>
-            <div className="text-2xl font-bold text-emerald-700">{total_presensi_diambil}</div>
-            <p className="text-[11px] text-slate-400 mt-0.5">Sesi dengan data absensi siswa</p>
+            <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{total_presensi_diambil}</div>
+            <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">Sesi dengan data absensi siswa</p>
           </div>
         </div>
 
         {/* Sesi Selesai */}
-        <div className="p-4 sm:p-5 rounded-3xl bg-white border border-slate-200/80 shadow-2xs space-y-2">
+        <div className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-slate-900/75 dark:backdrop-blur-xl border border-slate-200/80 dark:border-blue-500/20 shadow-2xs space-y-2">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
               Sesi Selesai
             </span>
-            <div className="p-2 rounded-xl bg-purple-50 text-purple-600">
+            <div className="p-2 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400">
               <CheckCircle2 className="h-4 w-4" />
             </div>
           </div>
           <div>
-            <div className="text-2xl font-bold text-purple-700">{total_sesi_selesai}</div>
-            <p className="text-[11px] text-slate-400 mt-0.5">Pertemuan yang telah ditutup</p>
+            <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{total_sesi_selesai}</div>
+            <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">Pertemuan yang telah ditutup</p>
           </div>
         </div>
 
         {/* Rata-Rata Kehadiran */}
-        <div className="p-4 sm:p-5 rounded-3xl bg-white border border-slate-200/80 shadow-2xs space-y-2 col-span-2 lg:col-span-1">
+        <div className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-slate-900/75 dark:backdrop-blur-xl border border-slate-200/80 dark:border-blue-500/20 shadow-2xs space-y-2 col-span-2 lg:col-span-1">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
               Rata-rata Kehadiran
             </span>
-            <div className="p-2 rounded-xl bg-blue-50 text-[#2563EB]">
+            <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-[#2563EB] dark:text-blue-400">
               <TrendingUp className="h-4 w-4" />
             </div>
           </div>
           <div>
-            <div className="text-2xl font-bold text-[#2563EB]">{rata_rata_kehadiran}%</div>
-            <p className="text-[11px] text-slate-400 mt-0.5">Rasio kehadiran seluruh pertemuan</p>
+            <div className="text-2xl font-bold text-[#2563EB] dark:text-blue-400">{rata_rata_kehadiran}%</div>
+            <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">Rasio kehadiran seluruh pertemuan</p>
           </div>
         </div>
       </div>
 
       {/* Sub-Tab Navigation: Buku Leger vs Rekapitulasi Presensi vs Riwayat Sesi */}
-      <div className="flex items-center justify-between border-b border-slate-200 gap-2 flex-wrap">
+      <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 gap-2 flex-wrap">
         <div className="flex items-center gap-1">
           {gradebook && (
             <button
@@ -163,8 +163,8 @@ export function ClassAttendanceTabView({
               onClick={() => setActiveSubTab("ledger")}
               className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer ${
                 activeSubTab === "ledger"
-                  ? "border-[#2563EB] text-[#2563EB] bg-blue-50/50"
-                  : "border-transparent text-slate-500 hover:text-slate-900"
+                  ? "border-[#2563EB] text-[#2563EB] dark:text-blue-400 bg-blue-50/50 dark:bg-blue-950/40"
+                  : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
               }`}
             >
               <FileSpreadsheet className="h-4 w-4" />
@@ -177,14 +177,14 @@ export function ClassAttendanceTabView({
             onClick={() => setActiveSubTab("recap")}
             className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer ${
               activeSubTab === "recap"
-                ? "border-[#2563EB] text-[#2563EB] bg-blue-50/50"
-                : "border-transparent text-slate-500 hover:text-slate-900"
+                ? "border-[#2563EB] text-[#2563EB] dark:text-blue-400 bg-blue-50/50 dark:bg-blue-950/40"
+                : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
             }`}
           >
             <TableProperties className="h-4 w-4" />
             <span>Rekapitulasi Siswa</span>
             {recap && (
-              <span className="px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-700 text-[10px]">
+              <span className="px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px]">
                 {recap.total_siswa}
               </span>
             )}
@@ -195,13 +195,13 @@ export function ClassAttendanceTabView({
             onClick={() => setActiveSubTab("history")}
             className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer ${
               activeSubTab === "history"
-                ? "border-[#2563EB] text-[#2563EB] bg-blue-50/50"
-                : "border-transparent text-slate-500 hover:text-slate-900"
+                ? "border-[#2563EB] text-[#2563EB] dark:text-blue-400 bg-blue-50/50 dark:bg-blue-950/40"
+                : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
             }`}
           >
             <History className="h-4 w-4" />
             <span>Riwayat Sesi KBM</span>
-            <span className="px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-700 text-[10px]">
+            <span className="px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px]">
               {history.length}
             </span>
           </button>
@@ -238,7 +238,7 @@ export function ClassAttendanceTabView({
         (recap ? (
           <StudentAttendanceRecapTable recap={recap} />
         ) : (
-          <div className="p-8 text-center rounded-2xl bg-white border border-slate-200 text-slate-400 text-xs">
+          <div className="p-8 text-center rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-500 text-xs">
             Data rekapitulasi presensi siswa sedang dimuat atau belum tersedia.
           </div>
         ))}
@@ -246,10 +246,10 @@ export function ClassAttendanceTabView({
       {/* KONTEN TAB 2: RIWAYAT SESI */}
       {activeSubTab === "history" && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-white border border-slate-200/80 shadow-2xs">
+          <div className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-white dark:bg-slate-900/75 border border-slate-200/80 dark:border-slate-800 shadow-2xs">
             <div>
-              <h3 className="text-sm font-bold text-slate-900">Riwayat Presensi Sesi Kelas</h3>
-              <p className="text-xs text-slate-500">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">Riwayat Presensi Sesi Kelas</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 Catatan kehadiran siswa per kejadian sesi kelas aktual
               </p>
             </div>
@@ -257,10 +257,10 @@ export function ClassAttendanceTabView({
 
           {/* Session List */}
           {history.length === 0 ? (
-            <div className="p-12 text-center rounded-3xl bg-white border border-slate-200/80 shadow-2xs space-y-3">
-              <Users className="h-10 w-10 text-slate-300 mx-auto" />
-              <h4 className="text-sm font-bold text-slate-700">Belum Ada Sesi Kelas Terbuka</h4>
-              <p className="text-xs text-slate-400 max-w-sm mx-auto">
+            <div className="p-12 text-center rounded-3xl bg-white dark:bg-slate-900/75 border border-slate-200/80 dark:border-slate-800 shadow-2xs space-y-3">
+              <Users className="h-10 w-10 text-slate-300 dark:text-slate-600 mx-auto" />
+              <h4 className="text-sm font-bold text-slate-700 dark:text-slate-200">Belum Ada Sesi Kelas Terbuka</h4>
+              <p className="text-xs text-slate-400 dark:text-slate-500 max-w-sm mx-auto">
                 Mulai sesi pembelajaran baru atau buka sesi dari jadwal hari ini untuk mulai
                 melakukan presensi kehadiran siswa.
               </p>
@@ -290,12 +290,12 @@ export function ClassAttendanceTabView({
                 return (
                   <div
                     key={s.sesi_id}
-                    className="p-4 sm:p-5 rounded-3xl bg-white border border-slate-200/80 shadow-2xs hover:shadow-sm transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                    className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-slate-900/75 border border-slate-200/80 dark:border-slate-800 shadow-2xs hover:shadow-sm transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                   >
                     {/* Info Sesi */}
                     <div className="space-y-1.5 min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="px-2.5 py-0.5 rounded-lg bg-blue-50 text-[#2563EB] font-bold text-xs flex items-center gap-1">
+                        <span className="px-2.5 py-0.5 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-[#2563EB] dark:text-blue-400 font-bold text-xs flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
                           {formattedDate}
                         </span>
@@ -303,60 +303,60 @@ export function ClassAttendanceTabView({
                         <span
                           className={`px-2 py-0.5 rounded-lg text-[11px] font-bold ${
                             s.status_sesi === "DIMULAI"
-                              ? "bg-emerald-100 text-emerald-700"
+                              ? "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400"
                               : s.status_sesi === "SELESAI"
-                                ? "bg-slate-100 text-slate-600"
-                                : "bg-amber-100 text-amber-700"
+                                ? "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+                                : "bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400"
                           }`}
                         >
                           {s.status_sesi}
                         </span>
 
                         {s.ruangan && (
-                          <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-lg">
+                          <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-lg">
                             Ruang: {s.ruangan}
                           </span>
                         )}
                       </div>
 
-                      <h4 className="text-sm font-bold text-slate-900 truncate">
+                      <h4 className="text-sm font-bold text-slate-900 dark:text-white truncate">
                         {s.topik_pembelajaran || "Pembelajaran Reguler Tatap Muka"}
                       </h4>
 
                       {/* Statistik Presensi */}
                       {s.sudah_diabsen ? (
                         <div className="flex flex-wrap items-center gap-2 pt-0.5">
-                          <span className="px-2 py-0.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold text-xs">
+                          <span className="px-2 py-0.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 font-bold text-xs">
                             {s.jumlah_hadir} Hadir ({s.persentase_kehadiran}%)
                           </span>
                           {s.jumlah_izin > 0 && (
-                            <span className="px-2 py-0.5 rounded-lg bg-sky-50 text-sky-700 font-semibold text-xs">
+                            <span className="px-2 py-0.5 rounded-lg bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-400 font-semibold text-xs">
                               {s.jumlah_izin} Izin
                             </span>
                           )}
                           {s.jumlah_sakit > 0 && (
-                            <span className="px-2 py-0.5 rounded-lg bg-amber-50 text-amber-700 font-semibold text-xs">
+                            <span className="px-2 py-0.5 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 font-semibold text-xs">
                               {s.jumlah_sakit} Sakit
                             </span>
                           )}
                           {s.jumlah_alpha > 0 && (
-                            <span className="px-2 py-0.5 rounded-lg bg-rose-50 text-rose-700 font-semibold text-xs">
+                            <span className="px-2 py-0.5 rounded-lg bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400 font-semibold text-xs">
                               {s.jumlah_alpha} Alpha
                             </span>
                           )}
                           {s.jumlah_dispensasi > 0 && (
-                            <span className="px-2 py-0.5 rounded-lg bg-purple-50 text-purple-700 font-semibold text-xs">
+                            <span className="px-2 py-0.5 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-400 font-semibold text-xs">
                               {s.jumlah_dispensasi} Disp.
                             </span>
                           )}
                           {s.jumlah_terlambat > 0 && (
-                            <span className="px-2 py-0.5 rounded-lg bg-orange-50 text-orange-700 font-semibold text-xs">
+                            <span className="px-2 py-0.5 rounded-lg bg-orange-50 dark:bg-orange-950/60 text-orange-700 dark:text-orange-400 font-semibold text-xs">
                               {s.jumlah_terlambat} Terlambat
                             </span>
                           )}
                         </div>
                       ) : (
-                        <p className="text-xs text-amber-600 font-semibold flex items-center gap-1">
+                        <p className="text-xs text-amber-600 dark:text-amber-400 font-semibold flex items-center gap-1">
                           <AlertCircle className="h-3.5 w-3.5" />
                           Presensi belum dicatat untuk pertemuan ini
                         </p>
@@ -370,7 +370,7 @@ export function ClassAttendanceTabView({
                         onClick={() => onOpenAttendance(s.sesi_id)}
                         className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                           s.sudah_diabsen
-                            ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200"
+                            ? "bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700"
                             : "bg-[#2563EB] hover:bg-blue-700 text-white shadow-xs"
                         }`}
                       >

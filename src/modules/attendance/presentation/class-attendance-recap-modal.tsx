@@ -138,7 +138,7 @@ export function ClassAttendanceRecapModal({
               href={`/kelas-saya/${penugasanId}?tab=presensi`}
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all"
             >
-              <span>Buka Workspace Kelas Lengkap</span>
+              <span>Kelola Kelas Lengkap</span>
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           )}

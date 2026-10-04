@@ -50,7 +50,7 @@ export interface NilaiSiswaDTO {
   asesmen_id: string;
   siswa_id: string;
   penempatan_rombel_id?: string | null;
-  siswa_nis: string;
+  siswa_nis: string | null;
   siswa_nama: string;
   nomor_absen?: number | null;
   nilai_angka: number | null; // NULLABLE! Missing Grade ≠ Zero Grade
@@ -104,7 +104,7 @@ export interface GradebookColumnDTO {
 export interface GradebookStudentRowDTO {
   siswa_id: string;
   penempatan_rombel_id?: string | null;
-  nis: string;
+  nis: string | null;
   nisn?: string | null;
   nama_lengkap: string;
   nomor_absen?: number | null;

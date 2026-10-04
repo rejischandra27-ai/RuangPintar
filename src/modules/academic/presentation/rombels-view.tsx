@@ -48,6 +48,7 @@ interface RombelsViewProps {
   phases: PhaseDTO[];
   programs: AcademicProgramDTO[];
   canManage: boolean;
+  isTenantOwner?: boolean;
 }
 
 const emptySubscribe = () => () => {};
@@ -60,6 +61,7 @@ export function RombelsView({
   phases,
   programs,
   canManage,
+  isTenantOwner = false,
 }: RombelsViewProps) {
   const isMounted = useSyncExternalStore(
     emptySubscribe,
@@ -228,7 +230,7 @@ export function RombelsView({
           </div>
 
           <div className="flex items-center gap-2">
-            {canManage && (
+            {canManage && !isTenantOwner && (
               <button
                 type="button"
                 onClick={() => {
@@ -250,7 +252,7 @@ export function RombelsView({
             title="Belum Ada Rombongan Belajar"
             description="Bentuk rombongan belajar pertama untuk mengelompokkan siswa berdasarkan tingkat dan program keahlian."
             action={
-              canManage ? (
+              canManage && !isTenantOwner ? (
                 <Button
                   variant="cobalt"
                   onClick={() => {

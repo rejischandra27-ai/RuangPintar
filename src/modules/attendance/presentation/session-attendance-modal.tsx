@@ -49,8 +49,8 @@ interface SessionAttendanceModalProps {
   sesiId: string | null;
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (message: string) => void;
-  onError: (message: string) => void;
+  onSuccess?: (message: string) => void;
+  onError?: (message: string) => void;
 }
 
 export function SessionAttendanceModal({
@@ -80,8 +80,8 @@ function SessionAttendanceModalContent({
 }: {
   sesiId: string;
   onClose: () => void;
-  onSuccess: (message: string) => void;
-  onError: (message: string) => void;
+  onSuccess?: (message: string) => void;
+  onError?: (message: string) => void;
 }) {
   const [sessionData, setSessionData] = useState<ClassSessionAttendanceDTO | null>(null);
   const [items, setItems] = useState<Record<string, { status: AttendanceStatus; catatan: string }>>(
@@ -117,13 +117,13 @@ function SessionAttendanceModalContent({
           });
           setItems(initialMap);
         } else {
-          onError(res.message);
+          onError?.(res.message);
           onClose();
         }
       })
       .catch((err) => {
         if (!isMounted) return;
-        onError(err instanceof Error ? err.message : "Gagal memuat data presensi sesi.");
+        onError?.(err instanceof Error ? err.message : "Gagal memuat data presensi sesi.");
         onClose();
       })
       .finally(() => {
@@ -276,10 +276,10 @@ function SessionAttendanceModalContent({
       });
 
       if (res.success) {
-        onSuccess(res.message);
+        onSuccess?.(res.message);
         onClose();
       } else {
-        onError(res.message);
+        onError?.(res.message);
       }
     });
   };
@@ -581,12 +581,26 @@ function SessionAttendanceModalContent({
               {filteredAndSortedStudents.length === 0 ? (
                 <div className="p-16 text-center text-slate-400 space-y-2">
                   <Users className="h-8 w-8 mx-auto text-slate-300" />
-                  <p className="text-xs font-bold text-slate-600">
-                    Tidak ada siswa yang sesuai filter.
-                  </p>
-                  <p className="text-[11px] text-slate-400">
-                    Coba sesuaikan kata kunci pencarian atau ganti filter status.
-                  </p>
+                  {totalSiswa === 0 ? (
+                    <>
+                      <p className="text-xs font-bold text-slate-600">
+                        Belum ada siswa terdaftar pada rombel ini.
+                      </p>
+                      <p className="text-[11px] text-slate-400">
+                        Silakan hubungi staf kurikulum atau administrator untuk penempatan siswa ke
+                        rombel ini.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-xs font-bold text-slate-600">
+                        Tidak ada siswa yang sesuai filter.
+                      </p>
+                      <p className="text-[11px] text-slate-400">
+                        Coba sesuaikan kata kunci pencarian atau ganti filter status.
+                      </p>
+                    </>
+                  )}
                 </div>
               ) : viewMode === "TABLE" ? (
                 /* ========================================================= */

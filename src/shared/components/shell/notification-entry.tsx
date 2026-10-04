@@ -117,6 +117,12 @@ export function NotificationEntry() {
         return <UserCheck className="h-4 w-4 text-emerald-600" />;
       case "JADWAL_BERUBAH":
         return <Calendar className="h-4 w-4 text-indigo-600" />;
+      case "JOIN_REQUEST_RECEIVED":
+        return <UserCheck className="h-4 w-4 text-blue-600" />;
+      case "JOIN_REQUEST_APPROVED":
+        return <CheckCheck className="h-4 w-4 text-emerald-600" />;
+      case "JOIN_REQUEST_REJECTED":
+        return <X className="h-4 w-4 text-rose-600" />;
       default:
         return <Bell className="h-4 w-4 text-slate-500" />;
     }

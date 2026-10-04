@@ -209,7 +209,7 @@ export class AcademicYearService {
       );
     }
 
-    await this.repo.deleteAcademicYear(id);
+    await this.repo.deleteAcademicYear(id, sekolahId);
 
     await recordAuditEvent({
       sekolah_id: sekolahId,

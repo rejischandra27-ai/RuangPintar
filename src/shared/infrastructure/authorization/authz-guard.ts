@@ -192,6 +192,7 @@ export async function requirePermission(
     status_akun: user.status_akun,
     sekolah_id: user.sekolah_id,
     capabilities,
+    is_owner: user.is_owner_tenant,
   };
 
   const decision = accessControlEngine.evaluate({
@@ -270,6 +271,7 @@ export async function checkPermission(
     status_akun: user.status_akun,
     sekolah_id: user.sekolah_id,
     capabilities,
+    is_owner: user.is_owner_tenant,
   };
 
   const decision = accessControlEngine.evaluate({

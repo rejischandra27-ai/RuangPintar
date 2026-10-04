@@ -10,7 +10,7 @@ export interface CreateMonitoringNoteModalProps {
   onClose: () => void;
   onSuccess: () => void;
   rombelId: string;
-  students: Array<{ id: string; nama: string; nis: string }>;
+  students: Array<{ id: string; nama: string; nis: string | null }>;
   preselectedStudentId?: string | null;
 }
 
@@ -146,7 +146,7 @@ export function CreateMonitoringNoteModal({
             >
               {students.map((s) => (
                 <option key={s.id} value={s.id}>
-                  {s.nama} ({s.nis})
+                  {s.nama} {s.nis ? `(${s.nis})` : ""}
                 </option>
               ))}
             </select>

@@ -44,10 +44,12 @@ export class StudentIdentityService {
     aktorId: string,
     aktorRole: string
   ): Promise<StudentIdentityDTO> {
-    // 1. Check NIS uniqueness
-    const existingNis = await this.repo.findStudentByNis(input.nis, sekolahId);
-    if (existingNis) {
-      throw new DuplicateNisError(input.nis);
+    // 1. Check NIS uniqueness if provided
+    if (input.nis && input.nis.trim() !== "") {
+      const existingNis = await this.repo.findStudentByNis(input.nis.trim(), sekolahId);
+      if (existingNis) {
+        throw new DuplicateNisError(input.nis);
+      }
     }
 
     // 2. Check NISN uniqueness if provided
@@ -149,7 +151,7 @@ export class StudentIdentityService {
       );
     }
 
-    await this.repo.deleteStudent(id);
+    await this.repo.deleteStudent(id, sekolahId);
 
     await recordAuditEvent({
       sekolah_id: sekolahId,

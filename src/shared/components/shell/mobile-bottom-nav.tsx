@@ -31,16 +31,26 @@ export interface MobileBottomNavItem {
 export interface MobileBottomNavProps {
   userRole: BaseRole;
   userCapabilities?: CapabilityBundle[];
+  isOwner?: boolean;
   onOpenMenu: () => void;
   className?: string;
 }
 
 export function getMobileBottomNavItems(
   userRole: BaseRole,
-  userCapabilities: CapabilityBundle[] = []
+  userCapabilities: CapabilityBundle[] = [],
+  isOwner: boolean = false
 ): MobileBottomNavItem[] {
   switch (userRole) {
     case "TEACHER":
+      if (isOwner) {
+        return [
+          { id: "home", label: "Beranda", href: "/dashboard", icon: LayoutDashboard },
+          { id: "classes", label: "Kelas", href: "/kelas-saya", icon: School },
+          { id: "students", label: "Siswa", href: "/data-siswa", icon: UserSquare2 },
+          { id: "schedule", label: "Jadwal", href: "/jadwal-saya", icon: Calendar },
+        ];
+      }
       return [
         { id: "home", label: "Beranda", href: "/dashboard", icon: LayoutDashboard },
         { id: "schedule", label: "Jadwal", href: "/jadwal-saya", icon: Calendar },
@@ -102,13 +112,14 @@ export function getMobileBottomNavItems(
 export function MobileBottomNav({
   userRole,
   userCapabilities = [],
+  isOwner = false,
   onOpenMenu,
   className = "",
 }: MobileBottomNavProps) {
   const pathname = usePathname();
   const items = React.useMemo(
-    () => getMobileBottomNavItems(userRole, userCapabilities),
-    [userRole, userCapabilities]
+    () => getMobileBottomNavItems(userRole, userCapabilities, isOwner),
+    [userRole, userCapabilities, isOwner]
   );
 
   return (

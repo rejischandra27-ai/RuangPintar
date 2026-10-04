@@ -152,7 +152,48 @@ export class CbtService {
     }
     const input: CreateBankSoalInput = parsed.data;
 
-    return this.repo.createBankSoal(input, sekolahId, guruId ?? null);
+    let effectiveGuruId = guruId?.trim();
+    if (!effectiveGuruId) {
+      const anyGuru = await prisma.guru.findFirst({
+        where: { sekolah_id: sekolahId },
+        select: { id: true },
+      });
+      if (anyGuru) {
+        effectiveGuruId = anyGuru.id;
+      }
+    }
+    if (!effectiveGuruId) {
+      throw new CbtValidationError("Data guru pengampu tidak ditemukan di sekolah ini.");
+    }
+
+    let effectiveMapelId = input.mata_pelajaran_id?.trim();
+    if (!effectiveMapelId) {
+      const penugasan = await prisma.penugasanMengajar.findFirst({
+        where: { sekolah_id: sekolahId, guru_id: effectiveGuruId, status: "AKTIF" },
+        select: { mata_pelajaran_id: true },
+      });
+      if (penugasan) {
+        effectiveMapelId = penugasan.mata_pelajaran_id;
+      }
+    }
+    if (!effectiveMapelId) {
+      const anyMapel = await prisma.mataPelajaran.findFirst({
+        where: { sekolah_id: sekolahId },
+        select: { id: true },
+      });
+      if (anyMapel) {
+        effectiveMapelId = anyMapel.id;
+      }
+    }
+    if (!effectiveMapelId) {
+      throw new CbtValidationError("Mata pelajaran wajib dipilih untuk membuat butir soal.");
+    }
+
+    return this.repo.createBankSoal(
+      { ...input, mata_pelajaran_id: effectiveMapelId },
+      sekolahId,
+      effectiveGuruId
+    );
   }
 
   async createQuestionVersion(
@@ -259,7 +300,7 @@ export class CbtService {
 
     // Invariant: Snapshot dibuat saat publikasi dan bersifat immutable
     const result = await this.repo.freezeSnapshot(ujianId, sekolahId);
-    await this.repo.updateUjianStatus(ujianId, "DIPUBLIKASI");
+    await this.repo.updateUjianStatus(ujianId, "DIPUBLIKASI", sekolahId);
 
     const updatedExam = await this.repo.findUjianById(ujianId, sekolahId);
     return { ujian: updatedExam!, snapshotId: result.id };
@@ -280,7 +321,7 @@ export class CbtService {
       guruId,
       isSuperAdmin
     );
-    await this.repo.updateUjianStatus(ujianId, "DIARSIPKAN");
+    await this.repo.updateUjianStatus(ujianId, "DIARSIPKAN", sekolahId);
   }
 
   async bulkCreateQuestions(
@@ -570,7 +611,8 @@ export class CbtService {
     if (exitScreenEvents.length >= 2 && session.status === "SEDANG_MENGERJAKAN") {
       await this.repo.lockAttemptForViolation(
         session.id,
-        `Sesi dikunci otomatis: Terdeteksi ${exitScreenEvents.length} kali keluar dari layar penuh / pindah tab.`
+        `Sesi dikunci otomatis: Terdeteksi ${exitScreenEvents.length} kali keluar dari layar penuh / pindah tab.`,
+        session.sekolah_id
       );
       isLocked = true;
     }
@@ -669,7 +711,61 @@ export class CbtService {
       guruId,
       isSuperAdmin
     );
-    await this.repo.unlockAttempt(attemptId);
+    await this.repo.unlockAttempt(attemptId, sekolahId);
+  }
+
+  /**
+   * Reset attempt pengerjaan siswa agar siswa dapat mengulang dari awal
+   */
+  async resetAttempt(
+    attemptId: string,
+    sekolahId: string,
+    guruId?: string | null,
+    isSuperAdmin = false
+  ): Promise<void> {
+    const session = await this.repo.findSessionById(attemptId);
+    if (!session) throw new CbtNotFoundError(`Sesi ujian ${attemptId} tidak ditemukan.`);
+
+    const exam = await this.repo.findUjianById(session.ujian_cbt_id, sekolahId);
+    if (!exam) throw new CbtNotFoundError(`Ujian CBT tidak ditemukan.`);
+
+    await this.verifyTeacherAssignmentScope(
+      exam.penugasan_mengajar_id,
+      sekolahId,
+      guruId,
+      isSuperAdmin
+    );
+    await this.repo.resetAttempt(attemptId);
+  }
+
+  /**
+   * Pengawas / Guru memaksa pengumpulan jawaban siswa dari jarak jauh
+   */
+  async forceSubmitAttempt(
+    attemptId: string,
+    sekolahId: string,
+    guruId?: string | null,
+    isSuperAdmin = false
+  ): Promise<any> {
+    const session = await this.repo.findSessionById(attemptId);
+    if (!session) throw new CbtNotFoundError(`Sesi ujian ${attemptId} tidak ditemukan.`);
+
+    if (session.status !== "SEDANG_MENGERJAKAN" && session.status !== "TERKUNCI_PELANGGARAN") {
+      throw new CbtAttemptClosedError(
+        `Sesi ujian ${attemptId} sudah ditutup (status: ${session.status}). Tidak dapat dipaksa kumpul.`
+      );
+    }
+
+    const exam = await this.repo.findUjianById(session.ujian_cbt_id, sekolahId);
+    if (!exam) throw new CbtNotFoundError(`Ujian CBT tidak ditemukan.`);
+
+    await this.verifyTeacherAssignmentScope(
+      exam.penugasan_mengajar_id,
+      sekolahId,
+      guruId,
+      isSuperAdmin
+    );
+    return this.repo.submitAttempt(attemptId);
   }
 
   /**
@@ -700,6 +796,47 @@ export class CbtService {
     );
 
     return this.repo.transferResultsToGradebook(input, sekolahId);
+  }
+
+  /**
+   * Koreksi & submit lembar jawaban manual (LJM kertas / susulan)
+   */
+  async submitPaperExam(
+    ujianId: string,
+    siswaId: string,
+    jawabanMap: Record<number, string>,
+    sekolahId: string,
+    guruId?: string | null,
+    isSuperAdmin = false
+  ): Promise<HasilUjianCbtDTO> {
+    const exam = await this.repo.findUjianById(ujianId, sekolahId);
+    if (!exam) throw new CbtNotFoundError(`Ujian CBT ${ujianId} tidak ditemukan.`);
+
+    await this.verifyTeacherAssignmentScope(
+      exam.penugasan_mengajar_id,
+      sekolahId,
+      guruId,
+      isSuperAdmin
+    );
+
+    return this.repo.submitPaperExam(ujianId, siswaId, jawabanMap, sekolahId);
+  }
+
+  /**
+   * Ekstraksi visual foto Lembar Jawaban Manual via AI Vision
+   */
+  async scanPaperLjmPhoto(
+    imageBase64: string,
+    totalSoal: number,
+    mimeType = "image/jpeg"
+  ): Promise<{
+    detectedAnswers: Record<number, string>;
+    confidence: number;
+    detectedStudentName?: string;
+    detectedNis?: string;
+    notes: string;
+  }> {
+    return this.repo.scanPaperLjmPhoto(imageBase64, totalSoal, mimeType);
   }
 }
 

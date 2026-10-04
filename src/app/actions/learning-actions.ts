@@ -10,6 +10,7 @@ import { requirePermission } from "@/shared/infrastructure/authorization/authz-g
 import { learningService } from "@/modules/learning/application/learning-service";
 import { LocalStorageAdapter } from "@/shared/infrastructure/storage/local-storage-adapter";
 import { prisma } from "@/shared/infrastructure/database/prisma";
+import { generateUlid } from "@/shared/lib/ulid";
 
 export interface LearningActionResult<T = any> {
   success: boolean;
@@ -571,6 +572,432 @@ export async function deleteAdministrasiAction(
     return {
       success: true,
       message: "Catatan jurnal KBM berhasil dihapus.",
+    };
+  } catch (err) {
+    return { success: false, message: getSafeErrorMessage(err) };
+  }
+}
+
+// ==========================================
+// PUSAT KURIKULUM & MULTI-ROMBEL BROADCAST
+// ==========================================
+
+export async function createBabMultiRombelAction(
+  _prevState: any,
+  formData: FormData
+): Promise<LearningActionResult> {
+  try {
+    const user = await requireAuth();
+    await requirePermission("learning.material.manage");
+    if (!user.sekolah_id) return { success: false, message: "Konteks sekolah tidak valid." };
+
+    const penugasanIdsRaw = formData.get("penugasan_ids") as string;
+    let penugasanIds: string[] = [];
+    try {
+      penugasanIds = JSON.parse(penugasanIdsRaw || "[]");
+    } catch {
+      penugasanIds = [];
+    }
+
+    if (!penugasanIds.length) {
+      return { success: false, message: "Pilih minimal satu rombel target penerapan." };
+    }
+
+    const kode = (formData.get("kode") as string) || null;
+    const judul = (formData.get("judul") as string)?.trim();
+    const deskripsi = (formData.get("deskripsi") as string) || null;
+    const urutan = Number(formData.get("urutan")) || 1;
+
+    if (!judul) {
+      return { success: false, message: "Judul BAB / Lingkup Materi wajib diisi." };
+    }
+
+    let createdCount = 0;
+    await prisma.$transaction(async (tx) => {
+      for (const penugasanId of penugasanIds) {
+        await assertTeachingAssignmentBelongsToSchool(penugasanId, user.sekolah_id!, user);
+
+        const existing = await tx.lingkupMateri.findFirst({
+          where: {
+            penugasan_mengajar_id: penugasanId,
+            sekolah_id: user.sekolah_id!,
+            judul: { equals: judul },
+          },
+        });
+
+        if (!existing) {
+          await tx.lingkupMateri.create({
+            data: {
+              id: generateUlid(),
+              sekolah_id: user.sekolah_id!,
+              penugasan_mengajar_id: penugasanId,
+              kode,
+              judul,
+              deskripsi,
+              urutan,
+              status: "AKTIF",
+            },
+          });
+          createdCount++;
+        } else {
+          // Update data jika sudah ada agar data tetap sinkron
+          await tx.lingkupMateri.update({
+            where: { id: existing.id },
+            data: {
+              kode: kode || existing.kode,
+              deskripsi: deskripsi || existing.deskripsi,
+              urutan: urutan || existing.urutan,
+            },
+          });
+        }
+      }
+    });
+
+    revalidatePath("/kelas-saya");
+    for (const pid of penugasanIds) {
+      revalidatePath(`/kelas-saya/${pid}`);
+    }
+
+    return {
+      success: true,
+      message: `BAB '${judul}' berhasil diterapkan ke ${penugasanIds.length} rombel target (${createdCount} baru).`,
+    };
+  } catch (err) {
+    return { success: false, message: getSafeErrorMessage(err) };
+  }
+}
+
+export async function createMateriMultiRombelAction(
+  _prevState: any,
+  formData: FormData
+): Promise<LearningActionResult> {
+  try {
+    const user = await requireAuth();
+    await requirePermission("learning.material.manage");
+    if (!user.sekolah_id) return { success: false, message: "Konteks sekolah tidak valid." };
+
+    const penugasanIdsRaw = formData.get("penugasan_ids") as string;
+    let penugasanIds: string[] = [];
+    try {
+      penugasanIds = JSON.parse(penugasanIdsRaw || "[]");
+    } catch {
+      penugasanIds = [];
+    }
+
+    if (!penugasanIds.length) {
+      return { success: false, message: "Pilih minimal satu rombel target penerima." };
+    }
+
+    const mataPelajaranId = (formData.get("mata_pelajaran_id") as string) || null;
+    const babJudul = (formData.get("bab_judul") as string) || null;
+    const judul = (formData.get("judul") as string)?.trim();
+    const deskripsi = (formData.get("deskripsi") as string) || null;
+    const tipeKonten = (formData.get("tipe_konten") as any) || "DOKUMEN";
+    const kontenTeks = (formData.get("konten_teks") as string) || null;
+    const tautanUrl = (formData.get("tautan_url") as string) || null;
+
+    if (!judul) {
+      return { success: false, message: "Judul materi pembelajaran wajib diisi." };
+    }
+
+    const { guruId } = await assertTeachingAssignmentBelongsToSchool(
+      penugasanIds[0],
+      user.sekolah_id,
+      user
+    );
+
+    let berkasId: string | null = null;
+    const file = formData.get("file") as File | null;
+    if (
+      file &&
+      typeof file === "object" &&
+      file.size > 0 &&
+      typeof file.arrayBuffer === "function"
+    ) {
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const storage = new LocalStorageAdapter();
+      const metadata = await storage.saveFile({
+        sekolah_id: user.sekolah_id,
+        nama_file_asli: file.name,
+        mime_type: file.type || "application/octet-stream",
+        content: buffer,
+      });
+      berkasId = metadata.id;
+    }
+
+    const materiId = generateUlid();
+
+    await prisma.$transaction(async (tx) => {
+      // 1. Simpan 1 master definisi materi pembelajaran
+      await tx.materiPembelajaran.create({
+        data: {
+          id: materiId,
+          sekolah_id: user.sekolah_id!,
+          guru_id: guruId,
+          mata_pelajaran_id: mataPelajaranId,
+          judul,
+          deskripsi,
+          tipe_konten: tipeKonten,
+          konten_teks: kontenTeks,
+          tautan_url: tautanUrl,
+          berkas_id: berkasId,
+          status: "PUBLISHED",
+        },
+      });
+
+      // 2. Terbitkan ke setiap penugasan mengajar rombel yang dipilih
+      let primaryLmId: string | null = null;
+      for (const penugasanId of penugasanIds) {
+        await tx.publikasiMateri.create({
+          data: {
+            id: generateUlid(),
+            sekolah_id: user.sekolah_id!,
+            materi_id: materiId,
+            penugasan_mengajar_id: penugasanId,
+            status: "DITERBITKAN",
+          },
+        });
+
+        // Sambungkan ke LingkupMateri (BAB) di rombel jika dipilih
+        if (babJudul) {
+          let lm = await tx.lingkupMateri.findFirst({
+            where: {
+              penugasan_mengajar_id: penugasanId,
+              sekolah_id: user.sekolah_id!,
+              judul: babJudul,
+            },
+          });
+
+          // JIKA BELUM ADA DI ROMBEL TARGET INI, BUAT / SINKRONKAN OTOMATIS!
+          if (!lm) {
+            const templateLm = await tx.lingkupMateri.findFirst({
+              where: {
+                sekolah_id: user.sekolah_id!,
+                judul: babJudul,
+              },
+              include: {
+                tujuan_pembelajaran: true,
+              },
+            });
+
+            const newLmId = generateUlid();
+            lm = await tx.lingkupMateri.create({
+              data: {
+                id: newLmId,
+                sekolah_id: user.sekolah_id!,
+                penugasan_mengajar_id: penugasanId,
+                kode: templateLm?.kode || null,
+                judul: babJudul,
+                deskripsi: templateLm?.deskripsi || null,
+                urutan: templateLm?.urutan || 1,
+                status: "AKTIF",
+              },
+            });
+
+            // Salin TP jika ada di template BAB
+            if (templateLm?.tujuan_pembelajaran && templateLm.tujuan_pembelajaran.length > 0) {
+              for (const tp of templateLm.tujuan_pembelajaran) {
+                await tx.tujuanPembelajaran.create({
+                  data: {
+                    id: generateUlid(),
+                    sekolah_id: user.sekolah_id!,
+                    lingkup_materi_id: newLmId,
+                    kode: tp.kode,
+                    deskripsi: tp.deskripsi,
+                    urutan: tp.urutan,
+                    status: tp.status,
+                  },
+                });
+              }
+            }
+          }
+
+          if (lm && !primaryLmId) {
+            primaryLmId = lm.id;
+          }
+        }
+      }
+
+      if (primaryLmId) {
+        await tx.materiPembelajaran.update({
+          where: { id: materiId },
+          data: { lingkup_materi_id: primaryLmId },
+        });
+      }
+    });
+
+    revalidatePath("/kelas-saya");
+    for (const pid of penugasanIds) {
+      revalidatePath(`/kelas-saya/${pid}`);
+    }
+
+    return {
+      success: true,
+      message: `Materi '${judul}' berhasil diterbitkan ke ${penugasanIds.length} rombel secara bersamaan.`,
+    };
+  } catch (err) {
+    return { success: false, message: getSafeErrorMessage(err) };
+  }
+}
+
+export async function getCurriculumSummaryAction(mataPelajaranId?: string): Promise<{
+  success: boolean;
+  babs: Array<{ id: string; kode?: string | null; judul: string; deskripsi?: string | null }>;
+  materiCount: number;
+}> {
+  try {
+    const user = await requireAuth();
+    if (!user.sekolah_id) return { success: false, babs: [], materiCount: 0 };
+
+    const guru = await prisma.guru.findFirst({
+      where: { pengguna_id: user.id, sekolah_id: user.sekolah_id },
+    });
+    if (!guru) return { success: false, babs: [], materiCount: 0 };
+
+    const allBabs = await prisma.lingkupMateri.findMany({
+      where: {
+        sekolah_id: user.sekolah_id,
+        penugasan_mengajar: {
+          guru_id: guru.id,
+          ...(mataPelajaranId ? { mata_pelajaran_id: mataPelajaranId } : {}),
+        },
+      },
+      select: {
+        id: true,
+        kode: true,
+        judul: true,
+        deskripsi: true,
+      },
+      orderBy: { urutan: "asc" },
+    });
+
+    const uniqueBabsMap = new Map<string, (typeof allBabs)[0]>();
+    for (const b of allBabs) {
+      const key = `${b.kode || ""}-${b.judul}`;
+      if (!uniqueBabsMap.has(key)) {
+        uniqueBabsMap.set(key, b);
+      }
+    }
+
+    const materiCount = await prisma.materiPembelajaran.count({
+      where: {
+        sekolah_id: user.sekolah_id,
+        guru_id: guru.id,
+        ...(mataPelajaranId ? { mata_pelajaran_id: mataPelajaranId } : {}),
+      },
+    });
+
+    return {
+      success: true,
+      babs: Array.from(uniqueBabsMap.values()),
+      materiCount,
+    };
+  } catch {
+    return { success: false, babs: [], materiCount: 0 };
+  }
+}
+
+/**
+ * Sinkronisasi Kurikulum (Semua BAB & TP) ke Seluruh Rombel Paralel Pengampu
+ */
+export async function syncCurriculumToAllRombelsAction(
+  mataPelajaranId: string,
+  targetPenugasanIds: string[]
+): Promise<LearningActionResult> {
+  try {
+    const user = await requireAuth();
+    await requirePermission("learning.material.manage");
+    if (!user.sekolah_id) return { success: false, message: "Konteks sekolah tidak valid." };
+
+    if (!targetPenugasanIds || targetPenugasanIds.length === 0) {
+      return { success: false, message: "Pilih minimal satu rombel target." };
+    }
+
+    const guru = await prisma.guru.findFirst({
+      where: { pengguna_id: user.id, sekolah_id: user.sekolah_id },
+    });
+    if (!guru) return { success: false, message: "Data guru tidak ditemukan." };
+
+    // Ambil seluruh master BAB unik dari guru untuk mapel ini
+    const masterBabs = await prisma.lingkupMateri.findMany({
+      where: {
+        sekolah_id: user.sekolah_id,
+        penugasan_mengajar: {
+          guru_id: guru.id,
+          mata_pelajaran_id: mataPelajaranId,
+        },
+      },
+      include: {
+        tujuan_pembelajaran: true,
+      },
+      orderBy: { urutan: "asc" },
+    });
+
+    const uniqueMasterBabsMap = new Map<string, (typeof masterBabs)[0]>();
+    for (const b of masterBabs) {
+      if (!uniqueMasterBabsMap.has(b.judul)) {
+        uniqueMasterBabsMap.set(b.judul, b);
+      }
+    }
+
+    if (uniqueMasterBabsMap.size === 0) {
+      return { success: false, message: "Belum ada BAB yang dibuat untuk disinkronkan." };
+    }
+
+    let syncedBabCount = 0;
+    await prisma.$transaction(async (tx) => {
+      for (const penugasanId of targetPenugasanIds) {
+        for (const masterBab of uniqueMasterBabsMap.values()) {
+          const lm = await tx.lingkupMateri.findFirst({
+            where: {
+              penugasan_mengajar_id: penugasanId,
+              sekolah_id: user.sekolah_id!,
+              judul: masterBab.judul,
+            },
+          });
+
+          if (!lm) {
+            const newLmId = generateUlid();
+            await tx.lingkupMateri.create({
+              data: {
+                id: newLmId,
+                sekolah_id: user.sekolah_id!,
+                penugasan_mengajar_id: penugasanId,
+                kode: masterBab.kode,
+                judul: masterBab.judul,
+                deskripsi: masterBab.deskripsi,
+                urutan: masterBab.urutan,
+                status: "AKTIF",
+              },
+            });
+            syncedBabCount++;
+
+            for (const tp of masterBab.tujuan_pembelajaran) {
+              await tx.tujuanPembelajaran.create({
+                data: {
+                  id: generateUlid(),
+                  sekolah_id: user.sekolah_id!,
+                  lingkup_materi_id: newLmId,
+                  kode: tp.kode,
+                  deskripsi: tp.deskripsi,
+                  urutan: tp.urutan,
+                  status: tp.status,
+                },
+              });
+            }
+          }
+        }
+      }
+    });
+
+    revalidatePath("/kelas-saya");
+    for (const pid of targetPenugasanIds) {
+      revalidatePath(`/kelas-saya/${pid}`);
+    }
+
+    return {
+      success: true,
+      message: `Berhasil menyinkronkan seluruh kurikulum ke ${targetPenugasanIds.length} rombel target (${syncedBabCount} BAB baru diterapkan).`,
     };
   } catch (err) {
     return { success: false, message: getSafeErrorMessage(err) };

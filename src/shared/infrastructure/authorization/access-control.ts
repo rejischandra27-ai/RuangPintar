@@ -78,6 +78,16 @@ export class AccessControlEngine {
       }
     }
 
+    // Resolusi otoritas Tenant Owner (Guru Mandiri / Pemilik Tenant)
+    if (actor.is_owner) {
+      grantedPermissions.add("academic.students.view");
+      grantedPermissions.add("academic.students.manage");
+      grantedPermissions.add("academic.classes.view");
+      grantedPermissions.add("academic.classes.manage");
+      grantedPermissions.add("academic.structure.view");
+      grantedPermissions.add("academic.structure.manage");
+    }
+
     // Tambahkan permissions dari Homeroom Assignment yang aktif
     if (context.homeroomAssignments && context.homeroomAssignments.length > 0) {
       for (const ha of context.homeroomAssignments) {

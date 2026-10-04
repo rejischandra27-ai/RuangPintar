@@ -19,6 +19,7 @@ export interface NavItem {
   roles: BaseRole[];
   requiredPermission?: PermissionString;
   requiredCapability?: CapabilityBundle;
+  requiredOwner?: boolean;
   badge?: string;
   isPhaseDeferred?: boolean;
   phaseNote?: string;
@@ -71,6 +72,25 @@ export const CANONICAL_NAVIGATION_CONFIG: NavGroup[] = [
         isPhaseDeferred: false,
       },
       {
+        id: "teacher-students",
+        title: "Data Siswa",
+        href: "/data-siswa",
+        iconName: "UserSquare2",
+        roles: ["TEACHER"],
+        requiredOwner: true,
+        isPhaseDeferred: false,
+      },
+      {
+        id: "teacher-subject-catalog",
+        title: "Mata Pelajaran",
+        href: "/mata-pelajaran",
+        iconName: "BookOpen",
+        roles: ["TEACHER"],
+        requiredPermission: "academic.structure.view",
+        requiredOwner: true,
+        isPhaseDeferred: false,
+      },
+      {
         id: "teacher-schedule",
         title: "Jadwal Mengajar",
         href: "/jadwal-saya",
@@ -81,7 +101,7 @@ export const CANONICAL_NAVIGATION_CONFIG: NavGroup[] = [
       },
       {
         id: "teacher-class-sessions",
-        title: "Sesi Kelas (KBM)",
+        title: "Log Sesi KBM",
         href: "/sesi-pembelajaran",
         iconName: "PlayCircle",
         roles: ["TEACHER"],
@@ -99,7 +119,7 @@ export const CANONICAL_NAVIGATION_CONFIG: NavGroup[] = [
       },
       {
         id: "teacher-classes",
-        title: "Presensi Kehadiran",
+        title: "Rekap Presensi",
         href: "/presensi-kelas",
         iconName: "Users",
         roles: ["TEACHER"],
@@ -469,7 +489,8 @@ export const CANONICAL_NAVIGATION_CONFIG: NavGroup[] = [
  */
 export function getFilteredNavigation(
   userRole: BaseRole,
-  userCapabilities: CapabilityBundle[] = []
+  userCapabilities: CapabilityBundle[] = [],
+  isOwner: boolean = false
 ): NavGroup[] {
   const filteredGroups: NavGroup[] = [];
   const seenHrefs = new Set<string>();
@@ -483,7 +504,12 @@ export function getFilteredNavigation(
         continue;
       }
 
-      // 2. Jika item butuh capability bundle tertentu
+      // 2. Jika item butuh hak owner tenant
+      if (item.requiredOwner && !isOwner) {
+        continue;
+      }
+
+      // 3. Jika item butuh capability bundle tertentu
       if (item.requiredCapability) {
         if (!userCapabilities.includes(item.requiredCapability)) {
           continue;

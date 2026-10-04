@@ -11,13 +11,18 @@ import {
   SubscriptionOrderDTO,
 } from "../domain/billing-types";
 import { midtransService } from "../infrastructure/midtrans-service";
+import { validateSubscriptionStateTransition } from "@/shared/infrastructure/tenant/tenant-lifecycle-service";
 import crypto from "crypto";
 
 export class SubscriptionService {
   /**
    * Membuat tagihan/pesanan baru untuk paket Guru Pro
    */
-  async createProOrder(userId: string, durationMonths = 1): Promise<SubscriptionOrderDTO> {
+  async createProOrder(
+    userId: string,
+    durationMonths = 1,
+    customSekolahId?: string
+  ): Promise<SubscriptionOrderDTO> {
     const user = await prisma.pengguna.findUnique({
       where: { id: userId },
       include: { sekolah: true },
@@ -25,6 +30,13 @@ export class SubscriptionService {
 
     if (!user) {
       throw new Error("Pengguna tidak ditemukan.");
+    }
+
+    const effectiveSekolahId = customSekolahId || user.sekolah_id;
+    if (!effectiveSekolahId) {
+      throw new Error(
+        "Pengguna tidak terikat pada institusi sekolah (tenant) yang sah untuk berlangganan."
+      );
     }
 
     const pricePerMonth = 15000;
@@ -55,7 +67,7 @@ export class SubscriptionService {
         id: transactionId,
         order_id: orderId,
         pengguna_id: user.id,
-        sekolah_id: user.sekolah_id,
+        sekolah_id: effectiveSekolahId,
         paket: "GURU_PRO_BULANAN",
         nominal,
         biaya_admin: biayaAdmin,
@@ -71,7 +83,7 @@ export class SubscriptionService {
     });
 
     await recordAuditEvent({
-      sekolah_id: user.sekolah_id,
+      sekolah_id: effectiveSekolahId,
       aktor_id: user.id,
       aktor_role: user.peran_dasar,
       aksi: "CREATE",
@@ -140,46 +152,7 @@ export class SubscriptionService {
 
     if (status === "settlement" || status === "capture") {
       newStatus = "PAID";
-
-      // Tambahkan masa aktif 30 hari ke pengguna
-      const currentExpiry = order.pengguna.trial_berakhir_pada;
-      const baseDate = currentExpiry && currentExpiry > now ? currentExpiry : now;
-      const extendedExpiry = new Date(
-        baseDate.getTime() + order.durasi_bulan * 30 * 24 * 60 * 60 * 1000
-      );
-
-      await prisma.$transaction([
-        prisma.transaksiLangganan.update({
-          where: { id: order.id },
-          data: {
-            status: "PAID",
-            dibayar_pada: now,
-            payload_notifikasi_json: JSON.stringify(payload),
-          },
-        }),
-        prisma.pengguna.update({
-          where: { id: order.pengguna_id },
-          data: {
-            tipe_lisensi: "PRO",
-            trial_berakhir_pada: extendedExpiry,
-          },
-        }),
-      ]);
-
-      await recordAuditEvent({
-        sekolah_id: order.sekolah_id,
-        aktor_id: order.pengguna_id,
-        aktor_role: order.pengguna.peran_dasar,
-        aksi: "UPDATE",
-        tipe_sumber: "Pengguna",
-        id_sumber: order.pengguna_id,
-        payload_sesudah: {
-          event: "GURU_PRO_ACTIVATED_VIA_WEBHOOK",
-          order_id: order.order_id,
-          nominal: order.total_bayar,
-          extended_until: extendedExpiry.toISOString(),
-        },
-      });
+      await this.activateTenantSubscription(order, JSON.stringify(payload), false);
     } else if (status === "cancel" || status === "deny") {
       newStatus = "CANCELLED";
       await prisma.transaksiLangganan.update({
@@ -204,6 +177,125 @@ export class SubscriptionService {
   }
 
   /**
+   * Mengaktifkan atau memperpanjang langganan institusi sekolah (tenant).
+   * Sesuai ADR-003: PELANGGAN = TENANT (SEKOLAH), BUKAN USER.
+   */
+  private async activateTenantSubscription(
+    order: {
+      id: string;
+      order_id: string;
+      pengguna_id: string;
+      sekolah_id: string | null;
+      paket: string;
+      total_bayar: number;
+      durasi_bulan: number;
+      pengguna: {
+        id: string;
+        sekolah_id: string | null;
+        peran_dasar: string;
+      };
+    },
+    payloadJson: string,
+    isSimulation = false
+  ): Promise<{ extendedExpiry: Date; targetSekolahId: string; targetPaket: string }> {
+    const targetSekolahId = order.sekolah_id || order.pengguna.sekolah_id;
+    if (!targetSekolahId) {
+      throw new Error(
+        `Pesanan ${order.order_id} tidak terikat pada institusi sekolah (tenant) yang sah.`
+      );
+    }
+
+    const now = new Date();
+    const currentSub = await prisma.langgananTenant.findFirst({
+      where: { sekolah_id: targetSekolahId },
+      orderBy: [{ mulai_pada: "desc" }, { created_at: "desc" }],
+    });
+
+    const currentExpiry = currentSub?.berakhir_pada;
+    const baseDate = currentExpiry && currentExpiry > now ? currentExpiry : now;
+    const extendedExpiry = new Date(
+      baseDate.getTime() + order.durasi_bulan * 30 * 24 * 60 * 60 * 1000
+    );
+
+    const targetPaket = order.paket.includes("SEKOLAH") ? "ENTERPRISE" : "PRO";
+
+    await prisma.$transaction(async (tx) => {
+      // 1. Perbarui status pesanan transaksi menjadi PAID
+      await tx.transaksiLangganan.update({
+        where: { id: order.id },
+        data: {
+          status: "PAID",
+          dibayar_pada: now,
+          payload_notifikasi_json: payloadJson,
+        },
+      });
+
+      // 2. Terbitkan atau Perbarui LanggananTenant (ADR-003)
+      if (currentSub) {
+        validateSubscriptionStateTransition(currentSub.status, "ACTIVE");
+        await tx.langgananTenant.update({
+          where: { id: currentSub.id },
+          data: {
+            paket: targetPaket,
+            status: "ACTIVE",
+            berakhir_pada: extendedExpiry,
+            sumber_aktivasi: isSimulation ? "PAYMENT_SIMULATION" : "PAYMENT",
+            transaksi_sumber_id: order.id,
+            updated_at: now,
+          },
+        });
+      } else {
+        await tx.langgananTenant.create({
+          data: {
+            id: generateUlid(),
+            sekolah_id: targetSekolahId,
+            paket: targetPaket,
+            status: "ACTIVE",
+            mulai_pada: now,
+            berakhir_pada: extendedExpiry,
+            sumber_aktivasi: isSimulation ? "PAYMENT_SIMULATION" : "PAYMENT",
+            transaksi_sumber_id: order.id,
+          },
+        });
+      }
+
+      // 3. Perbarui status operasional entitas Sekolah
+      await tx.sekolah.update({
+        where: { id: targetSekolahId },
+        data: {
+          tipe_lisensi: "SEKOLAH",
+          trial_berakhir_pada: extendedExpiry,
+          status_aktif: true,
+        },
+      });
+
+      // 4. Catat Audit Log di dalam transaksi
+      await recordAuditEvent(
+        {
+          sekolah_id: targetSekolahId,
+          aktor_id: order.pengguna_id,
+          aktor_role: order.pengguna.peran_dasar,
+          aksi: "UPDATE",
+          tipe_sumber: "LanggananTenant",
+          id_sumber: currentSub ? currentSub.id : targetSekolahId,
+          payload_sesudah: {
+            event: isSimulation
+              ? "TENANT_SUBSCRIPTION_ACTIVATED_VIA_SIMULATION"
+              : "TENANT_SUBSCRIPTION_ACTIVATED_VIA_WEBHOOK",
+            order_id: order.order_id,
+            paket: targetPaket,
+            nominal: order.total_bayar,
+            extended_until: extendedExpiry.toISOString(),
+          },
+        },
+        tx
+      );
+    });
+
+    return { extendedExpiry, targetSekolahId, targetPaket };
+  }
+
+  /**
    * Simulasi pembayaran sukses instan untuk mode demo/pengujian
    */
   async simulatePaymentSuccess(orderId: string, userId: string): Promise<SubscriptionOrderDTO> {
@@ -216,48 +308,16 @@ export class SubscriptionService {
       throw new Error("Pesanan tidak ditemukan atau otorisasi tidak cocok.");
     }
 
-    const now = new Date();
-    const currentExpiry = order.pengguna.trial_berakhir_pada;
-    const baseDate = currentExpiry && currentExpiry > now ? currentExpiry : now;
-    const extendedExpiry = new Date(
-      baseDate.getTime() + order.durasi_bulan * 30 * 24 * 60 * 60 * 1000
-    );
+    const payloadJson = JSON.stringify({
+      simulation: true,
+      simulated_at: new Date().toISOString(),
+      status: "settlement",
+    });
 
-    const [updatedOrder] = await prisma.$transaction([
-      prisma.transaksiLangganan.update({
-        where: { id: order.id },
-        data: {
-          status: "PAID",
-          dibayar_pada: now,
-          payload_notifikasi_json: JSON.stringify({
-            simulation: true,
-            simulated_at: now.toISOString(),
-            status: "settlement",
-          }),
-        },
-      }),
-      prisma.pengguna.update({
-        where: { id: order.pengguna_id },
-        data: {
-          tipe_lisensi: "PRO",
-          trial_berakhir_pada: extendedExpiry,
-        },
-      }),
-    ]);
+    await this.activateTenantSubscription(order, payloadJson, true);
 
-    await recordAuditEvent({
-      sekolah_id: order.sekolah_id,
-      aktor_id: order.pengguna_id,
-      aktor_role: order.pengguna.peran_dasar,
-      aksi: "UPDATE",
-      tipe_sumber: "TransaksiLangganan",
-      id_sumber: order.id,
-      payload_sesudah: {
-        event: "SIMULATED_PAYMENT_SUCCESS",
-        order_id: order.order_id,
-        new_license: "PRO",
-        extended_until: extendedExpiry.toISOString(),
-      },
+    const updatedOrder = await prisma.transaksiLangganan.findUniqueOrThrow({
+      where: { id: order.id },
     });
 
     return {

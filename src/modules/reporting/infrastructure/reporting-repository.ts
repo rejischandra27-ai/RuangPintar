@@ -57,7 +57,7 @@ export class ReportingRepository {
       },
     });
 
-    let principalName = "Drs. H. Mulyono, M.Pd.";
+    let principalName = "-";
     if (school?.penugasan_jabatan && school.penugasan_jabatan.length > 0) {
       const principalUser = await prisma.pengguna.findUnique({
         where: { id: school.penugasan_jabatan[0].personil_id },
@@ -110,10 +110,10 @@ export class ReportingRepository {
     }
 
     const totalPresensi = hadirCount + sakitCount + izinCount + alphaCount;
-    const tingkatHadir = totalPresensi > 0 ? Math.round((hadirCount / totalPresensi) * 100) : 95;
-    const tingkatIzin = totalPresensi > 0 ? Math.round((izinCount / totalPresensi) * 100) : 2;
-    const tingkatSakit = totalPresensi > 0 ? Math.round((sakitCount / totalPresensi) * 100) : 2;
-    const tingkatAlpha = totalPresensi > 0 ? Math.round((alphaCount / totalPresensi) * 100) : 1;
+    const tingkatHadir = totalPresensi > 0 ? Math.round((hadirCount / totalPresensi) * 100) : 0;
+    const tingkatIzin = totalPresensi > 0 ? Math.round((izinCount / totalPresensi) * 100) : 0;
+    const tingkatSakit = totalPresensi > 0 ? Math.round((sakitCount / totalPresensi) * 100) : 0;
+    const tingkatAlpha = totalPresensi > 0 ? Math.round((alphaCount / totalPresensi) * 100) : 0;
 
     // C. Hitung Akademik & Asesmen
     const [nilaiAgg, totalAsesmen, totalTugas] = await Promise.all([
@@ -128,14 +128,14 @@ export class ReportingRepository {
 
     const rerataNilaiSekolah = nilaiAgg._avg.nilai_angka
       ? Math.round(nilaiAgg._avg.nilai_angka * 10) / 10
-      : 81.5;
+      : 0;
 
     // Tuntas KKTP: nilai >= 75
     const tuntasCount = await prisma.nilaiSiswa.count({
       where: { sekolah_id: schoolId, nilai_angka: { gte: 75 } },
     });
     const persentaseTuntas =
-      nilaiAgg._count.id > 0 ? Math.round((tuntasCount / nilaiAgg._count.id) * 100) : 88;
+      nilaiAgg._count.id > 0 ? Math.round((tuntasCount / nilaiAgg._count.id) * 100) : 0;
 
     // D. Perhatian Kepemimpinan
     const perhatianList: HeadmasterOverviewDTO["perhatian_kepemimpinan"] = [];
@@ -210,52 +210,27 @@ export class ReportingRepository {
       }
       return {
         tingkat: t.nama || `Kelas ${t.kode}`,
-        total_siswa: countSiswa > 0 ? countSiswa : 120,
-        total_rombel: t.rombel.length > 0 ? t.rombel.length : 3,
+        total_siswa: countSiswa,
+        total_rombel: t.rombel.length,
         rerata_kehadiran: tingkatHadir,
         rerata_nilai: rerataNilaiSekolah,
       };
     });
 
-    // F. Tren Kehadiran Mingguan (Mock realistic curve based on actual aggregate)
-    const trenMingguan = [
-      {
-        hari: "Senin",
-        persentase_hadir: Math.min(100, tingkatHadir + 2),
-        total_hadir: Math.round(totalSiswa * 0.96),
-        total_alpha: Math.max(1, Math.round(totalSiswa * 0.01)),
-      },
-      {
-        hari: "Selasa",
-        persentase_hadir: Math.min(100, tingkatHadir + 3),
-        total_hadir: Math.round(totalSiswa * 0.97),
-        total_alpha: Math.max(1, Math.round(totalSiswa * 0.01)),
-      },
-      {
-        hari: "Rabu",
-        persentase_hadir: Math.min(100, tingkatHadir),
-        total_hadir: Math.round(totalSiswa * 0.94),
-        total_alpha: Math.max(1, Math.round(totalSiswa * 0.02)),
-      },
-      {
-        hari: "Kamis",
-        persentase_hadir: Math.min(100, tingkatHadir + 1),
-        total_hadir: Math.round(totalSiswa * 0.95),
-        total_alpha: Math.max(1, Math.round(totalSiswa * 0.01)),
-      },
-      {
-        hari: "Jumat",
-        persentase_hadir: Math.max(85, tingkatHadir - 4),
-        total_hadir: Math.round(totalSiswa * 0.9),
-        total_alpha: Math.max(2, Math.round(totalSiswa * 0.04)),
-      },
-    ];
+    // F. Tren Kehadiran Mingguan (Berdasarkan data presensi riil, bukan fiktif)
+    const daysOfWeek = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"];
+    const trenMingguan = daysOfWeek.map((hari) => ({
+      hari,
+      persentase_hadir: totalPresensi > 0 ? tingkatHadir : 0,
+      total_hadir: totalPresensi > 0 ? hadirCount : 0,
+      total_alpha: totalPresensi > 0 ? alphaCount : 0,
+    }));
 
     return {
       ringkasan_sekolah: {
-        total_siswa: totalSiswa > 0 ? totalSiswa : 36,
-        total_guru: totalGuru > 0 ? totalGuru : 12,
-        total_rombel: totalRombel > 0 ? totalRombel : 4,
+        total_siswa: totalSiswa,
+        total_guru: totalGuru,
+        total_rombel: totalRombel,
         rasio_guru_siswa: ratio,
         status_kbm_aktif: activeSessionsCount,
       },
@@ -273,32 +248,7 @@ export class ReportingRepository {
         total_tugas_terbit: totalTugas,
       },
       perhatian_kepemimpinan: perhatianList,
-      distribusi_tingkat:
-        distribusiTingkat.length > 0
-          ? distribusiTingkat
-          : [
-              {
-                tingkat: "Kelas X",
-                total_siswa: 36,
-                total_rombel: 1,
-                rerata_kehadiran: tingkatHadir,
-                rerata_nilai: rerataNilaiSekolah,
-              },
-              {
-                tingkat: "Kelas XI",
-                total_siswa: 35,
-                total_rombel: 1,
-                rerata_kehadiran: tingkatHadir + 1,
-                rerata_nilai: 82.1,
-              },
-              {
-                tingkat: "Kelas XII",
-                total_siswa: 34,
-                total_rombel: 1,
-                rerata_kehadiran: tingkatHadir + 2,
-                rerata_nilai: 84.0,
-              },
-            ],
+      distribusi_tingkat: distribusiTingkat,
       tren_kehadiran_mingguan: trenMingguan,
     };
   }
@@ -333,7 +283,7 @@ export class ReportingRepository {
     ]);
 
     const persentaseKepatuhan =
-      totalGuruMengajar > 0 ? Math.round((guruDenganAdmin / totalGuruMengajar) * 100) : 85;
+      totalGuruMengajar > 0 ? Math.round((guruDenganAdmin / totalGuruMengajar) * 100) : 0;
 
     // Capaian Per Mata Pelajaran
     const mapelList = await prisma.mataPelajaran.findMany({
@@ -362,7 +312,7 @@ export class ReportingRepository {
 
       const rerata = nilaiMapel._avg.nilai_angka
         ? Math.round(nilaiMapel._avg.nilai_angka * 10) / 10
-        : 82.5;
+        : 0;
 
       capaianMapel.push({
         mapel_id: m.id,
@@ -371,7 +321,7 @@ export class ReportingRepository {
         kelompok: (m as any).kelompok ?? "Umum",
         guru_pengampu_count: m.penugasan_mengajar.length,
         rerata_nilai: rerata,
-        persentase_tuntas: rerata >= 75 ? 92 : 78,
+        persentase_tuntas: nilaiMapel._count.id > 0 ? (rerata >= 75 ? 100 : 0) : 0,
       });
     }
 
@@ -394,7 +344,10 @@ export class ReportingRepository {
     });
 
     const bebanGuru: CurriculumOverviewDTO["beban_mengajar_guru"] = guruList.map((g) => {
-      const jamMengajar = g.penugasan_mengajar.length * 4; // Estimasi 4 JP per rombel
+      const jamMengajar = g.penugasan_mengajar.reduce(
+        (acc, p) => acc + (p.jumlah_jam_minggu || 0),
+        0
+      );
       const totalRombel = new Set(g.penugasan_mengajar.map((p) => p.rombel_id)).size;
       const totalMapel = new Set(g.penugasan_mengajar.map((p) => p.mata_pelajaran_id)).size;
 
@@ -406,25 +359,25 @@ export class ReportingRepository {
         guru_id: g.id,
         nama_guru: g.nama_lengkap,
         nip: g.nip,
-        total_jam_minggu: jamMengajar > 0 ? jamMengajar : 24,
-        total_rombel: totalRombel > 0 ? totalRombel : 3,
-        total_mapel: totalMapel > 0 ? totalMapel : 1,
+        total_jam_minggu: jamMengajar,
+        total_rombel: totalRombel,
+        total_mapel: totalMapel,
         status_beban: statusBeban,
       };
     });
 
     return {
       kpi_kurikulum: {
-        total_mata_pelajaran: totalMapel > 0 ? totalMapel : 8,
-        total_guru_mengajar: totalGuruMengajar > 0 ? totalGuruMengajar : 12,
+        total_mata_pelajaran: totalMapel,
+        total_guru_mengajar: totalGuruMengajar,
         total_materi_publikasi: totalMateri,
         total_tugas_aktif: totalTugas,
         total_asesmen: totalAsesmen,
-        persentase_kelulusan_kktp: 88,
+        persentase_kelulusan_kktp: 0,
       },
       kepatuhan_administrasi: {
-        guru_patuh_count: guruDenganAdmin > 0 ? guruDenganAdmin : 10,
-        guru_total_count: totalGuruMengajar > 0 ? totalGuruMengajar : 12,
+        guru_patuh_count: guruDenganAdmin,
+        guru_total_count: totalGuruMengajar,
         persentase_kepatuhan: persentaseKepatuhan,
         dokumen_terunggah: totalAdminDoc,
       },
@@ -454,7 +407,7 @@ export class ReportingRepository {
       totalPresensi += r._count.id;
       if (r.status === "HADIR") hadirCount += r._count.id;
     }
-    const kehadiranGlobal = totalPresensi > 0 ? Math.round((hadirCount / totalPresensi) * 100) : 94;
+    const kehadiranGlobal = totalPresensi > 0 ? Math.round((hadirCount / totalPresensi) * 100) : 0;
 
     // Catatan Monitoring & Follow-Up
     const [totalCatatan, totalFollowUpAktif] = await Promise.all([
@@ -503,11 +456,11 @@ export class ReportingRepository {
         rombel_id: r.id,
         nama_rombel: r.nama,
         tingkat: r.tingkat ? r.tingkat.nama : "Kelas X",
-        total_siswa: r.penempatan_rombel.length > 0 ? r.penempatan_rombel.length : 36,
-        hadir_pct: sum > 0 ? Math.round((h / sum) * 100) : 94,
-        sakit_pct: sum > 0 ? Math.round((s / sum) * 100) : 3,
-        izin_pct: sum > 0 ? Math.round((i / sum) * 100) : 2,
-        alpha_pct: sum > 0 ? Math.round((a / sum) * 100) : 1,
+        total_siswa: r.penempatan_rombel.length,
+        hadir_pct: sum > 0 ? Math.round((h / sum) * 100) : 0,
+        sakit_pct: sum > 0 ? Math.round((s / sum) * 100) : 0,
+        izin_pct: sum > 0 ? Math.round((i / sum) * 100) : 0,
+        alpha_pct: sum > 0 ? Math.round((a / sum) * 100) : 0,
       });
     }
 
@@ -538,7 +491,7 @@ export class ReportingRepository {
       });
 
       if (s) {
-        const rombelName = s.keikutsertaan[0]?.penempatan[0]?.rombel?.nama ?? "X TO 3";
+        const rombelName = s.keikutsertaan[0]?.penempatan[0]?.rombel?.nama ?? "-";
         const alphaCount = item._count.id;
         daftarSiswaAtensi.push({
           siswa_id: s.id,
@@ -546,7 +499,7 @@ export class ReportingRepository {
           nisn: s.nisn,
           rombel_nama: rombelName,
           jumlah_alpha: alphaCount,
-          jumlah_terlambat: 2,
+          jumlah_terlambat: 0,
           status_urgensi: alphaCount >= 3 ? "KRITIS" : alphaCount >= 2 ? "TINGGI" : "SEDANG",
         });
       }
@@ -559,19 +512,11 @@ export class ReportingRepository {
       _count: { id: true },
     });
 
-    const distribusiKasus =
-      kasusCounts.length > 0
-        ? kasusCounts.map((k) => ({ kategori: k.kategori, jumlah: k._count.id }))
-        : [
-            { kategori: "KEHADIRAN", jumlah: 4 },
-            { kategori: "AKADEMIK", jumlah: 3 },
-            { kategori: "PERILAKU", jumlah: 2 },
-            { kategori: "KESEHATAN", jumlah: 1 },
-          ];
+    const distribusiKasus = kasusCounts.map((k) => ({ kategori: k.kategori, jumlah: k._count.id }));
 
     return {
       kpi_kesiswaan: {
-        total_siswa: totalSiswa > 0 ? totalSiswa : 36,
+        total_siswa: totalSiswa,
         persentase_kehadiran_global: kehadiranGlobal,
         total_siswa_kritis_alpha: daftarSiswaAtensi.filter((s) => s.status_urgensi === "KRITIS")
           .length,
@@ -605,9 +550,9 @@ export class ReportingRepository {
     }
 
     const programInfo = {
-      id: program?.id ?? "PROG_TO",
-      nama: program?.nama ?? "Teknik Otomotif",
-      kode: program?.kode ?? "TO",
+      id: program?.id ?? "",
+      nama: program?.nama ?? "Program Keahlian",
+      kode: program?.kode ?? "",
     };
 
     // Ambil rombel dalam program ini
@@ -615,7 +560,7 @@ export class ReportingRepository {
       where: {
         sekolah_id: schoolId,
         status: "AKTIF",
-        nama: { contains: programInfo.kode ?? "TO" },
+        ...(programInfo.kode ? { nama: { contains: programInfo.kode } } : {}),
       },
       include: {
         penempatan_rombel: { where: { status: "AKTIF" } },
@@ -629,17 +574,17 @@ export class ReportingRepository {
 
     let totalSiswa = 0;
     const rombelList: ProgramHeadOverviewDTO["rombel_list"] = rombels.map((r) => {
-      const studentCount = r.penempatan_rombel.length > 0 ? r.penempatan_rombel.length : 36;
+      const studentCount = r.penempatan_rombel.length;
       totalSiswa += studentCount;
       const waliName = r.penugasan_wali[0]?.guru?.nama_lengkap ?? "Wali Kelas";
 
       return {
         rombel_id: r.id,
         nama_rombel: r.nama,
-        tingkat: r.tingkat ? r.tingkat.nama : "Kelas X",
+        tingkat: r.tingkat ? r.tingkat.nama : "Kelas",
         wali_kelas_nama: waliName,
         total_siswa: studentCount,
-        rerata_kehadiran: 94,
+        rerata_kehadiran: 0,
       };
     });
 
@@ -663,72 +608,24 @@ export class ReportingRepository {
       take: 6,
     });
 
-    const mapelList: ProgramHeadOverviewDTO["mapel_kejuruan_list"] =
-      mapelKejuruan.length > 0
-        ? mapelKejuruan.map((m) => ({
-            mapel_id: m.id,
-            nama_mapel: m.nama,
-            kode_mapel: m.kode,
-            guru_pengampu: m.penugasan_mengajar[0]?.guru?.nama_lengkap ?? "Guru Produktif",
-            rerata_nilai: 84.5,
-            persentase_tuntas: 91,
-          }))
-        : [
-            {
-              mapel_id: "MK-01",
-              nama_mapel: "Pemeliharaan Mesin Kendaraan Ringan",
-              kode_mapel: "PMKR",
-              guru_pengampu: "Ir. Hendra Wijaya, S.T.",
-              rerata_nilai: 85.0,
-              persentase_tuntas: 92,
-            },
-            {
-              mapel_id: "MK-02",
-              nama_mapel: "Pemeliharaan Sasis & Pemindah Tenaga",
-              kode_mapel: "PSPT",
-              guru_pengampu: "Ahmad Fauzi, S.Pd.",
-              rerata_nilai: 83.2,
-              persentase_tuntas: 89,
-            },
-            {
-              mapel_id: "MK-03",
-              nama_mapel: "Kelistrikan Otomotif",
-              kode_mapel: "PKOR",
-              guru_pengampu: "Agung Septian, S.T.",
-              rerata_nilai: 82.0,
-              persentase_tuntas: 88,
-            },
-          ];
+    const mapelList: ProgramHeadOverviewDTO["mapel_kejuruan_list"] = mapelKejuruan.map((m) => ({
+      mapel_id: m.id,
+      nama_mapel: m.nama,
+      kode_mapel: m.kode,
+      guru_pengampu: m.penugasan_mengajar[0]?.guru?.nama_lengkap ?? "Guru Produktif",
+      rerata_nilai: 0,
+      persentase_tuntas: 0,
+    }));
 
     return {
       program_info: programInfo,
       kpi_program: {
-        total_siswa: totalSiswa > 0 ? totalSiswa : 72,
-        total_rombel: rombelList.length > 0 ? rombelList.length : 2,
-        rerata_kehadiran: 94,
-        rerata_nilai_kejuruan: 84.0,
+        total_siswa: totalSiswa,
+        total_rombel: rombelList.length,
+        rerata_kehadiran: 0,
+        rerata_nilai_kejuruan: 0,
       },
-      rombel_list:
-        rombelList.length > 0
-          ? rombelList
-          : [
-              {
-                rombel_id: "ROM_XTO3",
-                nama_rombel: "X TO 3",
-                tingkat: "Kelas X",
-                wali_kelas_nama: "Marhanih",
-                total_siswa: 36,
-                rerata_kehadiran: 94,
-              },
-              {
-                rombel_id: "ROM_XTO4",
-                nama_rombel: "X TO 4",
-                tingkat: "Kelas X",
-                wali_kelas_nama: "Siti Rahmawati",
-                total_siswa: 36,
-                rerata_kehadiran: 93,
-              },
-            ],
+      rombel_list: rombelList,
       mapel_kejuruan_list: mapelList,
     };
   }

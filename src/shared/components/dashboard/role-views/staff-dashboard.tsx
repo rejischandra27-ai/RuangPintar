@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   ArrowRight,
   Sparkles,
+  Zap,
 } from "lucide-react";
 import { StatCard } from "@/shared/components/dashboard/stat-card";
 import { AuthenticatedUser } from "@/shared/infrastructure/auth/auth-service";
@@ -200,6 +201,22 @@ export function StaffDashboard({ user, capabilities = [] }: StaffDashboardProps)
                 </div>
               </div>
               <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-[#2563EB] transition-colors" />
+            </Link>
+
+            <Link
+              href="/sekolah?tab=billing"
+              className="flex items-center justify-between p-3 rounded-xl bg-slate-50/80 hover:bg-amber-50/70 border border-slate-100 transition-colors group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-9 rounded-lg bg-amber-100/70 text-amber-600 flex items-center justify-center">
+                  <Zap className="h-4 w-4" />
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-slate-800 block">Langganan Tenant</span>
+                  <span className="text-[10px] text-slate-500">Paket, Kuota & Billing SaaS</span>
+                </div>
+              </div>
+              <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-amber-600 transition-colors" />
             </Link>
 
             <Link

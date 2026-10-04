@@ -150,7 +150,7 @@ export function RegisterView() {
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
                     Email Aktif <span className="text-rose-400">*</span>
@@ -160,18 +160,6 @@ export function RegisterView() {
                     name="email"
                     required
                     placeholder="nama@gmail.com"
-                    className="w-full px-4 py-2.5 bg-slate-950/70 border border-slate-700/80 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                    No. WhatsApp (Opsional)
-                  </label>
-                  <input
-                    type="tel"
-                    name="no_telepon"
-                    placeholder="08123456789"
                     className="w-full px-4 py-2.5 bg-slate-950/70 border border-slate-700/80 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all"
                   />
                 </div>
@@ -189,23 +177,6 @@ export function RegisterView() {
                   placeholder="Minimal 6 karakter"
                   className="w-full px-4 py-2.5 bg-slate-950/70 border border-slate-700/80 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all"
                 />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                  Nama Asal Sekolah <span className="text-rose-400">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="nama_sekolah"
-                  required
-                  placeholder="Contoh: SMA 1 Coba atau SMP Harapan"
-                  className="w-full px-4 py-2.5 bg-slate-950/70 border border-slate-700/80 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all"
-                />
-                <span className="text-[11px] text-slate-500 mt-1 block">
-                  Identitas resmi kepala sekolah & logo dapat dilengkapi nanti saat mencetak laporan
-                  A4.
-                </span>
               </div>
 
               <button

@@ -89,7 +89,7 @@ export class CommunicationService {
     authorUser: { id: string; nama: string; peran: BaseRole },
     input: UpdateAnnouncementInput
   ): Promise<AnnouncementItem> {
-    const existing = await this.repository.findById(announcementId);
+    const existing = await this.repository.findById(announcementId, sekolahId);
     if (!existing || (existing.sekolah_id && existing.sekolah_id !== sekolahId)) {
       throw new AnnouncementNotFoundError(announcementId);
     }
@@ -115,7 +115,7 @@ export class CommunicationService {
     const validated = parseResult.data;
     const wasPublished = existing.status === "PUBLISHED";
 
-    const updated = await this.repository.update(announcementId, validated);
+    const updated = await this.repository.update(announcementId, validated, sekolahId);
 
     await recordAuditEvent({
       sekolah_id: sekolahId,
@@ -176,7 +176,7 @@ export class CommunicationService {
     sekolahId: string,
     authorUser: { id: string; nama: string; peran: BaseRole }
   ): Promise<void> {
-    const existing = await this.repository.findById(announcementId);
+    const existing = await this.repository.findById(announcementId, sekolahId);
     if (!existing || (existing.sekolah_id && existing.sekolah_id !== sekolahId)) {
       throw new AnnouncementNotFoundError(announcementId);
     }
@@ -191,7 +191,7 @@ export class CommunicationService {
       );
     }
 
-    await this.repository.delete(announcementId);
+    await this.repository.delete(announcementId, sekolahId);
 
     await recordAuditEvent({
       sekolah_id: sekolahId,

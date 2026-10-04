@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "katex/dist/katex.min.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -21,9 +22,12 @@
     "Century Gothic", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Plus Jakarta Sans",
     sans-serif;
   --font-sans:
-    "Century Gothic", var(--font-sans), "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont,
-    sans-serif;
-  --font-mono: var(--font-mono), "Space Mono", monospace;
+    var(--font-lato), "Lato", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Plus Jakarta Sans", sans-serif;
+  --font-lato: var(--font-lato), "Lato", sans-serif;
+  --font-mono:
+    var(--font-space-mono), var(--font-roboto-mono), "Space Mono", "Roboto Mono", monospace;
+  --font-roboto-mono: var(--font-roboto-mono), "Roboto Mono", monospace;
 }
 
 body {
@@ -34,6 +38,47 @@ body {
   transition:
     background-color 0.25s ease,
     color 0.25s ease;
+}
+
+/* Dashboard Guru Identity Typography (Space Mono) */
+html.teacher-workspace h1,
+html.teacher-workspace h2,
+html.teacher-workspace h3,
+html.teacher-workspace h4,
+html.teacher-workspace h5,
+html.teacher-workspace h6,
+html.teacher-workspace .teacher-hero-title,
+html.teacher-workspace .teacher-stat,
+html.teacher-workspace .card-title,
+html.teacher-workspace .widget-title,
+html.teacher-workspace .kpi-number,
+html.teacher-workspace .section-heading,
+html.teacher-workspace .font-mono,
+.font-mono {
+  font-family: var(--font-space-mono), "Space Mono", monospace !important;
+  letter-spacing: -0.02em;
+}
+
+/* Dialog & Modal headings must remain clean sans-serif */
+html.teacher-workspace [role="dialog"] h1,
+html.teacher-workspace [role="dialog"] h2,
+html.teacher-workspace [role="dialog"] h3,
+html.teacher-workspace [role="dialog"] h4,
+html.teacher-workspace .modal-title,
+[role="dialog"] h1,
+[role="dialog"] h2,
+[role="dialog"] h3,
+[role="dialog"] h4 {
+  font-family: var(--font-sans), "Lato", sans-serif !important;
+  letter-spacing: normal !important;
+}
+
+.font-lato {
+  font-family: var(--font-lato), "Lato", sans-serif !important;
+}
+
+.font-roboto-mono {
+  font-family: var(--font-roboto-mono), "Roboto Mono", monospace !important;
 }
 
 /* Academic Glass Card & Glow */
@@ -115,6 +160,7 @@ body {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -126,6 +172,7 @@ body {
     opacity: 0;
     transform: translateY(18px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -152,6 +199,7 @@ body {
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -167,6 +215,7 @@ body {
     opacity: 0;
     transform: translateX(36px);
   }
+
   100% {
     opacity: 1;
     transform: translateX(0);
@@ -178,6 +227,7 @@ body {
     opacity: 0;
     transform: scale(0.92) translateY(20px);
   }
+
   100% {
     opacity: 1;
     transform: scale(1) translateY(0);
@@ -189,6 +239,7 @@ body {
     opacity: 0;
     transform: translateX(-30px);
   }
+
   100% {
     opacity: 1;
     transform: translateX(0);
@@ -200,6 +251,7 @@ body {
   100% {
     transform: translateY(0);
   }
+
   50% {
     transform: translateY(-8px);
   }
@@ -210,6 +262,7 @@ body {
   100% {
     transform: translateY(0);
   }
+
   50% {
     transform: translateY(8px);
   }
@@ -218,21 +271,27 @@ body {
 .animate-nav-1 {
   animation: slideInRight 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.06s both;
 }
+
 .animate-nav-2 {
   animation: slideInRight 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.12s both;
 }
+
 .animate-nav-3 {
   animation: slideInRight 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.18s both;
 }
+
 .animate-nav-4 {
   animation: slideInRight 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.24s both;
 }
+
 .animate-nav-5 {
   animation: slideInRight 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
 }
+
 .animate-nav-6 {
   animation: slideInRight 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.36s both;
 }
+
 .animate-nav-cta {
   animation: slideInRight 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.42s both;
 }
@@ -258,15 +317,19 @@ body {
   0% {
     transform: rotate(0deg) translateY(0px);
   }
+
   25% {
     transform: rotate(1.8deg) translateY(-5px);
   }
+
   50% {
     transform: rotate(0deg) translateY(0px);
   }
+
   75% {
     transform: rotate(-1.8deg) translateY(5px);
   }
+
   100% {
     transform: rotate(0deg) translateY(0px);
   }

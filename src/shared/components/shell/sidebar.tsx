@@ -66,20 +66,24 @@ const ICON_MAP: Record<string, LucideIcon> = {
 export interface SidebarProps {
   userRole: BaseRole;
   userCapabilities?: CapabilityBundle[];
+  isOwner?: boolean;
   isCollapsed: boolean;
   onToggleCollapse: () => void;
+  isSubscribed?: boolean;
   className?: string;
 }
 
 export function Sidebar({
   userRole,
   userCapabilities = [],
+  isOwner = false,
   isCollapsed,
   onToggleCollapse,
+  isSubscribed = false,
   className = "",
 }: SidebarProps) {
   const pathname = usePathname();
-  const navigationGroups = getFilteredNavigation(userRole, userCapabilities);
+  const navigationGroups = getFilteredNavigation(userRole, userCapabilities, isOwner);
 
   return (
     <aside
@@ -202,8 +206,8 @@ export function Sidebar({
           </div>
         ))}
 
-        {/* Promo Upgrade Card in Sidebar (Only when expanded on xl+) */}
-        {!isCollapsed && (
+        {/* Promo Upgrade Card in Sidebar: HANYA tampil untuk Guru Mandiri (Solo Teacher) yang belum berlangganan, bukan untuk Super Admin atau guru sekolah mitra berlisensi */}
+        {!isCollapsed && !isSubscribed && userRole === "TEACHER" && Boolean(isOwner) && (
           <div className="hidden xl:flex mx-3.5 my-3 p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 shadow-[0_8px_20px_rgba(0,0,0,0.06)] flex-col gap-2.5">
             <div className="flex items-center gap-2.5">
               <div className="h-8 w-8 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0 text-white">

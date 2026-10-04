@@ -204,7 +204,7 @@ export class SemesterService {
       );
     }
 
-    await this.repo.deleteSemester(id);
+    await this.repo.deleteSemester(id, sekolahId);
 
     await recordAuditEvent({
       sekolah_id: sekolahId,

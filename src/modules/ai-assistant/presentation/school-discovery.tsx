@@ -75,10 +75,10 @@ export function SchoolDiscovery({
   return (
     <section className="flex flex-col gap-3" aria-labelledby="school-discovery-title">
       <div>
-        <h2 id="school-discovery-title" className="text-sm font-bold text-slate-900">
+        <h2 id="school-discovery-title" className="text-sm font-bold text-slate-900 lg:text-lg">
           Cari Sekolah
         </h2>
-        <p className="mt-1 text-xs leading-relaxed text-slate-600">
+        <p className="mt-1 text-xs leading-relaxed text-slate-600 lg:text-sm">
           Cari dengan nama sekolah atau NPSN. Jika belum terdaftar, buat profil sekolah baru.
         </p>
       </div>
@@ -94,7 +94,7 @@ export function SchoolDiscovery({
           onChange={(event) => handleQueryChange(event.target.value)}
           placeholder="Nama sekolah atau NPSN"
           autoComplete="off"
-          className="h-11 rounded-lg border-slate-300 bg-white pl-10 text-sm text-slate-900 placeholder:text-slate-500"
+          className="h-11 rounded-lg border-slate-300 bg-white pl-10 text-sm text-slate-900 placeholder:text-slate-500 lg:h-12 lg:text-base"
         />
       </label>
 
@@ -116,11 +116,13 @@ export function SchoolDiscovery({
           {schools.map((school) => (
             <li
               key={school.id}
-              className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between sm:px-4"
+              className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between sm:px-4 lg:grid lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-6 lg:p-5"
             >
               <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-slate-900">{school.nama}</p>
-                <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-600">
+                <p className="truncate text-sm font-semibold text-slate-900 lg:break-words lg:text-base">
+                  {school.nama}
+                </p>
+                <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-600 lg:hidden">
                   <span>{school.jenjang}</span>
                   <span className="inline-flex items-center gap-1">
                     <MapPin aria-hidden="true" className="size-3.5 shrink-0" />
@@ -130,24 +132,41 @@ export function SchoolDiscovery({
                   </span>
                   {school.npsn && <span>NPSN {school.npsn}</span>}
                 </div>
+                <div className="mt-1 hidden lg:block">
+                  <p className="flex flex-wrap items-center gap-x-2 text-sm text-slate-700">
+                    <span>{school.jenjang}</span>
+                    <span aria-hidden="true" className="text-slate-400">
+                      ·
+                    </span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <MapPin aria-hidden="true" className="size-3.5 shrink-0 text-slate-500" />
+                      {school.lokasi || "Kota/Kabupaten belum tersedia"}
+                    </span>
+                  </p>
+                  {school.npsn && (
+                    <p className="mt-1.5 text-xs text-slate-500">NPSN {school.npsn}</p>
+                  )}
+                </div>
               </div>
-              <button
-                type="button"
-                onClick={() => onSelect({ sekolah_id: school.id })}
-                aria-pressed={
-                  selectedChoice !== null &&
+              <div className="w-full sm:w-auto lg:border-l lg:border-slate-200 lg:pl-6">
+                <button
+                  type="button"
+                  onClick={() => onSelect({ sekolah_id: school.id })}
+                  aria-pressed={
+                    selectedChoice !== null &&
+                    "sekolah_id" in selectedChoice &&
+                    selectedChoice.sekolah_id === school.id
+                  }
+                  className="inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-2 rounded-lg border border-blue-700 px-4 text-sm font-semibold text-blue-800 transition-colors hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-700 focus-visible:ring-offset-2 sm:w-auto lg:min-w-48 lg:px-5"
+                >
+                  <Building2 aria-hidden="true" className="size-4" />
+                  {selectedChoice !== null &&
                   "sekolah_id" in selectedChoice &&
                   selectedChoice.sekolah_id === school.id
-                }
-                className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-lg border border-blue-700 px-4 text-sm font-semibold text-blue-800 transition-colors hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-700 focus-visible:ring-offset-2"
-              >
-                <Building2 aria-hidden="true" className="size-4" />
-                {selectedChoice !== null &&
-                "sekolah_id" in selectedChoice &&
-                selectedChoice.sekolah_id === school.id
-                  ? "Sekolah dipilih"
-                  : "Gabung Sekolah"}
-              </button>
+                    ? "Sekolah dipilih"
+                    : "Ajukan Bergabung"}
+                </button>
+              </div>
             </li>
           ))}
         </ul>

@@ -115,9 +115,22 @@ export class TeacherFacade {
 
   static async getTeacherDashboardData(
     userId: string,
-    sekolahId?: string | null
+    sekolahId?: string | null,
+    isTenantOwner = false
   ): Promise<TeacherDashboardData> {
-    const teacher = await TeacherProfileService.getTeacherByUserId(userId, sekolahId || undefined);
+    if (!sekolahId) {
+      return {
+        hasProfile: false,
+        teacher: null,
+        activeAssignments: [],
+        activeHomeroom: null,
+        totalJamMinggu: 0,
+        totalRombel: 0,
+        totalSiswaBinaan: 0,
+      };
+    }
+
+    const teacher = await TeacherProfileService.getTeacherByUserId(userId, sekolahId);
 
     if (!teacher) {
       return {
@@ -146,11 +159,24 @@ export class TeacherFacade {
     const uniqueMapelIds = Array.from(new Set(assignments.map((a) => a.mata_pelajaran_id)));
     const totalJam = assignments.reduce((acc, a) => acc + a.jumlah_jam_minggu, 0);
 
-    // Count students across unique taught rombels
+    // Owner dashboard statistics represent the full active tenant workspace.
     let totalSiswa = 0;
-    if (uniqueRombelIds.length > 0) {
+    let totalRombel = uniqueRombelIds.length;
+    if (isTenantOwner) {
+      const [activeClassCount, activeStudentCount] = await Promise.all([
+        prisma.rombel.count({
+          where: { sekolah_id: teacher.sekolah_id, status: "AKTIF" },
+        }),
+        prisma.siswa.count({
+          where: { sekolah_id: teacher.sekolah_id, status_akademik: "AKTIF" },
+        }),
+      ]);
+      totalRombel = activeClassCount;
+      totalSiswa = activeStudentCount;
+    } else if (uniqueRombelIds.length > 0) {
       totalSiswa = await prisma.penempatanRombel.count({
         where: {
+          sekolah_id: teacher.sekolah_id,
           rombel_id: { in: uniqueRombelIds },
           status: "AKTIF",
         },
@@ -223,7 +249,7 @@ export class TeacherFacade {
       activeAssignments: assignments,
       activeHomeroom,
       totalJamMinggu: totalJam,
-      totalRombel: uniqueRombelIds.length,
+      totalRombel,
       totalMataPelajaran: uniqueMapelIds.length,
       totalSiswaBinaan: totalSiswa,
       pendingTasks,

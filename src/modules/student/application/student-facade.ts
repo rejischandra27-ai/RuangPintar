@@ -58,7 +58,7 @@ export class StudentFacade {
         orderBy: { urutan: "asc" },
       }),
       prisma.rombel.findMany({
-        where: { sekolah_id: sekolahId },
+        where: { sekolah_id: sekolahId, status: "AKTIF" },
         include: {
           tingkat: true,
           program: true,

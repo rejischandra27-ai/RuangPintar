@@ -22,8 +22,8 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
   return {
-    title: `Workspace Kelas — Ruang Pintar`,
-    description: `Workspace pembelajaran terpadu penugasan ${id}`,
+    title: `Kelola Kelas — Ruang Pintar`,
+    description: `Ruang kelola kelas pembelajaran terpadu penugasan ${id}`,
   };
 }
 

@@ -1,19 +1,33 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { Plus_Jakarta_Sans, Space_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans, Space_Mono, Lato, Roboto_Mono } from "next/font/google";
 import { ThemeProvider } from "@/shared/components/shell/theme-provider";
 import "./globals.css";
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  variable: "--font-sans",
+  variable: "--font-plus-jakarta",
   display: "swap",
 });
 
 const spaceMono = Space_Mono({
   weight: ["400", "700"],
   subsets: ["latin"],
-  variable: "--font-mono",
+  variable: "--font-space-mono",
+  display: "swap",
+});
+
+const lato = Lato({
+  weight: ["300", "400", "700", "900"],
+  subsets: ["latin"],
+  variable: "--font-lato",
+  display: "swap",
+});
+
+const robotoMono = Roboto_Mono({
+  weight: ["400", "500", "700"],
+  subsets: ["latin"],
+  variable: "--font-roboto-mono",
   display: "swap",
 });
 
@@ -31,7 +45,7 @@ export default function RootLayout({
     <html
       lang="id"
       suppressHydrationWarning
-      className={`${jakarta.variable} ${spaceMono.variable}`}
+      className={`${jakarta.variable} ${spaceMono.variable} ${lato.variable} ${robotoMono.variable}`}
     >
       <head>
         <Script id="theme-init" strategy="beforeInteractive">

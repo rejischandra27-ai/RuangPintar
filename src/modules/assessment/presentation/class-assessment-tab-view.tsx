@@ -125,67 +125,67 @@ export function ClassAssessmentTabView({
     <div className="space-y-6">
       {/* 1. KPI Summary Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
-        <div className="rounded-2xl bg-white border border-slate-200/80 p-4 shadow-xs">
-          <div className="flex items-center gap-2.5 text-slate-500 text-xs font-semibold">
-            <Target className="h-4 w-4 text-[#2563EB]" />
+        <div className="rounded-2xl bg-white dark:bg-slate-900/75 dark:backdrop-blur-xl border border-slate-200/80 dark:border-blue-500/20 p-4 shadow-xs">
+          <div className="flex items-center gap-2.5 text-slate-500 dark:text-slate-400 text-xs font-semibold">
+            <Target className="h-4 w-4 text-[#2563EB] dark:text-blue-400" />
             Total Asesmen
           </div>
-          <div className="mt-2 text-2xl font-bold text-slate-900">{totalAsesmen}</div>
-          <p className="text-[11px] text-slate-400 mt-0.5">Seluruh kegiatan nilai</p>
+          <div className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">{totalAsesmen}</div>
+          <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">Seluruh kegiatan nilai</p>
         </div>
 
-        <div className="rounded-2xl bg-white border border-slate-200/80 p-4 shadow-xs">
-          <div className="flex items-center gap-2.5 text-slate-500 text-xs font-semibold">
-            <GraduationCap className="h-4 w-4 text-blue-500" />
+        <div className="rounded-2xl bg-white dark:bg-slate-900/75 dark:backdrop-blur-xl border border-slate-200/80 dark:border-blue-500/20 p-4 shadow-xs">
+          <div className="flex items-center gap-2.5 text-slate-500 dark:text-slate-400 text-xs font-semibold">
+            <GraduationCap className="h-4 w-4 text-blue-500 dark:text-blue-400" />
             Formatif (TP)
           </div>
-          <div className="mt-2 text-2xl font-bold text-slate-900">{totalFormatif}</div>
-          <p className="text-[11px] text-slate-400 mt-0.5">Penilaian tujuan belajar</p>
+          <div className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">{totalFormatif}</div>
+          <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">Penilaian tujuan belajar</p>
         </div>
 
-        <div className="rounded-2xl bg-white border border-slate-200/80 p-4 shadow-xs">
-          <div className="flex items-center gap-2.5 text-slate-500 text-xs font-semibold">
-            <Layers className="h-4 w-4 text-indigo-500" />
+        <div className="rounded-2xl bg-white dark:bg-slate-900/75 dark:backdrop-blur-xl border border-slate-200/80 dark:border-blue-500/20 p-4 shadow-xs">
+          <div className="flex items-center gap-2.5 text-slate-500 dark:text-slate-400 text-xs font-semibold">
+            <Layers className="h-4 w-4 text-indigo-500 dark:text-indigo-400" />
             Sumatif (BAB/SAS)
           </div>
-          <div className="mt-2 text-2xl font-bold text-slate-900">{totalSumatif}</div>
-          <p className="text-[11px] text-slate-400 mt-0.5">Evaluasi lingkup materi</p>
+          <div className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">{totalSumatif}</div>
+          <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">Evaluasi lingkup materi</p>
         </div>
 
-        <div className="rounded-2xl bg-white border border-slate-200/80 p-4 shadow-xs">
-          <div className="flex items-center gap-2.5 text-slate-500 text-xs font-semibold">
-            <TrendingUp className="h-4 w-4 text-emerald-500" />
+        <div className="rounded-2xl bg-white dark:bg-slate-900/75 dark:backdrop-blur-xl border border-slate-200/80 dark:border-blue-500/20 p-4 shadow-xs">
+          <div className="flex items-center gap-2.5 text-slate-500 dark:text-slate-400 text-xs font-semibold">
+            <TrendingUp className="h-4 w-4 text-emerald-500 dark:text-emerald-400" />
             Rata-rata Kelas
           </div>
-          <div className="mt-2 text-2xl font-bold text-[#2563EB]">{rataRataKelas}</div>
-          <p className="text-[11px] text-slate-400 mt-0.5">Rerata seluruh nilai</p>
+          <div className="mt-2 text-2xl font-bold text-[#2563EB] dark:text-blue-400">{rataRataKelas}</div>
+          <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">Rerata seluruh nilai</p>
         </div>
 
-        <div className="rounded-2xl bg-white border border-slate-200/80 p-4 shadow-xs col-span-2 sm:col-span-1">
-          <div className="flex items-center gap-2.5 text-slate-500 text-xs font-semibold">
-            <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+        <div className="rounded-2xl bg-white dark:bg-slate-900/75 dark:backdrop-blur-xl border border-slate-200/80 dark:border-blue-500/20 p-4 shadow-xs col-span-2 sm:col-span-1">
+          <div className="flex items-center gap-2.5 text-slate-500 dark:text-slate-400 text-xs font-semibold">
+            <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
             Ketuntasan KKTP
           </div>
-          <div className="mt-2 text-2xl font-bold text-emerald-600">
+          <div className="mt-2 text-2xl font-bold text-emerald-600 dark:text-emerald-400">
             {tuntasKktpPersen !== "-" ? `${tuntasKktpPersen}%` : "-"}
           </div>
-          <p className="text-[11px] text-slate-400 mt-0.5">
+          <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
             Ambang batas KKTP {gradebook.kkm_default}
           </p>
         </div>
       </div>
 
       {/* 2. Sub-tab switcher & Toolbar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-2 sm:p-2.5 rounded-2xl border border-slate-200/80 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-slate-900/75 dark:backdrop-blur-xl p-2 sm:p-2.5 rounded-2xl border border-slate-200/80 dark:border-blue-500/20 shadow-xs">
         {/* Toggle View Mode */}
-        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-100 text-xs font-semibold">
+        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-100 dark:bg-slate-800/90 text-xs font-semibold">
           <button
             type="button"
             onClick={() => setActiveSubTab("GRADEBOOK")}
             className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
               activeSubTab === "GRADEBOOK"
-                ? "bg-white text-[#2563EB] shadow-xs font-bold"
-                : "text-slate-600 hover:text-slate-900"
+                ? "bg-white dark:bg-slate-700 text-[#2563EB] dark:text-blue-400 shadow-xs font-bold"
+                : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
             }`}
           >
             <FileSpreadsheet className="h-3.5 w-3.5" />
@@ -196,8 +196,8 @@ export function ClassAssessmentTabView({
             onClick={() => setActiveSubTab("ASESMEN")}
             className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
               activeSubTab === "ASESMEN"
-                ? "bg-white text-[#2563EB] shadow-xs font-bold"
-                : "text-slate-600 hover:text-slate-900"
+                ? "bg-white dark:bg-slate-700 text-[#2563EB] dark:text-blue-400 shadow-xs font-bold"
+                : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
             }`}
           >
             <Target className="h-3.5 w-3.5" />
@@ -229,23 +229,23 @@ export function ClassAssessmentTabView({
           <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2 flex-1 max-w-sm">
               <div className="relative w-full">
-                <Search className="h-3.5 w-3.5 absolute left-3 top-3 text-slate-400" />
+                <Search className="h-3.5 w-3.5 absolute left-3 top-3 text-slate-400 dark:text-slate-500" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Cari judul asesmen atau TP..."
-                  className="w-full h-9 pl-9 pr-3 rounded-xl border border-slate-200 bg-white text-xs text-slate-800 placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-500/10 outline-none transition-all"
+                  className="w-full h-9 pl-9 pr-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-blue-400 outline-none transition-all"
                 />
               </div>
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-slate-400 text-xs">Kategori:</span>
+              <span className="text-slate-400 dark:text-slate-500 text-xs">Kategori:</span>
               <select
                 value={filterCategory}
                 onChange={(e) => setFilterCategory(e.target.value)}
-                className="h-9 px-3 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-700 outline-none cursor-pointer"
+                className="h-9 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-200 outline-none cursor-pointer"
               >
                 <option value="ALL">Semua Kategori</option>
                 <option value="FORMATIF">Formatif (TP)</option>
@@ -259,10 +259,10 @@ export function ClassAssessmentTabView({
 
           {/* Cards / Table List */}
           {filteredAssessments.length === 0 ? (
-            <div className="p-12 text-center rounded-3xl bg-white border border-slate-200/80 shadow-2xs space-y-3">
-              <Target className="h-10 w-10 text-slate-300 mx-auto" />
-              <h3 className="text-sm font-bold text-slate-800">Belum Ada Asesmen Pembelajaran</h3>
-              <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
+            <div className="p-12 text-center rounded-3xl bg-white dark:bg-slate-900/75 border border-slate-200/80 dark:border-slate-800 shadow-2xs space-y-3">
+              <Target className="h-10 w-10 text-slate-300 dark:text-slate-600 mx-auto" />
+              <h3 className="text-sm font-bold text-slate-800 dark:text-white">Belum Ada Asesmen Pembelajaran</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
                 Mulai buat asesmen formatif berdasarkan Tujuan Pembelajaran (TP) atau asesmen
                 sumatif lingkup materi BAB untuk mengambil nilai siswa.
               </p>
@@ -286,7 +286,7 @@ export function ClassAssessmentTabView({
                 return (
                   <div
                     key={a.id}
-                    className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-3"
+                    className="p-4 rounded-2xl bg-white dark:bg-slate-900/75 border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-3"
                   >
                     <div>
                       {/* Top Badges */}
@@ -295,27 +295,27 @@ export function ClassAssessmentTabView({
                           <span
                             className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
                               a.kategori === "FORMATIF"
-                                ? "bg-blue-50 text-blue-700 border border-blue-200/60"
+                                ? "bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/40"
                                 : a.kategori === "SUMATIF"
-                                  ? "bg-indigo-50 text-indigo-700 border border-indigo-200/60"
-                                  : "bg-purple-50 text-purple-700 border border-purple-200/60"
+                                  ? "bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800/40"
+                                  : "bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/60 dark:border-purple-800/40"
                             }`}
                           >
                             {a.kategori}
                           </span>
-                          <span className="text-[10px] text-slate-400 font-mono">
+                          <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">
                             Bobot: {a.bobot}x
                           </span>
                         </div>
 
                         <div className="flex items-center gap-1">
                           {a.is_published ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/40">
                               <CheckCircle2 className="h-3 w-3" />
                               Dipublikasikan
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
                               <Clock className="h-3 w-3" />
                               Draf Internal
                             </span>
@@ -324,38 +324,38 @@ export function ClassAssessmentTabView({
                       </div>
 
                       {/* Judul & TP Context */}
-                      <h4 className="text-sm font-bold text-slate-800 line-clamp-1">{a.judul}</h4>
+                      <h4 className="text-sm font-bold text-slate-800 dark:text-white line-clamp-1">{a.judul}</h4>
                       {a.tp_kode ? (
-                        <p className="text-[11px] text-blue-600 font-medium mt-0.5">
+                        <p className="text-[11px] text-blue-600 dark:text-blue-400 font-medium mt-0.5">
                           {a.tp_kode} • {a.tp_deskripsi || ""}
                         </p>
                       ) : a.lingkup_materi_judul ? (
-                        <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">
                           BAB: {a.lingkup_materi_judul}
                         </p>
                       ) : null}
 
                       {/* Detail Metrics */}
-                      <div className="mt-3 pt-2.5 border-t border-slate-100 grid grid-cols-3 gap-2 text-center text-xs">
-                        <div className="p-1.5 rounded-xl bg-slate-50">
-                          <span className="text-[10px] text-slate-400 block">Status Siswa</span>
+                      <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 grid grid-cols-3 gap-2 text-center text-xs">
+                        <div className="p-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/60">
+                          <span className="text-[10px] text-slate-400 dark:text-slate-500 block">Status Siswa</span>
                           <span
                             className={`font-bold ${
-                              isComplete ? "text-emerald-700" : "text-amber-700"
+                              isComplete ? "text-emerald-700 dark:text-emerald-400" : "text-amber-700 dark:text-amber-400"
                             }`}
                           >
                             {a.total_siswa_dinilai}/{a.total_siswa_rombel}
                           </span>
                         </div>
 
-                        <div className="p-1.5 rounded-xl bg-slate-50">
-                          <span className="text-[10px] text-slate-400 block">KKTP</span>
-                          <span className="font-bold text-slate-700">{a.kkm_kktp}</span>
+                        <div className="p-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/60">
+                          <span className="text-[10px] text-slate-400 dark:text-slate-500 block">KKTP</span>
+                          <span className="font-bold text-slate-700 dark:text-slate-300">{a.kkm_kktp}</span>
                         </div>
 
-                        <div className="p-1.5 rounded-xl bg-slate-50">
-                          <span className="text-[10px] text-slate-400 block">Rata-rata</span>
-                          <span className="font-bold text-[#2563EB]">
+                        <div className="p-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/60">
+                          <span className="text-[10px] text-slate-400 dark:text-slate-500 block">Rata-rata</span>
+                          <span className="font-bold text-[#2563EB] dark:text-blue-400">
                             {a.rata_rata_nilai !== null ? a.rata_rata_nilai : "-"}
                           </span>
                         </div>
@@ -363,8 +363,8 @@ export function ClassAssessmentTabView({
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-                      <div className="text-[10px] text-slate-400">
+                    <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+                      <div className="text-[10px] text-slate-400 dark:text-slate-500">
                         {new Date(a.tanggal_pelaksanaan).toLocaleDateString("id-ID", {
                           day: "numeric",
                           month: "short",
@@ -451,6 +451,7 @@ export function ClassAssessmentTabView({
           setCreateInitialTpId(undefined);
         }}
         penugasanId={penugasanId}
+        defaultKktp={gradebook?.kkm_default || 80}
         lingkupMateriList={lingkupMateriList}
         initialBabId={createInitialBabId}
         initialTpId={createInitialTpId}

@@ -83,6 +83,8 @@ model Sekolah {
   transaksi_langganan       TransaksiLangganan[]
   keanggotaan_sekolah       KeanggotaanSekolah[]
   langganan_tenant          LanggananTenant[]
+  preferensi_onboarding_guru PreferensiOnboardingGuru[]
+  rapor_siswa               RaporSiswa[]
   sesi_tenant_aktif         SesiPengguna[] @relation("SesiTenantAktif")
 
   @@map("sekolah")
@@ -245,6 +247,7 @@ model Pengguna {
   percobaan_login_gagal Int       @default(0)
   dikunci_sampai        DateTime?
   foto_url              String?
+  avatar_id             String?
   no_telepon            String?
   tipe_lisensi          String    @default("FREEMIUM") // FREEMIUM | SEKOLAH
   trial_berakhir_pada   DateTime?
@@ -266,10 +269,30 @@ model Pengguna {
   permintaan_setup_ai        PermintaanSetupKelasAi[]
   transaksi_langganan        TransaksiLangganan[]
   keanggotaan_sekolah        KeanggotaanSekolah[]
+  identitas_provider          IdentitasProvider[]
+  preferensi_onboarding_guru   PreferensiOnboardingGuru[]
+  rombel_dibuat                Rombel[]                  @relation("RombelDibuatOleh")
 
   @@index([sekolah_id, peran_dasar])
   @@index([status_akun])
   @@map("pengguna")
+}
+
+/// P2A — Identity provider account mapping. Provider subject is the stable identity key.
+model IdentitasProvider {
+  id          String   @id
+  pengguna_id String
+  provider    String
+  subject     String
+  email       String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  pengguna Pengguna @relation(fields: [pengguna_id], references: [id], onDelete: Cascade)
+
+  @@unique([provider, subject])
+  @@index([pengguna_id, provider])
+  @@map("identitas_provider")
 }
 
 /// M02 — Identity & Access: Penugasan capability bundle untuk SCHOOL_STAFF
@@ -489,6 +512,7 @@ model ProgramKeahlian {
 model Rombel {
   id              String   @id
   sekolah_id      String
+  dibuat_oleh_pengguna_id String?
   tahun_ajaran_id String
   semester_id     String?
   tingkat_id      String
@@ -503,6 +527,7 @@ model Rombel {
   updated_at      DateTime @updatedAt
 
   sekolah            Sekolah              @relation(fields: [sekolah_id], references: [id], onDelete: Restrict)
+  dibuat_oleh        Pengguna?            @relation("RombelDibuatOleh", fields: [dibuat_oleh_pengguna_id], references: [id], onDelete: SetNull)
   tahun_ajaran       TahunAjaran          @relation(fields: [tahun_ajaran_id], references: [id], onDelete: Restrict)
   semester           Semester?            @relation(fields: [semester_id], references: [id], onDelete: SetNull)
   tingkat            TingkatKelas         @relation(fields: [tingkat_id], references: [id], onDelete: Restrict)
@@ -518,7 +543,34 @@ model Rombel {
 
   @@unique([sekolah_id, tahun_ajaran_id, nama])
   @@index([sekolah_id, tahun_ajaran_id, status])
+  @@index([sekolah_id, dibuat_oleh_pengguna_id])
   @@map("rombel")
+}
+
+/// UX-02 — Per-tenant onboarding preferences and deferrals for a teacher.
+model PreferensiOnboardingGuru {
+  id                       String   @id
+  pengguna_id              String
+  sekolah_id               String
+  onboarding_eligible      Boolean  @default(false)
+  onboarding_completed    Boolean  @default(true)
+  wizard_step              Int      @default(0)
+  mata_pelajaran_ids_json  String   @default("[]")
+  guru_mapel_aktif         Boolean  @default(false)
+  wali_kelas_aktif         Boolean  @default(false)
+  peran_dikonfirmasi_pada  DateTime?
+  mapel_dikonfirmasi_pada  DateTime?
+  siswa_ditunda_pada       DateTime?
+  jadwal_ditunda_pada      DateTime?
+  created_at               DateTime @default(now())
+  updated_at               DateTime @updatedAt
+
+  pengguna Pengguna @relation(fields: [pengguna_id], references: [id], onDelete: Cascade)
+  sekolah  Sekolah  @relation(fields: [sekolah_id], references: [id], onDelete: Cascade)
+
+  @@unique([pengguna_id, sekolah_id])
+  @@index([sekolah_id, updated_at])
+  @@map("preferensi_onboarding_guru")
 }
 
 /// M07 — Student Academic Lifecycle: Identitas Dasar Siswa (Individu)
@@ -526,7 +578,7 @@ model Siswa {
   id              String    @id
   sekolah_id      String
   pengguna_id     String?   @unique
-  nis             String // Nomor Induk Siswa lokal sekolah
+  nis             String? // Nomor Induk Siswa lokal sekolah (nullable untuk siswa belum ber-NIS)
   nisn            String? // Nomor Induk Siswa Nasional (10 digit)
   nama_lengkap    String
   jenis_kelamin   String // L | P
@@ -557,6 +609,7 @@ model Siswa {
   hubungan_wali       HubunganWaliSiswa[]
   pengajuan_wali      PengajuanWali[]
   catatan_monitoring  CatatanMonitoring[]
+  rapor_siswa         RaporSiswa[]
 
   @@unique([sekolah_id, nis])
   @@index([sekolah_id, status_akademik])
@@ -609,6 +662,7 @@ model PenempatanRombel {
   presensi_sesi_kelas PresensiSesiKelas[]
   nilai_siswa         NilaiSiswa[]
   sesi_ujian_siswa    SesiUjianSiswa[]
+  rapor_siswa         RaporSiswa[]
 
   @@index([rombel_id, status])
   @@index([keikutsertaan_id, status])
@@ -1810,3 +1864,33 @@ model TransaksiLangganan {
   @@index([order_id])
   @@map("transaksi_langganan")
 }
+
+/// M15 / M18 — Rapor Digital: Lembar Resmi e-Rapor Kurikulum Merdeka
+model RaporSiswa {
+  id                    String    @id
+  sekolah_id            String
+  siswa_id              String
+  penempatan_rombel_id  String
+  semester_id           String
+  tahun_ajaran_id       String
+  status                String    @default("DRAFT") // DRAFT | VALIDATED | PUBLISHED
+  catatan_wali_kelas    String?
+  saran_tindak_lanjut   String?
+  ekstrakurikuler_json  String?   // JSON array: [{ nama: string, predikat: string, deskripsi: string }]
+  tanggal_validasi      DateTime?
+  divalidasi_oleh       String?
+  tanggal_publikasi     DateTime?
+  dipublikasikan_oleh   String?
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
+
+  sekolah            Sekolah          @relation(fields: [sekolah_id], references: [id], onDelete: Restrict)
+  siswa              Siswa            @relation(fields: [siswa_id], references: [id], onDelete: Restrict)
+  penempatan_rombel  PenempatanRombel @relation(fields: [penempatan_rombel_id], references: [id], onDelete: Restrict)
+
+  @@unique([siswa_id, semester_id])
+  @@index([penempatan_rombel_id, status])
+  @@index([sekolah_id, status])
+  @@map("rapor_siswa")
+}
+

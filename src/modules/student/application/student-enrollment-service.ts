@@ -134,7 +134,7 @@ export class StudentEnrollmentService {
       );
     }
 
-    await this.repo.deleteEnrollment(id);
+    await this.repo.deleteEnrollment(id, sekolahId);
 
     await recordAuditEvent({
       sekolah_id: sekolahId,

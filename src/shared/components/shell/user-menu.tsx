@@ -6,6 +6,7 @@ import Link from "next/link";
 import { User, Power, KeyRound, ChevronDown, Shield, X } from "lucide-react";
 import { logoutAction } from "@/app/actions/auth-actions";
 import { Badge } from "../ui/badge";
+import { AVATAR_LIST, AvatarSvgIllustration } from "@/app/onboarding/pilih-avatar/avatar-picker";
 
 const emptySubscribe = () => () => {};
 
@@ -17,6 +18,7 @@ export interface UserMenuProps {
     peran_dasar: string;
     sekolah_id?: string | null;
     foto_url?: string | null;
+    avatar_id?: string | null;
   };
 }
 
@@ -92,6 +94,7 @@ export function UserMenu({ user }: UserMenuProps) {
     label: user.peran_dasar,
     variant: "cobalt",
   };
+  const selectedAvatar = AVATAR_LIST.find((avatar) => avatar.id === user.avatar_id);
 
   // Get initials for avatar
   const initials =
@@ -115,6 +118,8 @@ export function UserMenu({ user }: UserMenuProps) {
           {user.foto_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={user.foto_url} alt={user.nama_lengkap} className="size-full object-cover" />
+          ) : selectedAvatar ? (
+            <AvatarSvgIllustration avatar={selectedAvatar} size={32} />
           ) : (
             initials
           )}
@@ -145,6 +150,8 @@ export function UserMenu({ user }: UserMenuProps) {
                   alt={user.nama_lengkap}
                   className="size-full object-cover"
                 />
+              ) : selectedAvatar ? (
+                <AvatarSvgIllustration avatar={selectedAvatar} size={40} />
               ) : (
                 initials
               )}

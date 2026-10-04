@@ -3,10 +3,11 @@
  */
 
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { act, render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import { TeacherClassesView } from "@/modules/learning/presentation/teacher-classes-view";
 import { ClassWorkspaceView } from "@/modules/learning/presentation/class-workspace-view";
+import { deleteRombelAction, updateRombelAction } from "@/app/actions/academic-actions";
 import {
   TeacherClassCardDTO,
   TeacherClassWorkspaceDTO,
@@ -18,6 +19,11 @@ vi.mock("next/navigation", () => ({
     push: vi.fn(),
     refresh: vi.fn(),
   }),
+}));
+
+vi.mock("@/app/actions/academic-actions", () => ({
+  deleteRombelAction: vi.fn(),
+  updateRombelAction: vi.fn(),
 }));
 
 describe("M11 Learning Presentation Views", () => {
@@ -175,12 +181,63 @@ describe("M11 Learning Presentation Views", () => {
       expect(screen.getByText("Pemrograman Web")).toBeInTheDocument();
       expect(screen.getByText("X RPL 1")).toBeInTheDocument();
       expect(screen.getByText("WEB")).toBeInTheDocument();
-      expect(screen.getByText(/4 JP \/ mgg/i)).toBeInTheDocument();
+      expect(screen.getByText("4 JP")).toBeInTheDocument();
       expect(screen.getByText("36 Siswa")).toBeInTheDocument();
-      expect(screen.getByRole("link", { name: /buka workspace/i })).toHaveAttribute(
+      expect(screen.getByRole("link", { name: /kelola kelas/i })).toHaveAttribute(
         "href",
         "/kelas-saya/PEN_01"
       );
+    });
+
+    it("shows rename and delete controls only to the tenant owner", () => {
+      const { rerender } = render(<TeacherClassesView classes={mockClasses} />);
+
+      expect(screen.queryByRole("button", { name: "Ubah Nama Kelas" })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Hapus Kelas" })).not.toBeInTheDocument();
+
+      rerender(<TeacherClassesView classes={mockClasses} isTenantOwner />);
+
+      expect(screen.getByRole("button", { name: "Ubah Nama Kelas" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Hapus Kelas" })).toBeInTheDocument();
+    });
+
+    it("submits a partial rename for the selected rombel", async () => {
+      vi.mocked(updateRombelAction).mockResolvedValue({
+        success: true,
+        message: "Nama kelas berhasil diperbarui.",
+      });
+      render(<TeacherClassesView classes={mockClasses} isTenantOwner />);
+
+      fireEvent.click(screen.getByRole("button", { name: "Ubah Nama Kelas" }));
+      fireEvent.change(screen.getByRole("textbox", { name: "Nama Kelas" }), {
+        target: { value: "X RPL 2" },
+      });
+      await act(async () => {
+        fireEvent.click(screen.getByRole("button", { name: "Simpan Nama Kelas" }));
+        await vi.waitFor(() => {
+          expect(updateRombelAction).toHaveBeenCalledWith("R_01", expect.any(FormData));
+        });
+      });
+      const submittedForm = vi.mocked(updateRombelAction).mock.calls[0][1];
+      expect(submittedForm.get("nama")).toBe("X RPL 2");
+      expect(submittedForm.has("semester_id")).toBe(false);
+    });
+
+    it("requires confirmation before archiving a class", async () => {
+      vi.mocked(deleteRombelAction).mockResolvedValue({
+        success: true,
+        message: "Kelas berhasil dihapus dari workspace.",
+      });
+      render(<TeacherClassesView classes={mockClasses} isTenantOwner />);
+
+      fireEvent.click(screen.getByRole("button", { name: "Hapus Kelas" }));
+      expect(screen.getByRole("dialog", { name: "Hapus Kelas?" })).toBeInTheDocument();
+      await act(async () => {
+        fireEvent.click(screen.getByRole("button", { name: "Konfirmasi Hapus" }));
+        await vi.waitFor(() => {
+          expect(deleteRombelAction).toHaveBeenCalledWith("R_01");
+        });
+      });
     });
 
     it("filters classes when search input changes", () => {
@@ -210,6 +267,72 @@ describe("M11 Learning Presentation Views", () => {
       expect(screen.getByText(/Semua Guru/i)).toBeInTheDocument();
       expect(screen.getByText("Budi Santoso, M.Kom.")).toBeInTheDocument();
     });
+
+    it("calculates distinct students across multiple subjects in the same rombel (15 instead of 60)", () => {
+      const multiSubjectSameRombel: TeacherClassCardDTO[] = [
+        {
+          ...mockClasses[0],
+          id: "P1",
+          mata_pelajaran_nama: "Mapel 1",
+          rombel_id: "R_XII",
+          total_siswa: 15,
+        },
+        {
+          ...mockClasses[0],
+          id: "P2",
+          mata_pelajaran_nama: "Mapel 2",
+          rombel_id: "R_XII",
+          total_siswa: 15,
+        },
+        {
+          ...mockClasses[0],
+          id: "P3",
+          mata_pelajaran_nama: "Mapel 3",
+          rombel_id: "R_XII",
+          total_siswa: 15,
+        },
+        {
+          ...mockClasses[0],
+          id: "P4",
+          mata_pelajaran_nama: "Mapel 4",
+          rombel_id: "R_XII",
+          total_siswa: 15,
+        },
+      ];
+      render(<TeacherClassesView classes={multiSubjectSameRombel} />);
+
+      // Kartu Siswa Binaan harus menunjukkan 15 (bukan 60)
+      const siswaBinaanLabel = screen.getByText("Siswa Binaan");
+      const metricContainer = siswaBinaanLabel.closest(".group");
+      expect(metricContainer).toHaveTextContent("15");
+      expect(metricContainer).not.toHaveTextContent("60");
+    });
+
+    it("renders productive actions for subscribed schools and hides manual/AI buttons", () => {
+      render(<TeacherClassesView classes={mockClasses} isSubscribed={true} />);
+
+      expect(screen.getByText("Kelola BAB & Materi")).toBeInTheDocument();
+      expect(screen.getByText("+ Buat Penugasan")).toBeInTheDocument();
+      expect(screen.getByText("+ Buka Sesi KBM")).toBeInTheDocument();
+      expect(screen.queryByText("+ Tambah Kelas Manual")).not.toBeInTheDocument();
+      expect(screen.queryByText("+ Foto Absen AI")).not.toBeInTheDocument();
+    });
+
+    it("renders schedule alert banner and quick set button when class has no schedule", () => {
+      const unscheduledClass: TeacherClassCardDTO[] = [
+        {
+          ...mockClasses[0],
+          id: "P_NO_SCHED",
+          jadwal_ringkas: null,
+          jumlah_jam_minggu: 0,
+        },
+      ];
+      render(<TeacherClassesView classes={unscheduledClass} />);
+
+      expect(screen.getByText(/1 Rombel Belum Memiliki Jam Mengajar/i)).toBeInTheDocument();
+      expect(screen.getByText("Jam Belum Diatur")).toBeInTheDocument();
+      expect(screen.getAllByRole("button", { name: /\+ Atur Jam/i }).length).toBeGreaterThan(0);
+    });
   });
 
   describe("ClassWorkspaceView (/kelas-saya/[id])", () => {
@@ -218,7 +341,7 @@ describe("M11 Learning Presentation Views", () => {
 
       expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Pemrograman Web");
       expect(screen.getByText("Budi Santoso, M.Kom.")).toBeInTheDocument();
-      expect(screen.getByText("4 JP / Minggu")).toBeInTheDocument();
+      expect(screen.getByText(/4\s*JP/)).toBeInTheDocument();
       expect(screen.getByText("36 Siswa")).toBeInTheDocument();
     });
 
@@ -238,7 +361,7 @@ describe("M11 Learning Presentation Views", () => {
     it("switches to Materi tab and renders published materials", () => {
       render(<ClassWorkspaceView workspace={mockWorkspace} canManage={true} />);
 
-      const materiTabBtn = screen.getByRole("button", { name: /^Materi/i });
+      const materiTabBtn = screen.getByTestId("tab-MATERI");
       fireEvent.click(materiTabBtn);
 
       expect(screen.getByText("Modul Praktikum HTML5")).toBeInTheDocument();
@@ -248,7 +371,7 @@ describe("M11 Learning Presentation Views", () => {
     it("switches to Jurnal KBM tab and renders class journal entries", () => {
       render(<ClassWorkspaceView workspace={mockWorkspace} canManage={true} />);
 
-      const jurnalTabBtn = screen.getByRole("button", { name: /^Jurnal KBM/i });
+      const jurnalTabBtn = screen.getByTestId("tab-JURNAL");
       fireEvent.click(jurnalTabBtn);
 
       expect(screen.getByText("Pertemuan 1")).toBeInTheDocument();
@@ -259,7 +382,7 @@ describe("M11 Learning Presentation Views", () => {
     it("switches to Penilaian tab and renders ClassAssessmentTabView (M13)", () => {
       render(<ClassWorkspaceView workspace={mockWorkspace} canManage={true} />);
 
-      const penilaianTabBtn = screen.getByRole("button", { name: /penilaian/i });
+      const penilaianTabBtn = screen.getByTestId("tab-PENILAIAN");
       fireEvent.click(penilaianTabBtn);
 
       expect(screen.getByText("Total Asesmen")).toBeInTheDocument();
@@ -269,7 +392,7 @@ describe("M11 Learning Presentation Views", () => {
     it("switches to CBT tab and renders CBT workspace view", () => {
       render(<ClassWorkspaceView workspace={mockWorkspace} canManage={true} />);
 
-      const cbtTabBtn = screen.getByRole("button", { name: /cbt/i });
+      const cbtTabBtn = screen.getByTestId("tab-CBT");
       fireEvent.click(cbtTabBtn);
 
       expect(screen.getByText("Ujian Berbasis Komputer (CBT)")).toBeInTheDocument();

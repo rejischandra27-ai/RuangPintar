@@ -1,12 +1,14 @@
 "use client";
 
 import React from "react";
+import { motion } from "@/shared/components/motion/motion-elements";
 
 interface DonutGaugeProps {
   percentage: number;
   label: string;
   color?: "blue" | "indigo" | "emerald" | "amber" | "cyan";
   size?: number;
+  displayValue?: string;
 }
 
 const COLOR_MAP = {
@@ -37,7 +39,13 @@ const COLOR_MAP = {
   },
 };
 
-export function DonutGauge({ percentage, label, color = "blue", size = 64 }: DonutGaugeProps) {
+export function DonutGauge({
+  percentage,
+  label,
+  color = "blue",
+  size = 64,
+  displayValue,
+}: DonutGaugeProps) {
   const strokeWidth = 6;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -46,7 +54,11 @@ export function DonutGauge({ percentage, label, color = "blue", size = 64 }: Don
   const config = COLOR_MAP[color] || COLOR_MAP.blue;
 
   return (
-    <div className="flex flex-col items-center text-center p-2 rounded-2xl hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
+    <motion.div
+      whileHover={{ scale: 1.05 }}
+      transition={{ type: "spring", stiffness: 400, damping: 25 }}
+      className="flex flex-col items-center text-center p-2 rounded-2xl hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors"
+    >
       <div
         className="relative flex items-center justify-center"
         style={{ width: size, height: size }}
@@ -67,8 +79,8 @@ export function DonutGauge({ percentage, label, color = "blue", size = 64 }: Don
             strokeWidth={strokeWidth}
             className="text-slate-100 dark:text-slate-800"
           />
-          {/* Active progress circle */}
-          <circle
+          {/* Active progress circle with spring-like smooth motion */}
+          <motion.circle
             cx={size / 2}
             cy={size / 2}
             r={radius}
@@ -76,15 +88,16 @@ export function DonutGauge({ percentage, label, color = "blue", size = 64 }: Don
             stroke={config.stroke}
             strokeWidth={strokeWidth}
             strokeDasharray={circumference}
-            strokeDashoffset={strokeDashoffset}
+            initial={{ strokeDashoffset: circumference }}
+            animate={{ strokeDashoffset }}
+            transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
             strokeLinecap="round"
-            className="transition-all duration-700 ease-out"
           />
         </svg>
 
         {/* Center Percentage Text */}
         <span className="absolute font-mono text-xs sm:text-sm font-black text-slate-900 dark:text-white tracking-tight">
-          {validPercentage}%
+          {displayValue ?? `${validPercentage}%`}
         </span>
       </div>
 
@@ -92,6 +105,6 @@ export function DonutGauge({ percentage, label, color = "blue", size = 64 }: Don
       <span className="mt-2 text-[11px] font-semibold text-slate-600 dark:text-slate-400 line-clamp-1 max-w-[90px] text-center">
         {label}
       </span>
-    </div>
+    </motion.div>
   );
 }

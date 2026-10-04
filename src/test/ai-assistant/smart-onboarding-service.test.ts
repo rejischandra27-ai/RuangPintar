@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { smartOnboardingService } from "@/modules/ai-assistant/application/smart-onboarding-service";
+import { provisionDefaultSubjects } from "@/modules/teacher/application/subject-provisioning-service";
 import { prisma } from "@/shared/infrastructure/database/prisma";
 import { generateUlid } from "@/shared/lib/ulid";
 
@@ -9,10 +10,11 @@ describe("Smart Onboarding & SaaS Teacher Service (M21)", () => {
   it("mencari sekolah aktif berdasarkan nama dan NPSN", async () => {
     const schoolId = generateUlid();
     const npsn = `${Date.now()}`.slice(-8);
+    const uniqueName = `SD Negeri Pencarian ${schoolId.slice(-6)}`;
     await prisma.sekolah.create({
       data: {
         id: schoolId,
-        nama: "SD Negeri Pencarian",
+        nama: uniqueName,
         jenjang: "SD",
         npsn,
         alamat: "Kabupaten Bandung",
@@ -20,13 +22,13 @@ describe("Smart Onboarding & SaaS Teacher Service (M21)", () => {
     });
 
     const [byName, byNpsn] = await Promise.all([
-      smartOnboardingService.discoverSchools("SD Negeri Pencarian"),
+      smartOnboardingService.discoverSchools(uniqueName),
       smartOnboardingService.discoverSchools(npsn),
     ]);
 
     expect(byName).toContainEqual({
       id: schoolId,
-      nama: "SD Negeri Pencarian",
+      nama: uniqueName,
       jenjang: "SD",
       lokasi: "Kabupaten Bandung",
       npsn,
@@ -84,6 +86,126 @@ describe("Smart Onboarding & SaaS Teacher Service (M21)", () => {
       onboarding_completed: false,
       wizard_step: 0,
     });
+
+    const subjects = await prisma.mataPelajaran.findMany({
+      where: { sekolah_id: result.sekolah.id },
+      orderBy: { kode: "asc" },
+      select: { kode: true, nama: true },
+    });
+    expect(subjects.map(({ kode, nama }) => [kode, nama])).toEqual(
+      [
+        ["AGAMA", "Pendidikan Agama"],
+        ["BING", "Bahasa Inggris"],
+        ["BIN", "Bahasa Indonesia"],
+        ["INF", "Informatika"],
+        ["MTK", "Matematika"],
+        ["PPKN", "PPKn"],
+        ["SEJ", "Sejarah"],
+        ["SENI", "Seni Budaya"],
+        ["PJOK", "PJOK"],
+      ].sort(([left], [right]) => left.localeCompare(right))
+    );
+  });
+
+  it.each([
+    [
+      "SD",
+      ["Pendidikan Agama", "PPKn", "Bahasa Indonesia", "Matematika", "IPAS", "Seni Budaya", "PJOK"],
+    ],
+    [
+      "SMP",
+      [
+        "Pendidikan Agama",
+        "PPKn",
+        "Bahasa Indonesia",
+        "Matematika",
+        "IPA",
+        "IPS",
+        "Bahasa Inggris",
+        "Informatika",
+        "Seni Budaya",
+        "PJOK",
+      ],
+    ],
+    [
+      "SMA",
+      [
+        "Pendidikan Agama",
+        "PPKn",
+        "Bahasa Indonesia",
+        "Matematika",
+        "Bahasa Inggris",
+        "Informatika",
+        "Sejarah",
+        "Seni Budaya",
+        "PJOK",
+      ],
+    ],
+    [
+      "SMK",
+      [
+        "Pendidikan Agama",
+        "PPKn",
+        "Bahasa Indonesia",
+        "Matematika",
+        "Bahasa Inggris",
+        "Informatika",
+        "Projek Kejuruan",
+      ],
+    ],
+  ] as const)("membuat katalog starter %s", async (jenjang, expectedNames) => {
+    const result = await smartOnboardingService.registerTeacher({
+      nama_lengkap: `Guru ${jenjang}`,
+      email: `${jenjang.toLowerCase()}_${Date.now()}@example.com`,
+      password: "Password123#",
+      nama_sekolah: `Sekolah ${jenjang}`,
+      jenjang,
+    });
+
+    const subjects = await prisma.mataPelajaran.findMany({
+      where: { sekolah_id: result.sekolah.id },
+      orderBy: { kode: "asc" },
+      select: { nama: true },
+    });
+    expect(subjects.map((subject) => subject.nama).sort()).toEqual([...expectedNames].sort());
+  });
+
+  it("provisioning aman diulang dan tidak menimpa perubahan owner", async () => {
+    const schoolId = generateUlid();
+    await prisma.sekolah.create({
+      data: { id: schoolId, nama: "Sekolah Retry", jenjang: "SD" },
+    });
+
+    await prisma.$transaction((tx) => provisionDefaultSubjects(tx, schoolId, "SD"));
+    const subject = await prisma.mataPelajaran.findFirstOrThrow({
+      where: { sekolah_id: schoolId },
+    });
+    await prisma.mataPelajaran.update({
+      where: { id: subject.id },
+      data: { nama: "Nama Kustom Owner" },
+    });
+
+    await prisma.$transaction((tx) => provisionDefaultSubjects(tx, schoolId, "SD"));
+
+    expect(await prisma.mataPelajaran.count({ where: { sekolah_id: schoolId } })).toBe(7);
+    expect((await prisma.mataPelajaran.findUnique({ where: { id: subject.id } }))?.nama).toBe(
+      "Nama Kustom Owner"
+    );
+  });
+
+  it("membatalkan tenant bila validasi provisioning gagal dalam transaksinya", async () => {
+    const schoolId = generateUlid();
+
+    await expect(
+      prisma.$transaction(async (tx) => {
+        await tx.sekolah.create({
+          data: { id: schoolId, nama: "Sekolah Invalid", jenjang: "INVALID" },
+        });
+        await provisionDefaultSubjects(tx, schoolId, "INVALID");
+      })
+    ).rejects.toThrow("Jenjang provisioning tidak didukung: INVALID");
+
+    expect(await prisma.sekolah.findUnique({ where: { id: schoolId } })).toBeNull();
   });
 
   it("mendaftarkan guru sebagai non-owner ke sekolah existing tanpa membuat tenant atau trial", async () => {
@@ -100,13 +222,14 @@ describe("Smart Onboarding & SaaS Teacher Service (M21)", () => {
       sekolah_id: schoolId,
     });
 
-    const [membership, user, trialCount, schoolCount] = await Promise.all([
+    const [membership, user, trialCount, schoolCount, subjectCount] = await Promise.all([
       prisma.keanggotaanSekolah.findUnique({
         where: { pengguna_id_sekolah_id: { pengguna_id: result.user.id, sekolah_id: schoolId } },
       }),
       prisma.pengguna.findUnique({ where: { id: result.user.id } }),
       prisma.langgananTenant.count({ where: { sekolah_id: schoolId } }),
       prisma.sekolah.count({ where: { id: schoolId } }),
+      prisma.mataPelajaran.count({ where: { sekolah_id: schoolId } }),
     ]);
 
     expect(result.sekolah).toEqual({ id: schoolId, nama: "SMP Sekolah Bergabung" });
@@ -118,6 +241,7 @@ describe("Smart Onboarding & SaaS Teacher Service (M21)", () => {
     expect(user?.trial_berakhir_pada).toBeNull();
     expect(trialCount).toBe(0);
     expect(schoolCount).toBe(1);
+    expect(subjectCount).toBe(0);
   });
 
   it("Google teacher yang memilih sekolah baru dibuat bersama provider, owner, session, dan trial", async () => {

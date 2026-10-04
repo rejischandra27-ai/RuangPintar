@@ -89,23 +89,33 @@ export function AuthLoginLayout({
       </header>
 
       {/* Main Container - Balanced right positioning shifted gently from edge */}
-      <main className="relative z-10 min-h-[100dvh] w-full flex flex-col justify-between pt-20 sm:pt-24 lg:grid lg:grid-cols-[minmax(0,1.08fr)_minmax(440px,520px)] xl:grid-cols-[minmax(0,1.15fr)_minmax(450px,500px)] lg:grid-rows-1 lg:pt-0">
+      <main
+        className={`relative z-10 min-h-[100dvh] w-full flex flex-col justify-between pt-16 sm:pt-20 lg:grid lg:grid-rows-1 lg:pt-0 ${
+          wideForm
+            ? "lg:grid-cols-[minmax(0,1.1fr)_minmax(460px,530px)] xl:grid-cols-[minmax(0,1.2fr)_minmax(480px,550px)]"
+            : "lg:grid-cols-[minmax(0,1.08fr)_minmax(440px,520px)] xl:grid-cols-[minmax(0,1.15fr)_minmax(450px,500px)]"
+        }`}
+      >
         {/* Left Column Spacer (Full artwork shines through) */}
         <div className="hidden lg:block pointer-events-none" aria-hidden="true" />
 
         {/* Right Form Container: Shifted gently inward with modest breathing room */}
-        <section className="relative z-10 flex w-full flex-col justify-start lg:justify-center items-center lg:items-start px-6 sm:px-8 lg:pl-4 lg:pr-14 xl:pr-20 2xl:pr-28 pt-4 pb-8 lg:py-12">
+        <section
+          className={`relative z-10 flex w-full flex-col justify-start lg:justify-center items-center lg:items-start px-5 sm:px-8 pt-3 pb-6 lg:py-4 xl:py-6 ${
+            wideForm ? "lg:px-6 xl:px-8" : "lg:pl-4 lg:pr-14 xl:pr-20 2xl:pr-28"
+          }`}
+        >
           {/* Subtle Frosted Glass Container (Effek Glass Tipis) */}
           <div
             className={`w-full ${
-              wideForm ? "max-w-[540px]" : "max-w-[420px] sm:max-w-[440px]"
-            } rounded-2xl sm:rounded-3xl bg-white/45 backdrop-blur-md border border-white/65 shadow-[0_12px_36px_-8px_rgba(15,23,42,0.06),0_1px_2px_rgba(255,255,255,0.7)] p-6 sm:p-8 transition-all`}
+              wideForm ? "max-w-[500px] xl:max-w-[530px]" : "max-w-[420px] sm:max-w-[440px]"
+            } rounded-2xl sm:rounded-3xl bg-white/55 backdrop-blur-md border border-white/70 shadow-[0_12px_36px_-8px_rgba(15,23,42,0.06),0_1px_2px_rgba(255,255,255,0.7)] p-5 sm:p-6 lg:p-6.5 transition-all`}
           >
             {/* Optional Back Link */}
             {backLink && (
               <Link
                 href={backLink.href}
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#2563EB] hover:text-[#1D4ED8] mb-4 group transition-colors"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#2563EB] hover:text-[#1D4ED8] mb-3 group transition-colors"
               >
                 <span className="transition-transform group-hover:-translate-x-0.5">&larr;</span>
                 <span>{backLink.label}</span>
@@ -113,17 +123,17 @@ export function AuthLoginLayout({
             )}
 
             {/* Header Content */}
-            <div className="mb-5 space-y-1.5 sm:mb-6 sm:space-y-2">
+            <div className="mb-3.5 space-y-1 sm:mb-4 sm:space-y-1.5">
               {badge && (
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-[#2563EB] text-[11px] font-bold tracking-wide uppercase">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-[#2563EB] text-[10.5px] font-bold tracking-wide uppercase">
                   {badge}
                 </div>
               )}
-              <h1 className="text-[26px] leading-[1.2] font-bold tracking-[-0.035em] text-[#0F172A] sm:text-[30px] xl:text-[34px]">
+              <h1 className="text-[21px] leading-[1.2] font-bold tracking-[-0.03em] text-[#0F172A] sm:text-[24px] xl:text-[26px]">
                 {title}
               </h1>
               {description && (
-                <p className="max-w-[42ch] text-[12.5px] leading-5 text-[#475569] sm:text-[13.5px] sm:leading-6">
+                <p className="max-w-[44ch] text-[12px] leading-relaxed text-[#475569] sm:text-[13px]">
                   {description}
                 </p>
               )}

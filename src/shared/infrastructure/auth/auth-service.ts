@@ -31,6 +31,7 @@ export interface AuthenticatedUser {
   status_akun: string;
   harus_ganti_password: boolean;
   foto_url?: string | null;
+  avatar_id?: string | null;
   keanggotaan_id?: string | null;
   is_owner_tenant?: boolean;
 }
@@ -49,6 +50,74 @@ export interface ValidatedSession {
 }
 
 export class AuthService {
+  async createSessionForUser(
+    userId: string,
+    input: { rememberMe?: boolean; ipAddress?: string; userAgent?: string; auditAction?: string }
+  ): Promise<LoginResult> {
+    const user = await prisma.pengguna.findUnique({ where: { id: userId } });
+    if (!user || user.status_akun !== "AKTIF") {
+      return { success: false, error: "Akun Google tidak dapat mengakses Ruang Pintar." };
+    }
+
+    const activeMemberships = await prisma.keanggotaanSekolah.findMany({
+      where: { pengguna_id: user.id, status_keanggotaan: "ACTIVE" },
+      select: { sekolah_id: true },
+      take: 2,
+    });
+    const sekolahAktifId = activeMemberships.length === 1 ? activeMemberships[0].sekolah_id : null;
+    const sessionToken = generateSessionToken();
+    const durationMs = input.rememberMe
+      ? SESSION_DURATION_REMEMBER_MS
+      : SESSION_DURATION_STANDARD_MS;
+    const expiresAt = new Date(Date.now() + durationMs);
+
+    await prisma.$transaction([
+      prisma.sesiPengguna.create({
+        data: {
+          id: generateUlid(),
+          pengguna_id: user.id,
+          sekolah_aktif_id: sekolahAktifId,
+          token_hash: hashSessionToken(sessionToken),
+          ip_address: input.ipAddress ?? "127.0.0.1",
+          user_agent: input.userAgent ?? null,
+          berlaku_sampai: expiresAt,
+        },
+      }),
+      prisma.pengguna.update({
+        where: { id: user.id },
+        data: { terakhir_login_pada: new Date(), percobaan_login_gagal: 0 },
+      }),
+    ]);
+
+    await recordAuditEvent({
+      sekolah_id: sekolahAktifId,
+      aktor_id: user.id,
+      aktor_role: user.peran_dasar,
+      aksi: input.auditAction ?? "AUTH_LOGIN_SUCCESS",
+      tipe_sumber: "PENGGUNA",
+      id_sumber: user.id,
+      ip_address: input.ipAddress,
+      user_agent: input.userAgent,
+    });
+
+    return {
+      success: true,
+      sessionToken,
+      user: {
+        id: user.id,
+        sekolah_id: sekolahAktifId,
+        username: user.username,
+        email: user.email,
+        nama_lengkap: user.nama_lengkap,
+        peran_dasar: user.peran_dasar,
+        status_akun: user.status_akun,
+        harus_ganti_password: user.harus_ganti_password,
+        foto_url: user.foto_url,
+        avatar_id: user.avatar_id,
+      },
+    };
+  }
+
   /**
    * Authenticate user credentials and create a server-authoritative session upon success.
    */
@@ -281,6 +350,7 @@ export class AuthService {
         status_akun: session.pengguna.status_akun,
         harus_ganti_password: session.pengguna.harus_ganti_password,
         foto_url: session.pengguna.foto_url,
+        avatar_id: session.pengguna.avatar_id,
         keanggotaan_id: tenantContext?.membershipId ?? null,
         is_owner_tenant: tenantContext?.isOwner ?? false,
       },
@@ -320,8 +390,8 @@ export class AuthService {
     });
   }
 
-  /** Switches tenant only for the authenticated browser session. */
-  async switchActiveTenant(sessionToken: string, sekolahId: string): Promise<void> {
+  /** Switches tenant only for the authenticated browser session. If sekolahId is null, clears active tenant. */
+  async switchActiveTenant(sessionToken: string, sekolahId: string | null): Promise<void> {
     const tokenHash = hashSessionToken(sessionToken);
     const session = await prisma.sesiPengguna.findUnique({
       where: { token_hash: tokenHash },

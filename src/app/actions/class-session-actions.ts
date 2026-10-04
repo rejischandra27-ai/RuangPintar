@@ -132,3 +132,110 @@ export async function closeClassSessionAction(
     };
   }
 }
+
+export interface EnsureTodaySessionInput {
+  penugasan_mengajar_id: string;
+  jadwal_pelajaran_id?: string | null;
+  rombel_id?: string;
+  mata_pelajaran_id?: string;
+  ruangan_aktual?: string | null;
+}
+
+export async function ensureAndGetTodaySessionAction(
+  input: EnsureTodaySessionInput
+): Promise<ClassSessionActionResult<{ sessionId: string; isNew: boolean }>> {
+  try {
+    const user = await requireAuth();
+    if (!user.sekolah_id) return { success: false, message: "Konteks sekolah tidak valid." };
+
+    await requirePermission("attendance.session.record", {
+      sekolah_id: user.sekolah_id,
+    });
+
+    const penugasan = await prisma.penugasanMengajar.findFirst({
+      where: { id: input.penugasan_mengajar_id, sekolah_id: user.sekolah_id },
+      include: { rombel: true, mata_pelajaran: true },
+    });
+
+    if (!penugasan) {
+      return {
+        success: false,
+        message: "Penugasan mengajar tidak ditemukan pada sekolah aktif.",
+      };
+    }
+
+    let guruId = penugasan.guru_id;
+    if (user.peran_dasar === "TEACHER") {
+      const teacher = await prisma.guru.findFirst({
+        where: { pengguna_id: user.id, sekolah_id: user.sekolah_id },
+      });
+      if (!teacher) {
+        return { success: false, message: "Profil guru tidak ditemukan untuk akun ini." };
+      }
+      if (penugasan.guru_id !== teacher.id) {
+        return {
+          success: false,
+          message: "Akses ditolak: Anda bukan guru pengampu resmi pada kelas ini.",
+        };
+      }
+      guruId = teacher.id;
+    }
+
+    const now = new Date();
+    const startOfDay = new Date(now);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(now);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    // 1. Cek apakah sudah ada sesi KBM yang sedang DIMULAI atau TERJADWAL hari ini untuk penugasan ini
+    const existing = await prisma.sesiKelasAktual.findFirst({
+      where: {
+        sekolah_id: user.sekolah_id,
+        penugasan_mengajar_id: penugasan.id,
+        tanggal: { gte: startOfDay, lte: endOfDay },
+        status: { in: ["DIMULAI", "TERJADWAL"] },
+      },
+      orderBy: { created_at: "desc" },
+    });
+
+    if (existing) {
+      return {
+        success: true,
+        message: `Sesi pembelajaran ${penugasan.rombel.nama} sudah aktif.`,
+        data: { sessionId: existing.id, isNew: false },
+      };
+    }
+
+    // 2. Jika belum ada, otomatis inisialisasi sesi KBM baru secara idempoten
+    const session = await classSessionService.openSession(user.id, user.peran_dasar, {
+      sekolah_id: user.sekolah_id,
+      jadwal_pelajaran_id: input.jadwal_pelajaran_id || null,
+      penugasan_mengajar_id: penugasan.id,
+      rombel_id: input.rombel_id || penugasan.rombel_id,
+      mata_pelajaran_id: input.mata_pelajaran_id || penugasan.mata_pelajaran_id,
+      guru_id: guruId,
+      tahun_ajaran_id: penugasan.tahun_ajaran_id,
+      semester_id: penugasan.semester_id,
+      tanggal: now,
+      ruangan_aktual: input.ruangan_aktual || null,
+      topik_pembelajaran: null,
+      catatan: "Sesi dibuka secara instan melalui Dashboard Fast-Track.",
+    });
+
+    revalidatePath("/dashboard");
+    revalidatePath("/jadwal-saya");
+    revalidatePath("/sesi-pembelajaran");
+    revalidatePath("/presensi-kelas");
+
+    return {
+      success: true,
+      message: `Sesi pembelajaran kelas ${session.rombel_nama} (${session.mata_pelajaran_nama}) berhasil dibuka.`,
+      data: { sessionId: session.id, isNew: true },
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.message || "Gagal menginisialisasi sesi kelas.",
+    };
+  }
+}

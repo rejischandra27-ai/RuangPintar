@@ -287,4 +287,8 @@ export interface TeacherClassCardDTO {
   total_tugas: number;
   total_jurnal: number;
   jadwal_hari_ini?: string | null;
+  hari_mengajar?: string | null;
+  jam_mengajar?: string | null;
+  jadwal_ringkas?: string | null;
+  wali_kelas_nama?: string | null;
 }

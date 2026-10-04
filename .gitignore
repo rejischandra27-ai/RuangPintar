@@ -17,10 +17,12 @@
 
 # Local persistent data & Storage
 /data/
+/prisma/data/
 *.db
 *.db-journal
 *.db-wal
 *.db-shm
+*.bak
 
 # Environment files
 .env
@@ -57,4 +59,6 @@ Thumbs.db
 /scripts/*.html
 /scripts/behance_ref/
 *.exe
+/scratch/
+/tmp/
 

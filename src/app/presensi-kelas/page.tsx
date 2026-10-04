@@ -25,9 +25,9 @@ import {
 } from "@/modules/attendance/presentation/class-attendance-overview";
 
 export const metadata: Metadata = {
-  title: "Presensi Kehadiran Siswa — Ruang Pintar",
+  title: "Rekapitulasi Presensi Siswa — Ruang Pintar",
   description:
-    "Pusat pencatatan kehadiran belajar siswa per sesi kelas aktual dan rekapitulasi presensi rombel.",
+    "Monitoring dan rekapitulasi kehadiran belajar siswa per sesi kelas aktual dan rombongan belajar.",
 };
 
 export const dynamic = "force-dynamic";
@@ -104,10 +104,7 @@ export default async function PresensiKelasPage() {
     <AcademicShell
       user={user}
       userCapabilities={staffCapabilities}
-      breadcrumbItems={[
-        { label: "Dashboard", href: "/dashboard" },
-        { label: "Presensi Kehadiran" },
-      ]}
+      breadcrumbItems={[{ label: "Dashboard", href: "/dashboard" }, { label: "Rekap Presensi" }]}
     >
       <ClassAttendanceOverview
         sessions={sessions}

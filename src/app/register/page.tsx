@@ -23,6 +23,7 @@ export default async function RegisterPage() {
       description="Buat akun baru untuk memulai pengalaman administrasi dan pembelajaran modern terintegrasi."
       badge="Registrasi Cepat"
       backLink={{ href: "/login", label: "Kembali ke Masuk" }}
+      wideForm
     >
       <Suspense
         fallback={

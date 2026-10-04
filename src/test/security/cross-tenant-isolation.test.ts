@@ -44,6 +44,9 @@ import { RombelNotFoundError } from "@/modules/academic/domain/academic-errors";
 import { createTeacherAction } from "@/app/actions/teacher-actions";
 import { openClassSessionAction } from "@/app/actions/class-session-actions";
 import { createMateriAction } from "@/app/actions/learning-actions";
+import { calendarRepository } from "@/modules/calendar/infrastructure/calendar-repository";
+import { integrationRepository } from "@/modules/integration/infrastructure/integration-repository";
+import { StudentRepository } from "@/modules/student/infrastructure/student-repository";
 
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
@@ -91,6 +94,7 @@ vi.mock("@/shared/infrastructure/database/prisma", () => ({
       findUnique: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
+      deleteMany: vi.fn(),
     },
     ujianCbt: {
       findFirst: vi.fn(),
@@ -127,15 +131,33 @@ vi.mock("@/shared/infrastructure/database/prisma", () => ({
     },
     tahunAjaran: {
       findFirst: vi.fn(),
+      update: vi.fn(),
+      deleteMany: vi.fn(),
     },
     semester: {
       findFirst: vi.fn(),
+      update: vi.fn(),
+      deleteMany: vi.fn(),
     },
     rombel: {
       findFirst: vi.fn(),
+      update: vi.fn(),
+      deleteMany: vi.fn(),
     },
     mataPelajaran: {
       findFirst: vi.fn(),
+      update: vi.fn(),
+      deleteMany: vi.fn(),
+    },
+    kalenderAkademik: {
+      findFirst: vi.fn(),
+      update: vi.fn(),
+      deleteMany: vi.fn(),
+    },
+    endpointWebhook: {
+      findFirst: vi.fn(),
+      update: vi.fn(),
+      deleteMany: vi.fn(),
     },
     waliMurid: {
       findFirst: vi.fn(),
@@ -147,7 +169,10 @@ vi.mock("@/shared/infrastructure/database/prisma", () => ({
     },
     siswa: {
       findUnique: vi.fn(),
+      findFirst: vi.fn(),
       findMany: vi.fn(),
+      update: vi.fn(),
+      deleteMany: vi.fn(),
     },
     langgananTenant: {
       findFirst: vi.fn().mockResolvedValue({
@@ -720,6 +745,88 @@ describe("CRIT-01 — Comprehensive Cross-Tenant Isolation Tests", () => {
       expect(result.message).toBe(
         "Penugasan mengajar tidak ditemukan atau bukan milik sekolah aktif."
       );
+    });
+  });
+
+  // =========================================================================
+  // 6. REPOSITORY CROSS-TENANT MUTATION REJECTION (REMEDIATION BATCH 1)
+  // =========================================================================
+  describe("6. Repository Cross-Tenant Mutation Rejection (Remediation Batch 1)", () => {
+    it("TeacherRepository.deleteSubject: throws error on cross-tenant subject delete", async () => {
+      (prisma.mataPelajaran.deleteMany as any).mockResolvedValue({ count: 0 });
+
+      await expect(
+        TeacherRepository.deleteSubject("MAPEL_TENANT_B", "SCH_TENANT_A")
+      ).rejects.toThrow("tidak ditemukan atau bukan milik sekolah aktif");
+    });
+
+    it("AcademicRepository.deleteRombel: throws error on cross-tenant rombel delete", async () => {
+      (prisma.rombel.deleteMany as any).mockResolvedValue({ count: 0 });
+      const academicRepo = new AcademicRepository();
+
+      await expect(academicRepo.deleteRombel("ROMBEL_TENANT_B", "SCH_TENANT_A")).rejects.toThrow(
+        "tidak ditemukan atau bukan milik sekolah aktif"
+      );
+    });
+
+    it("CalendarRepository.delete: throws error on cross-tenant calendar event delete", async () => {
+      (prisma.kalenderAkademik.deleteMany as any).mockResolvedValue({ count: 0 });
+
+      await expect(calendarRepository.delete("EVENT_TENANT_B", "SCH_TENANT_A")).rejects.toThrow(
+        "tidak ditemukan atau bukan milik sekolah aktif"
+      );
+    });
+
+    it("CalendarRepository.update: throws error on cross-tenant calendar event update", async () => {
+      (prisma.kalenderAkademik.findFirst as any).mockResolvedValue(null);
+
+      await expect(
+        calendarRepository.update({
+          id: "EVENT_TENANT_B",
+          sekolah_id: "SCH_TENANT_A",
+          judul: "Update Cross Tenant",
+          tipe_event: "HARI_LIBUR",
+          tanggal_mulai: new Date(),
+          tanggal_selesai: new Date(),
+        })
+      ).rejects.toThrow("tidak ditemukan atau bukan milik sekolah aktif");
+    });
+
+    it("CommunicationRepository.delete: throws error on cross-tenant announcement delete", async () => {
+      (prisma.pengumuman.deleteMany as any).mockResolvedValue({ count: 0 });
+      const commRepo = new CommunicationRepository();
+
+      await expect(commRepo.delete("ANNOUNCEMENT_TENANT_B", "SCH_TENANT_A")).rejects.toThrow(
+        "tidak ditemukan atau bukan milik sekolah aktif"
+      );
+    });
+
+    it("IntegrationRepository.deleteWebhook: throws error on cross-tenant webhook delete", async () => {
+      (prisma.endpointWebhook.deleteMany as any).mockResolvedValue({ count: 0 });
+
+      await expect(
+        integrationRepository.deleteWebhook("WEBHOOK_TENANT_B", "SCH_TENANT_A")
+      ).rejects.toThrow("tidak ditemukan atau bukan milik sekolah aktif");
+    });
+
+    it("StudentRepository.deleteStudent: throws error on cross-tenant student delete", async () => {
+      (prisma.siswa.deleteMany as any).mockResolvedValue({ count: 0 });
+      const studentRepo = new StudentRepository();
+
+      await expect(studentRepo.deleteStudent("STUDENT_TENANT_B", "SCH_TENANT_A")).rejects.toThrow(
+        "tidak ditemukan atau bukan milik sekolah aktif"
+      );
+    });
+
+    it("StudentRepository.updateStudent: throws error on cross-tenant student update", async () => {
+      (prisma.siswa.findFirst as any).mockResolvedValue(null);
+      const studentRepo = new StudentRepository();
+
+      await expect(
+        studentRepo.updateStudent("STUDENT_TENANT_B", "SCH_TENANT_A", {
+          nama_lengkap: "Updated Fake Name",
+        })
+      ).rejects.toThrow("tidak ditemukan atau bukan milik sekolah aktif");
     });
   });
 });

@@ -53,3 +53,17 @@ export interface BillingActionResult<T = unknown> {
   data?: T;
   error?: string;
 }
+
+export interface TenantBillingOverviewDTO {
+  sekolahId: string;
+  namaSekolah: string;
+  npsn: string | null;
+  paketSaatIni: string;
+  statusLangganan: string;
+  tanggalBerakhir: string | null;
+  hariTersisa: number;
+  isTrial: boolean;
+  statusTenant: string;
+  allowsMutation: boolean;
+  isOwner: boolean;
+}
