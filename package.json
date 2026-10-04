@@ -14,6 +14,7 @@
     "data:jadwal:check": "node --env-file=.env scripts/import-otomindo-schedule.mjs",
     "data:jadwal:import": "node --env-file=.env scripts/import-otomindo-schedule.mjs --apply",
     "data:seed:canonical": "node --env-file=.env scripts/seeds/seed-all.mjs",
+    "bot": "node scripts/telegram-maestro-bot.mjs",
     "test": "vitest run --fileParallelism=false",
     "test:watch": "vitest"
   },
