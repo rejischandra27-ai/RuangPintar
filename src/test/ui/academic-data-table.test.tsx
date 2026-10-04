@@ -115,6 +115,9 @@ describe("AcademicDataTable Component", () => {
       />
     );
 
+    const filterBtn = screen.getByTitle("Filter Data");
+    fireEvent.click(filterBtn);
+
     const select = screen.getByDisplayValue("Semua Kategori");
     fireEvent.change(select, { target: { value: "ART" } });
 

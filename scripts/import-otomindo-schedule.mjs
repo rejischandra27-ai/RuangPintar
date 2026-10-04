@@ -493,17 +493,38 @@ async function applyImport(prisma, source, schedule, sourceHash, sourceWarnings,
       const realTeacherIds = new Set();
 
       for (const teacher of source.guru) {
-        let record = existingTeachers.find((item) => item.nama_lengkap === teacher.nama_lengkap);
+        let record = existingTeachers.find((item) => {
+          const m = item.catatan
+            ? item.catatan.match(/KODE_GURU:(\d+)/i) || item.catatan.match(/Kode guru (\d+)/i)
+            : null;
+          if (m && Number(m[1]) === teacher.kode) return true;
+          const cleanDB = item.nama_lengkap
+            .toLowerCase()
+            .replace(/,/g, "")
+            .replace(/\b(s\.pd|s\.kom|m\.pd|se|mm|sp|mt|s\.ds|s\.sos\.i|s\.pd\.i|a\.md|drs|dr)\b/gi, "")
+            .replace(/\./g, "")
+            .trim()
+            .replace(/\s+/g, " ");
+          const cleanSource = teacher.nama_lengkap
+            .toLowerCase()
+            .replace(/,/g, "")
+            .replace(/\b(s\.pd|s\.kom|m\.pd|se|mm|sp|mt|s\.ds|s\.sos\.i|s\.pd\.i|a\.md|drs|dr)\b/gi, "")
+            .replace(/\./g, "")
+            .trim()
+            .replace(/\s+/g, " ");
+          return cleanDB === cleanSource;
+        });
         const repurposeLinkedProfile = teacher.kode === 21 && !record && linkedProfile;
         if (repurposeLinkedProfile) record = linkedProfile;
 
+        const formattedName = [teacher.gelar_depan, teacher.nama_lengkap].filter(Boolean).join(" ") + (teacher.gelar_belakang ? ", " + teacher.gelar_belakang : "");
         const data = {
-          nama_lengkap: teacher.nama_lengkap,
+          nama_lengkap: record?.nama_lengkap || formattedName,
           gelar_depan: teacher.gelar_depan,
           gelar_belakang: teacher.gelar_belakang,
           jenis_kelamin: teacher.jenis_kelamin,
           status_aktif: true,
-          catatan: `${sourceNote} | Kode guru ${teacher.kode}. Jenis kelamin perlu verifikasi operator.`,
+          catatan: `KODE_GURU:${teacher.kode}`,
         };
 
         if (record) {
@@ -519,7 +540,7 @@ async function applyImport(prisma, source, schedule, sourceHash, sourceWarnings,
                   email: null,
                   telepon: null,
                   alamat: null,
-                  status_kepegawaian: "LAINNYA",
+                  status_kepegawaian: "TETAP",
                 }
               : data,
           });
