@@ -8,6 +8,7 @@
 import { prisma } from "@/shared/infrastructure/database/prisma";
 import { generateUlid } from "@/shared/lib/ulid";
 import { parseUserAgent, calculatePresence } from "@/shared/lib/device-detector";
+import { formatNamaDenganGelar } from "@/shared/utils/name-formatter";
 import {
   AssignHomeroomInput,
   CreateSubjectInput,
@@ -119,11 +120,7 @@ export class TeacherRepository {
         r._count.tugas_dibuat +
         r._count.administrasi_pembelajaran;
 
-      const namaGelar = [r.gelar_depan, r.nama_lengkap, r.gelar_belakang]
-        .filter(Boolean)
-        .join(" ")
-        .replace(/\s+/g, " ")
-        .trim();
+      const namaGelar = formatNamaDenganGelar(r.nama_lengkap, r.gelar_depan, r.gelar_belakang);
 
       const latestSession = r.pengguna?.sesi?.[0];
       const userAgent = latestSession?.user_agent;
@@ -220,11 +217,7 @@ export class TeacherRepository {
       r._count.tugas_dibuat +
       r._count.administrasi_pembelajaran;
 
-    const namaGelar = [r.gelar_depan, r.nama_lengkap, r.gelar_belakang]
-      .filter(Boolean)
-      .join(" ")
-      .replace(/\s+/g, " ")
-      .trim();
+    const namaGelar = formatNamaDenganGelar(r.nama_lengkap, r.gelar_depan, r.gelar_belakang);
 
     const latestSession = r.pengguna?.sesi?.[0];
     const userAgent = latestSession?.user_agent;
@@ -316,11 +309,7 @@ export class TeacherRepository {
       r._count.tugas_dibuat +
       r._count.administrasi_pembelajaran;
 
-    const namaGelar = [r.gelar_depan, r.nama_lengkap, r.gelar_belakang]
-      .filter(Boolean)
-      .join(" ")
-      .replace(/\s+/g, " ")
-      .trim();
+    const namaGelar = formatNamaDenganGelar(r.nama_lengkap, r.gelar_depan, r.gelar_belakang);
 
     return {
       id: r.id,
@@ -420,11 +409,7 @@ export class TeacherRepository {
       include: { pengguna: { select: { username: true } } },
     });
 
-    const namaGelar = [r.gelar_depan, r.nama_lengkap, r.gelar_belakang]
-      .filter(Boolean)
-      .join(" ")
-      .replace(/\s+/g, " ")
-      .trim();
+    const namaGelar = formatNamaDenganGelar(r.nama_lengkap, r.gelar_depan, r.gelar_belakang);
 
     return {
       id: r.id,
@@ -507,15 +492,25 @@ export class TeacherRepository {
       },
     });
 
+    if (r.pengguna_id && (input.nama_lengkap !== undefined || data.status_aktif !== undefined)) {
+      try {
+        await prisma.pengguna.update({
+          where: { id: r.pengguna_id },
+          data: {
+            ...(input.nama_lengkap ? { nama_lengkap: input.nama_lengkap } : {}),
+            ...(data.status_aktif !== undefined ? { status_aktif: data.status_aktif } : {}),
+          },
+        });
+      } catch {
+        // Fallback jika pengguna terisolasi
+      }
+    }
+
     const uniqueRombels = new Set(r.penugasan_mengajar.map((p) => p.rombel_id));
     const totalJam = r.penugasan_mengajar.reduce((acc, p) => acc + p.jumlah_jam_minggu, 0);
     const activeWali = r.penugasan_wali.length > 0 ? r.penugasan_wali[0] : null;
 
-    const namaGelar = [r.gelar_depan, r.nama_lengkap, r.gelar_belakang]
-      .filter(Boolean)
-      .join(" ")
-      .replace(/\s+/g, " ")
-      .trim();
+    const namaGelar = formatNamaDenganGelar(r.nama_lengkap, r.gelar_depan, r.gelar_belakang);
 
     return {
       id: r.id,

@@ -119,7 +119,7 @@ export function AcademicShell({
           />
 
           {/* Scrollable Page Body with bottom clearance on mobile (< md) for MobileBottomNav */}
-          <main className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 pb-24 md:pb-12 pt-2">
+          <main className="flex-1 overflow-y-auto overflow-x-hidden px-4 sm:px-6 lg:px-8 pb-24 md:pb-12 pt-2">
             <div className="w-full">{children}</div>
           </main>
         </div>

@@ -34,7 +34,7 @@ export function Topbar({
 }: TopbarProps) {
   return (
     <header
-      className={`sticky top-0 z-40 flex h-20 w-full items-center justify-between bg-[#F8FAFC]/90 dark:bg-[#090D16]/90 backdrop-blur-md px-3 sm:px-6 lg:px-8 border-b border-transparent dark:border-slate-800/40 transition-colors duration-200 ${className}`}
+      className={`sticky top-0 z-40 flex h-20 w-full items-center justify-between bg-[#F8FAFC]/90 dark:bg-[#090D16]/90 backdrop-blur-md px-4 sm:px-6 lg:px-8 border-b border-transparent dark:border-slate-800/40 transition-colors duration-200 ${className}`}
     >
       {/* Left side: Mobile Drawer Trigger + Desktop Sidebar Toggle + Dashboard Title */}
       <div className="flex items-center gap-2 sm:gap-3">

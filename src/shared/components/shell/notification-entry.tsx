@@ -161,7 +161,7 @@ export function NotificationEntry() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-[calc(100vw-1.5rem)] max-w-sm sm:w-96 origin-top-right rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl p-3.5 shadow-2xl border border-slate-200/80 dark:border-slate-800 z-50 animate-in fade-in-0 zoom-in-95 duration-150">
+        <div className="fixed sm:absolute right-4 sm:right-0 top-[5.25rem] sm:top-full mt-0 sm:mt-2 w-[calc(100vw-2rem)] max-w-sm sm:w-96 origin-top-right rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl p-3.5 shadow-2xl border border-slate-200/80 dark:border-slate-800 z-50 animate-in fade-in-0 zoom-in-95 duration-150">
           {/* Popover Header */}
           <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 mb-2">
             <div className="flex items-center gap-2">

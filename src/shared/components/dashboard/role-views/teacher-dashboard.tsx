@@ -265,7 +265,7 @@ export async function TeacherDashboard({
       : 0;
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-6 pb-12 w-full max-w-7xl mx-auto">
       {/* 1. Modal Managers (Invisibly mounted, only opens on demand) */}
       <TrialBanner />
       <ManualCreateClassModal />
@@ -283,7 +283,7 @@ export async function TeacherDashboard({
         {/* LEFT WORKSPACE (8 Columns on XL) */}
         <div className="xl:col-span-8 space-y-6 sm:space-y-7">
           {/* A. Hero Greeting Banner (Astronaut Mascot Pop-Out + Sapaan + Aksi Cepat) */}
-          <div className="rounded-[28px] bg-white dark:bg-slate-900/75 dark:backdrop-blur-xl border border-slate-200/80 dark:border-blue-500/25 p-6 sm:p-7 shadow-xs dark:shadow-[0_0_35px_-5px_rgba(37,99,235,0.18),0_10px_25px_-5px_rgba(0,0,0,0.5)] relative overflow-visible flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="rounded-[28px] bg-white dark:bg-slate-900/75 dark:backdrop-blur-xl border border-slate-200/80 dark:border-blue-500/25 p-6 sm:p-7 shadow-xs dark:shadow-[0_0_35px_-5px_rgba(37,99,235,0.18),0_10px_25px_-5px_rgba(0,0,0,0.5)] relative overflow-hidden md:overflow-visible flex flex-col md:flex-row md:items-center justify-between gap-6">
             {/* Ambient Glow in dark mode */}
             <div className="absolute top-0 right-1/4 w-72 h-44 bg-blue-500/10 dark:bg-blue-500/20 rounded-full blur-3xl pointer-events-none" />
 
