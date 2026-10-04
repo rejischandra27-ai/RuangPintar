@@ -107,22 +107,35 @@ Konteks Proyek:
 
   contents.push({ role: "user", parts });
 
-  try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contents }),
-      }
-    );
+  const candidateModels = [
+    "gemini-flash-lite-latest",
+    "gemini-3.1-flash-lite",
+    "gemini-3.5-flash-lite",
+    "gemini-flash-latest",
+  ];
 
-    const data = await res.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    return text || "Maestro tidak dapat menghasilkan tanggapan saat ini.";
-  } catch (err) {
-    return `Gagal menghubungi AI Gemini: ${err.message}`;
+  for (const model of candidateModels) {
+    try {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ contents }),
+        }
+      );
+
+      if (res.status === 200) {
+        const data = await res.json();
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (text) return text;
+      }
+    } catch {
+      // Coba model berikutnya
+    }
   }
+
+  return "Maestro sedang mengalami kepadatan antrean AI saat ini. Silakan coba sesaat lagi.";
 }
 
 // Router Perintah

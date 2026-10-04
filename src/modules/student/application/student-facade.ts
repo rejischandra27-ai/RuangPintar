@@ -83,7 +83,7 @@ export class StudentFacade {
         status_akademik: filters?.studentStatus as any,
         tahun_ajaran_id: targetYearId,
         rombel_id: filters?.rombelId,
-        limit: 100,
+        limit: 2000,
       }
     );
 
@@ -92,7 +92,7 @@ export class StudentFacade {
       sekolahId,
       {
         tahun_ajaran_id: targetYearId,
-        limit: 100,
+        limit: 2000,
       }
     );
 
@@ -102,7 +102,7 @@ export class StudentFacade {
       {
         tahun_ajaran_id: targetYearId,
         rombel_id: filters?.rombelId,
-        limit: 100,
+        limit: 2000,
       }
     );
 
