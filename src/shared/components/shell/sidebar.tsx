@@ -114,6 +114,7 @@ export function Sidebar({
       >
         <Link
           href="/dashboard"
+          prefetch={false}
           className="flex items-center gap-3 overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 rounded-xl"
           aria-label="Beranda Ruang Pintar"
         >
@@ -164,6 +165,7 @@ export function Sidebar({
                   <div key={item.id} className="relative group">
                     <Link
                       href={item.href}
+                      prefetch={false}
                       className={`flex items-center transition-all duration-150 min-h-[48px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 ${
                         isActive
                           ? isCollapsed
@@ -254,6 +256,7 @@ export function Sidebar({
         {/* 1. Profil Siswa / Profil Saya */}
         <Link
           href="/profil"
+          prefetch={false}
           aria-label={userRole === "STUDENT" ? "Profil Siswa" : "Profil Saya"}
           title={userRole === "STUDENT" ? "Profil Siswa" : "Profil Saya"}
           className={`flex items-center gap-3 rounded-xl text-xs font-medium text-blue-100/90 hover:bg-white/10 hover:text-white transition-colors min-h-[40px] ${
@@ -273,6 +276,7 @@ export function Sidebar({
         {/* 2. Pusat Bantuan */}
         <Link
           href="#"
+          prefetch={false}
           aria-label="Pusat Bantuan"
           title="Pusat Bantuan"
           className={`flex items-center gap-3 rounded-xl text-xs font-medium text-blue-100/85 hover:bg-white/10 hover:text-white transition-colors min-h-[40px] ${

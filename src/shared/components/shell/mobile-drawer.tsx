@@ -159,6 +159,7 @@ export function MobileDrawer({
                     <Link
                       key={item.id}
                       href={item.href}
+                      prefetch={false}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-colors min-h-[44px] ${
                         isActive
                           ? "bg-white text-[#0F172A] font-bold shadow-md"

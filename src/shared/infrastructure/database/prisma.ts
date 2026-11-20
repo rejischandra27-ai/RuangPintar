@@ -38,10 +38,11 @@ function createPrismaClient(): PrismaClient {
   return client;
 }
 
-export const prisma: PrismaClient = global.__ruangPintarPrisma__ ?? createPrismaClient();
+export const prisma: PrismaClient = globalThis.__ruangPintarPrisma__ ?? createPrismaClient();
 
-if (process.env.NODE_ENV !== "production") {
-  global.__ruangPintarPrisma__ = prisma;
-}
+// Cached in production too: a warm serverless instance keeps globalThis between invocations,
+// and Next.js can evaluate this module once per server bundle. Without the cache each bundle
+// would open its own connection pool to Supabase.
+globalThis.__ruangPintarPrisma__ = prisma;
 
 export default prisma;

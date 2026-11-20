@@ -124,7 +124,7 @@ Setelah layanan berhasil di-restart, lakukan verifikasi cepat (*smoke test*):
    npm run db:transfer:supabase
    ```
    Skrip menolak target yang berisi data, menyalin model menurut dependensi, lalu mencocokkan jumlah baris dan SHA-256 isi setiap tabel. Jika gagal di tengah proses, jangan gunakan target itu; siapkan database kosong baru sebelum mencoba ulang.
-4. Atur Vercel untuk memakai pooled `DATABASE_URL` Supabase dan `DIRECT_URL`. `vercel.json` menjalankan Prisma Client PostgreSQL sebelum build.
+4. Atur Vercel untuk memakai pooled `DATABASE_URL` Supabase dan `DIRECT_URL`. `vercel.json` menjalankan Prisma Client PostgreSQL sebelum build dan mengunci region function ke `hnd1` (Tokyo) agar berada di region yang sama dengan database Supabase (`ap-northeast-1`). Jika database dipindahkan ke region lain, ubah `regions` di `vercel.json` ke region Vercel terdekat dengan database tersebut.
 5. Sebelum cutover data aktif, hentikan sementara penulisan ke aplikasi SQLite, ambil backup terakhir, transfer, cocokkan ringkasan data, lalu arahkan Vercel ke Supabase. Jangan hapus SQLite sampai pemilik memverifikasi hasil.
 
 ### Pemindahan file ke Supabase Storage
